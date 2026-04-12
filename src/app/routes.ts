@@ -1,8 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { authGuard } from '@core/auth/auth.guard';
-// import { roleGuard } from '@core/auth/role.guard';
-// Rutas futuras por rol: `canActivate: [authGuard, roleGuard], data: { roles: ['ADMIN'] }`.
+import { roleGuard } from '@core/auth/role.guard';
 
 export const routes: Routes = [
   {
@@ -36,6 +35,40 @@ export const routes: Routes = [
         loadChildren: () =>
           import('@features/requests/requests.routes').then(
             (m) => m.REQUESTS_ROUTES,
+          ),
+      },
+      {
+        path: 'catalogs',
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] },
+        loadChildren: () =>
+          import('@features/catalogs/catalogs.routes').then(
+            (m) => m.CATALOGS_ROUTES,
+          ),
+      },
+      {
+        path: 'business-rules',
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'STAFF'] },
+        loadChildren: () =>
+          import('@features/business-rules/business-rules.routes').then(
+            (m) => m.BUSINESS_RULES_ROUTES,
+          ),
+      },
+      {
+        path: 'users',
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] },
+        loadChildren: () =>
+          import('@features/users/users.routes').then((m) => m.USERS_ROUTES),
+      },
+      {
+        path: 'reports',
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] },
+        loadChildren: () =>
+          import('@features/reports/reports.routes').then(
+            (m) => m.REPORTS_ROUTES,
           ),
       },
     ],

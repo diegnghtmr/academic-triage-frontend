@@ -2,7 +2,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
-  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -10,75 +9,85 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
-import { AuthSessionStore } from '@core/auth/auth-session.store';
+import type { RoleEnum, UserResponse } from '@core/auth/models/auth-api.types';
 import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
+import { ActiveBadgePipe } from '@shared/pipes/active-badge.pipe';
+import { EmptyState } from '@shared/components/empty-state';
 import { ErrorAlert } from '@shared/components/error-alert';
 import { LoadingState } from '@shared/components/loading-state';
 import { PageSection } from '@shared/components/page-section';
 import { PaginationNav } from '@shared/components/pagination-nav';
 
-import { RequestsApiService } from '../data-access/requests-api.service';
-import type {
-  ListRequestsQueryParams,
-  RequestResponse,
-  RequestStatusEnum,
-} from '../models/request-api.types';
+import { UsersApiService } from '../data-access/users-api.service';
+import type { ListUsersQueryParams } from '../models/user-admin.types';
 
 @Component({
-  selector: 'at-request-list-page',
+  selector: 'at-users-list-page',
   imports: [
     ReactiveFormsModule,
     RouterLink,
     PageSection,
     LoadingState,
     ErrorAlert,
+    EmptyState,
     PaginationNav,
+    ActiveBadgePipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <at-page-section title="Solicitudes">
-      @if (canCreateRequest()) {
-        <p><a routerLink="/app/requests/new">Nueva solicitud</a></p>
-      }
-
+    <at-page-section title="Usuarios">
       <form [formGroup]="filterForm" (ngSubmit)="applyFilters()">
         <label>
-          Estado
-          <select formControlName="status">
+          Rol
+          <select formControlName="role">
             <option [ngValue]="null">(todos)</option>
-            @for (s of statusOptions; track s) {
-              <option [ngValue]="s">{{ s }}</option>
+            @for (r of roleOptions; track r) {
+              <option [ngValue]="r">{{ r }}</option>
             }
           </select>
         </label>
-        <button type="submit">Filtrar</button>
+        <label>
+          Estado
+          <select formControlName="active">
+            <option [ngValue]="null">(todos)</option>
+            <option [ngValue]="true">Activo</option>
+            <option [ngValue]="false">Inactivo</option>
+          </select>
+        </label>
+        <button type="submit" [disabled]="loading()">Filtrar</button>
       </form>
 
       <at-error-alert [message]="errorMessage()" />
 
       @if (loading()) {
         <at-loading-state />
+      } @else if (rows().length === 0) {
+        <at-empty-state message="No hay usuarios que coincidan con los filtros." />
       } @else {
         <table>
           <thead>
             <tr>
               <th scope="col">ID</th>
-              <th scope="col">Estado</th>
-              <th scope="col">Tipo</th>
-              <th scope="col">Registro</th>
+              <th scope="col">Usuario</th>
+              <th scope="col">Nombre</th>
+              <th scope="col">Email</th>
+              <th scope="col">Rol</th>
+              <th scope="col">Activo</th>
               <th scope="col">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            @for (r of rows(); track $index) {
+            @for (u of rows(); track u.id) {
               <tr>
-                <td>{{ r.id }}</td>
-                <td>{{ r.status }}</td>
-                <td>{{ r.requestType?.name }}</td>
-                <td>{{ r.registrationDateTime }}</td>
+                <td>{{ u.id }}</td>
+                <td>{{ u.username }}</td>
+                <td>{{ u.firstName }} {{ u.lastName }}</td>
+                <td>{{ u.email }}</td>
+                <td>{{ u.role }}</td>
+                <td>{{ u.active | activeBadge }}</td>
                 <td>
-                  @if (r.id !== undefined) {
-                    <a [routerLink]="['/app/requests', r.id]" [attr.aria-label]="'Ver solicitud #' + r.id">Ver</a>
+                  @if (u.id !== undefined) {
+                    <a [routerLink]="[u.id, 'edit']" [attr.aria-label]="'Editar usuario ' + u.username">Editar</a>
                   }
                 </td>
               </tr>
@@ -97,35 +106,23 @@ import type {
     </at-page-section>
   `,
 })
-export class RequestListPage {
-  private readonly api = inject(RequestsApiService);
+export class UsersListPage {
+  private readonly api = inject(UsersApiService);
   private readonly problemMapper = inject(ProblemErrorMapper);
-  private readonly session = inject(AuthSessionStore);
   private readonly fb = inject(FormBuilder);
 
-  protected readonly canCreateRequest = computed(() => {
-    const r = this.session.role();
-    return r === 'STUDENT' || r === 'STAFF';
-  });
+  protected readonly roleOptions: RoleEnum[] = ['ADMIN', 'STAFF', 'STUDENT'];
+
   protected readonly loading = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
-  protected readonly rows = signal<RequestResponse[]>([]);
+  protected readonly rows = signal<UserResponse[]>([]);
   protected readonly currentPage = signal(0);
   protected readonly totalPages = signal(0);
   protected readonly pageSize = signal(20);
 
-  protected readonly statusOptions: RequestStatusEnum[] = [
-    'REGISTERED',
-    'CLASSIFIED',
-    'IN_PROGRESS',
-    'ATTENDED',
-    'CLOSED',
-    'CANCELLED',
-    'REJECTED',
-  ];
-
   protected readonly filterForm = this.fb.nonNullable.group({
-    status: this.fb.control<RequestStatusEnum | null>(null),
+    role: this.fb.control<RoleEnum | null>(null),
+    active: this.fb.control<boolean | null>(null),
   });
 
   constructor() {
@@ -150,22 +147,27 @@ export class RequestListPage {
   private load(): void {
     this.errorMessage.set(null);
     this.loading.set(true);
+
     const f = this.filterForm.getRawValue();
-    const q: ListRequestsQueryParams = {
+    const q: ListUsersQueryParams = {
       page: this.currentPage(),
       size: this.pageSize(),
-      sort: 'registrationDateTime,desc',
+      sort: 'username,asc',
     };
-    if (f.status !== null) {
-      q.status = f.status;
+    if (f.role !== null) {
+      q.role = f.role;
     }
+    if (f.active !== null) {
+      q.active = f.active;
+    }
+
     this.api
-      .listRequests(q)
+      .list(q)
       .pipe(
         catchError((err: HttpErrorResponse) => {
           const p = this.problemMapper.fromHttpError(err);
           this.errorMessage.set(
-            p?.detail ?? p?.title ?? 'No se pudo cargar el listado.',
+            p?.detail ?? p?.title ?? 'No se pudo cargar el listado de usuarios.',
           );
           return EMPTY;
         }),
@@ -173,14 +175,9 @@ export class RequestListPage {
       )
       .subscribe((page) => {
         this.rows.set(page.content ?? []);
-        const tp = page.totalPages ?? 0;
-        this.totalPages.set(tp > 0 ? tp : 1);
-        if (page.currentPage !== undefined) {
-          this.currentPage.set(page.currentPage);
-        }
-        if (page.pageSize !== undefined) {
-          this.pageSize.set(page.pageSize);
-        }
+        this.totalPages.set(page.totalPages > 0 ? page.totalPages : 1);
+        this.currentPage.set(page.currentPage);
+        this.pageSize.set(page.pageSize);
       });
   }
 }

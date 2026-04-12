@@ -1,11 +1,277 @@
-/* Global styles — Fase 2: mínimo; diseño final en fases posteriores */
+// ============================================================
+// Academic Triage — Design Tokens + Base Styles
+// Identidad visual: cyber / terminal / información densa
+// ============================================================
+
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
+// ── Design Tokens ────────────────────────────────────────────
+:root {
+  // Palette
+  --at-bg:             #080810;
+  --at-surface:        #0e0e1c;
+  --at-surface-2:      #141428;
+  --at-border:         #1c1c36;
+  --at-border-hi:      #2c2c50;
+
+  --at-text:           #c6c6de;
+  --at-text-muted:     #55557a;
+  --at-text-dim:       #3a3a5a;
+
+  --at-accent:         #5b8fff;
+  --at-accent-hi:      #93b8ff;
+
+  --at-success:        #3ecf6e;
+  --at-warning:        #e8c533;
+  --at-danger:         #e06060;
+  --at-info:           #9b8fff;
+
+  // Spacing scale
+  --at-s1: 0.25rem;
+  --at-s2: 0.5rem;
+  --at-s3: 0.75rem;
+  --at-s4: 1rem;
+  --at-s5: 1.25rem;
+  --at-s6: 1.5rem;
+  --at-s8: 2rem;
+
+  // Typography
+  --at-font:      'Consolas', 'Menlo', 'Courier New', monospace;
+  --at-fs-xs:     0.7rem;
+  --at-fs-sm:     0.775rem;
+  --at-fs:        0.875rem;
+  --at-fs-lg:     1rem;
+  --at-fs-xl:     1.2rem;
+  --at-lh:        1.65;
+}
+
+// ── Base reset ───────────────────────────────────────────────
 body {
   margin: 0;
-  font-family: system-ui, sans-serif;
+  background: var(--at-bg);
+  color: var(--at-text);
+  font-family: var(--at-font);
+  font-size: var(--at-fs);
+  line-height: var(--at-lh);
+  -webkit-font-smoothing: antialiased;
+}
+
+// ── Headings ─────────────────────────────────────────────────
+h1, h2, h3, h4, h5 {
+  margin: 0 0 var(--at-s4);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+  color: var(--at-text);
+}
+
+h1 { font-size: 1.4rem; }
+h2 { font-size: var(--at-fs-xl); }
+h3 { font-size: var(--at-fs-lg); color: var(--at-accent); }
+h4 { font-size: var(--at-fs); color: var(--at-text-muted); text-transform: uppercase; letter-spacing: 0.07em; }
+
+p { margin: 0 0 var(--at-s3); }
+
+// ── Links ────────────────────────────────────────────────────
+a {
+  color: var(--at-accent);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--at-accent-hi);
+    text-decoration: underline;
+  }
+}
+
+// ── Buttons ──────────────────────────────────────────────────
+button {
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--at-border-hi);
+  color: var(--at-text);
+  font-family: inherit;
+  font-size: var(--at-fs-sm);
+  padding: var(--at-s1) var(--at-s3);
+  letter-spacing: 0.03em;
+  transition: border-color 0.12s ease, color 0.12s ease;
+
+  &:not([disabled]):hover {
+    border-color: var(--at-accent);
+    color: var(--at-accent);
+  }
+
+  &[disabled] {
+    opacity: 0.38;
+    cursor: not-allowed;
+  }
+}
+
+// ── Form controls ────────────────────────────────────────────
+label {
+  display: block;
+  color: var(--at-text-muted);
+  font-size: var(--at-fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: var(--at-s1);
+}
+
+input[type='text'],
+input[type='email'],
+input[type='password'],
+input[type='number'],
+input[type='date'],
+select,
+textarea {
+  display: block;
+  width: 100%;
+  background: var(--at-surface);
+  border: 1px solid var(--at-border-hi);
+  color: var(--at-text);
+  font-family: inherit;
+  font-size: var(--at-fs-sm);
+  padding: var(--at-s2) var(--at-s3);
+  outline: none;
+  transition: border-color 0.12s ease;
+
+  &:focus {
+    border-color: var(--at-accent);
+  }
+
+  &:disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+  }
+}
+
+select {
+  cursor: pointer;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 5rem;
+}
+
+form > div,
+form > label {
+  margin-bottom: var(--at-s4);
+}
+
+// ── Tables ───────────────────────────────────────────────────
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--at-fs-sm);
+}
+
+thead tr {
+  border-bottom: 1px solid var(--at-border-hi);
+}
+
+th {
+  text-align: left;
+  padding: var(--at-s2) var(--at-s3);
+  color: var(--at-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-size: var(--at-fs-xs);
+  font-weight: 600;
+}
+
+td {
+  padding: var(--at-s2) var(--at-s3);
+  border-bottom: 1px solid var(--at-border);
+  vertical-align: top;
+}
+
+tbody tr:hover td {
+  background: var(--at-surface-2);
+}
+
+// ── Definition lists (request detail) ────────────────────────
+dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--at-s2) var(--at-s4);
+  margin: 0 0 var(--at-s4);
+}
+
+dt {
+  color: var(--at-text-muted);
+  font-size: var(--at-fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding-top: 2px;
+}
+
+dd {
+  margin: 0;
+  color: var(--at-text);
+}
+
+// ── ARIA live regions ────────────────────────────────────────
+[role='alert'] {
+  background: color-mix(in srgb, var(--at-danger) 10%, transparent);
+  border: 1px solid var(--at-danger);
+  color: var(--at-danger);
+  font-size: var(--at-fs-sm);
+  padding: var(--at-s2) var(--at-s4);
+  margin: var(--at-s2) 0;
+}
+
+[role='status'] {
+  background: color-mix(in srgb, var(--at-success) 10%, transparent);
+  border: 1px solid var(--at-success);
+  color: var(--at-success);
+  font-size: var(--at-fs-sm);
+  padding: var(--at-s2) var(--at-s4);
+  margin: var(--at-s2) 0;
+}
+
+// ── App shell ────────────────────────────────────────────────
+at-app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+[role='banner'] {
+  display: flex;
+  align-items: center;
+  gap: var(--at-s4);
+  padding: var(--at-s3) var(--at-s6);
+  background: var(--at-surface);
+  border-bottom: 1px solid var(--at-border-hi);
+  flex-wrap: wrap;
+
+  h1 {
+    margin: 0;
+    font-size: var(--at-fs-lg);
+    color: var(--at-accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  nav {
+    display: flex;
+    align-items: center;
+    gap: var(--at-s3);
+    flex: 1;
+    flex-wrap: wrap;
+    font-size: var(--at-fs-sm);
+  }
+
+  p { margin: 0; font-size: var(--at-fs-xs); color: var(--at-text-muted); }
+}
+
+main {
+  flex: 1;
+  padding: var(--at-s6) var(--at-s8);
+  max-width: 1280px;
+  width: 100%;
 }

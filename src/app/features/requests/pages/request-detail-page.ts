@@ -7,6 +7,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -17,17 +18,22 @@ import { map } from 'rxjs/operators';
 import { AuthSessionStore } from '@core/auth/auth-session.store';
 import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
 
+import {
+  adaptHistoryEntry,
+  adaptRequestDetail,
+} from '../adapters/request-detail.adapter';
+import { AiApiService } from '../data-access/ai-api.service';
 import { CatalogApiService } from '../data-access/catalog-api.service';
 import { RequestsApiService } from '../data-access/requests-api.service';
+import type { AiSummaryResponse } from '../models/ai-api.types';
 import type {
-  HistoryEntryResponse,
   PriorityEnum,
   PrioritySuggestionResponse,
-  RequestDetailResponse,
   RequestResponse,
   RequestStatusEnum,
   RequestTypeResponse,
 } from '../models/request-api.types';
+import type { HistoryEntryView, RequestDetailView } from '../models/request-detail-view';
 import {
   canShowAddHistoryNote,
   canShowAssign,
@@ -40,9 +46,13 @@ import {
   isTerminalStatus,
 } from '../utils/request-action-visibility';
 
+/** Mensaje estándar cuando la IA devuelve 503. */
+const AI_UNAVAILABLE_MSG =
+  'La asistencia de IA no está disponible en este entorno.';
+
 @Component({
   selector: 'at-request-detail-page',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, DatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section>
@@ -56,21 +66,21 @@ import {
         <h2>Solicitud #{{ d.id }}</h2>
         <dl>
           <dt>Estado</dt>
-          <dd>{{ d.status }}</dd>
+          <dd>{{ d.statusLabel }}</dd>
           <dt>Descripción</dt>
           <dd>{{ d.description }}</dd>
           <dt>Registro</dt>
           <dd>{{ d.registrationDateTime }}</dd>
           <dt>Prioridad</dt>
-          <dd>{{ d.priority }}</dd>
+          <dd>{{ d.priorityLabel ?? '—' }}</dd>
           <dt>Tipo</dt>
-          <dd>{{ d.requestType?.name }}</dd>
+          <dd>{{ d.typeName }}</dd>
           <dt>Canal</dt>
-          <dd>{{ d.originChannel?.name }}</dd>
+          <dd>{{ d.channelName }}</dd>
           <dt>Solicitante</dt>
-          <dd>{{ d.requester?.username }}</dd>
+          <dd>{{ d.requesterName }}</dd>
           <dt>Asignado</dt>
-          <dd>{{ d.assignedTo?.username }}</dd>
+          <dd>{{ d.assignedToName ?? '—' }}</dd>
         </dl>
 
         <section>
@@ -100,15 +110,54 @@ import {
           }
         </section>
 
+        <!-- Resumen IA: solo STAFF y ADMIN (contrato: GET /ai/summarize → STAFF, ADMIN) -->
+        @if (canSummarizeAiRole()) {
+          <section aria-labelledby="ai-summary-heading">
+            <h3 id="ai-summary-heading">Resumen IA (asistencia de lectura)</h3>
+            <p>
+              <small>
+                Generado por IA a partir del estado e historial de la solicitud.
+                No reemplaza los datos oficiales. No disponible en todos los entornos.
+              </small>
+            </p>
+            <button
+              type="button"
+              (click)="loadAiSummary()"
+              [disabled]="aiSummaryLoading()"
+              aria-label="Generar resumen IA de esta solicitud"
+            >
+              @if (aiSummaryLoading()) {
+                Generando resumen…
+              } @else {
+                Obtener resumen IA
+              }
+            </button>
+            @if (aiSummaryError()) {
+              <p role="status">{{ aiSummaryError() }}</p>
+            }
+            @if (aiSummary()) {
+              @let sum = aiSummary()!;
+              <div role="region" aria-label="Resumen generado por IA">
+                <p>{{ sum.summary }}</p>
+                @if (sum.generatedAt) {
+                  <p>
+                    <small>
+                      Generado el {{ sum.generatedAt | date: 'dd/MM/yyyy HH:mm' }}
+                    </small>
+                  </p>
+                }
+              </div>
+            }
+          </section>
+        }
+
         <section>
           <h3>Historial</h3>
           <ul>
             @for (h of history(); track h.id) {
               <li>
                 <strong>{{ h.timestamp }}</strong> — {{ h.action }}
-                @if (h.performedBy?.username) {
-                  ({{ h.performedBy?.username }})
-                }
+                ({{ h.performedByName }})
                 @if (h.observations) {
                   <div>{{ h.observations }}</div>
                 }
@@ -138,16 +187,22 @@ import {
             @if (canClassify()(d.status)) {
               <form [formGroup]="classifyForm" (ngSubmit)="submitClassify()">
                 <h4>Clasificar</h4>
-                <select formControlName="requestTypeId">
-                  @for (t of requestTypes(); track t.id) {
-                    <option [ngValue]="t.id">{{ t.name }}</option>
-                  }
-                </select>
-                <textarea
-                  formControlName="observations"
-                  placeholder="Observaciones (opcional)"
-                  rows="2"
-                ></textarea>
+                <div>
+                  <label for="detail-classify-type">Tipo de solicitud</label>
+                  <select id="detail-classify-type" formControlName="requestTypeId">
+                    @for (t of requestTypes(); track t.id) {
+                      <option [ngValue]="t.id">{{ t.name }}</option>
+                    }
+                  </select>
+                </div>
+                <div>
+                  <label for="detail-classify-obs">Observaciones (opcional)</label>
+                  <textarea
+                    id="detail-classify-obs"
+                    formControlName="observations"
+                    rows="2"
+                  ></textarea>
+                </div>
                 <button type="submit" [disabled]="classifyForm.invalid || actionBusy()">
                   Clasificar
                 </button>
@@ -156,12 +211,18 @@ import {
             @if (canPrioritize()(d.status, d.priority)) {
               <form [formGroup]="prioritizeForm" (ngSubmit)="submitPrioritize()">
                 <h4>Priorizar</h4>
-                <select formControlName="priority">
-                  @for (p of priorityOptions; track p) {
-                    <option [ngValue]="p">{{ p }}</option>
-                  }
-                </select>
-                <textarea formControlName="justification" rows="2"></textarea>
+                <div>
+                  <label for="detail-priority">Prioridad</label>
+                  <select id="detail-priority" formControlName="priority">
+                    @for (p of priorityOptions; track p) {
+                      <option [ngValue]="p">{{ p }}</option>
+                    }
+                  </select>
+                </div>
+                <div>
+                  <label for="detail-priority-just">Justificación</label>
+                  <textarea id="detail-priority-just" formControlName="justification" rows="2"></textarea>
+                </div>
                 <button type="submit" [disabled]="prioritizeForm.invalid || actionBusy()">
                   Priorizar
                 </button>
@@ -170,15 +231,18 @@ import {
             @if (canAssign()(d.status, d.priority)) {
               <form [formGroup]="assignForm" (ngSubmit)="submitAssign()">
                 <h4>Asignar responsable</h4>
-                <p>
-                  ID de usuario STAFF (sin listado de usuarios en esta fase):
-                  <input type="number" formControlName="assignedToUserId" />
-                </p>
-                <textarea
-                  formControlName="observations"
-                  placeholder="Observaciones (opcional)"
-                  rows="2"
-                ></textarea>
+                <div>
+                  <label for="detail-assign-user">ID de usuario STAFF</label>
+                  <input id="detail-assign-user" type="number" formControlName="assignedToUserId" />
+                </div>
+                <div>
+                  <label for="detail-assign-obs">Observaciones (opcional)</label>
+                  <textarea
+                    id="detail-assign-obs"
+                    formControlName="observations"
+                    rows="2"
+                  ></textarea>
+                </div>
                 <button type="submit" [disabled]="assignForm.invalid || actionBusy()">
                   Asignar
                 </button>
@@ -187,7 +251,10 @@ import {
             @if (canAttend()(d.status)) {
               <form [formGroup]="attendForm" (ngSubmit)="submitAttend()">
                 <h4>Atender</h4>
-                <textarea formControlName="observations" rows="3"></textarea>
+                <div>
+                  <label for="detail-attend-obs">Observaciones</label>
+                  <textarea id="detail-attend-obs" formControlName="observations" rows="3"></textarea>
+                </div>
                 <button type="submit" [disabled]="attendForm.invalid || actionBusy()">
                   Marcar atendida
                 </button>
@@ -196,7 +263,10 @@ import {
             @if (canClose()(d.status)) {
               <form [formGroup]="closeForm" (ngSubmit)="submitClose()">
                 <h4>Cerrar</h4>
-                <textarea formControlName="closingObservation" rows="3"></textarea>
+                <div>
+                  <label for="detail-close-obs">Observación de cierre</label>
+                  <textarea id="detail-close-obs" formControlName="closingObservation" rows="3"></textarea>
+                </div>
                 <button type="submit" [disabled]="closeForm.invalid || actionBusy()">
                   Cerrar solicitud
                 </button>
@@ -205,7 +275,10 @@ import {
             @if (canCancel()(d.status)) {
               <form [formGroup]="cancelForm" (ngSubmit)="submitCancel()">
                 <h4>Cancelar</h4>
-                <textarea formControlName="cancellationReason" rows="3"></textarea>
+                <div>
+                  <label for="detail-cancel-reason">Motivo de cancelación</label>
+                  <textarea id="detail-cancel-reason" formControlName="cancellationReason" rows="3"></textarea>
+                </div>
                 <button type="submit" [disabled]="cancelForm.invalid || actionBusy()">
                   Cancelar solicitud
                 </button>
@@ -214,7 +287,10 @@ import {
             @if (canReject()(d.status)) {
               <form [formGroup]="rejectForm" (ngSubmit)="submitReject()">
                 <h4>Rechazar (ADMIN)</h4>
-                <textarea formControlName="rejectionReason" rows="3"></textarea>
+                <div>
+                  <label for="detail-reject-reason">Motivo de rechazo</label>
+                  <textarea id="detail-reject-reason" formControlName="rejectionReason" rows="3"></textarea>
+                </div>
                 <button type="submit" [disabled]="rejectForm.invalid || actionBusy()">
                   Rechazar
                 </button>
@@ -230,6 +306,7 @@ export class RequestDetailPage {
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly api = inject(RequestsApiService);
+  private readonly aiApi = inject(AiApiService);
   private readonly catalogApi = inject(CatalogApiService);
   private readonly problemMapper = inject(ProblemErrorMapper);
   private readonly session = inject(AuthSessionStore);
@@ -239,14 +316,18 @@ export class RequestDetailPage {
 
   protected readonly loading = signal(true);
   protected readonly loadError = signal<string | null>(null);
-  protected readonly detail = signal<RequestDetailResponse | null>(null);
-  protected readonly history = signal<HistoryEntryResponse[]>([]);
+  protected readonly detail = signal<RequestDetailView | null>(null);
+  protected readonly history = signal<HistoryEntryView[]>([]);
   protected readonly actionError = signal<string | null>(null);
   protected readonly actionBusy = signal(false);
   protected readonly suggestion = signal<PrioritySuggestionResponse | null>(null);
   protected readonly suggestionLoading = signal(false);
   protected readonly suggestionError = signal<string | null>(null);
   protected readonly requestTypes = signal<RequestTypeResponse[]>([]);
+
+  protected readonly aiSummaryLoading = signal(false);
+  protected readonly aiSummaryError = signal<string | null>(null);
+  protected readonly aiSummary = signal<AiSummaryResponse | null>(null);
 
   protected readonly noteSubmitting = signal(false);
 
@@ -345,7 +426,7 @@ export class RequestDetailPage {
     const role = this.session.role();
     const uid = this.session.user()?.id;
     return (status: RequestStatusEnum | undefined) =>
-      canShowCancel(role, status, this.detail()?.requester?.id, uid);
+      canShowCancel(role, status, this.detail()?.requesterId, uid);
   });
 
   protected readonly canReject = computed(() => {
@@ -357,6 +438,12 @@ export class RequestDetailPage {
   protected readonly canNote = computed(() =>
     canShowAddHistoryNote(this.session.role()),
   );
+
+  /** GET /ai/summarize/{requestId} → STAFF, ADMIN (contrato OpenAPI). */
+  protected readonly canSummarizeAiRole = computed(() => {
+    const r = this.session.role();
+    return r === 'STAFF' || r === 'ADMIN';
+  });
 
   constructor() {
     this.catalogApi.listRequestTypes().subscribe({
@@ -397,6 +484,28 @@ export class RequestDetailPage {
         finalize(() => this.suggestionLoading.set(false)),
       )
       .subscribe((s) => this.suggestion.set(s));
+  }
+
+  protected loadAiSummary(): void {
+    this.aiSummaryError.set(null);
+    this.aiSummary.set(null);
+    this.aiSummaryLoading.set(true);
+    this.aiApi
+      .summarizeRequest(this.requestId)
+      .pipe(
+        catchError((err: HttpErrorResponse) => {
+          this.aiSummaryError.set(
+            err.status === 503
+              ? AI_UNAVAILABLE_MSG
+              : (this.problemMapper.fromHttpError(err)?.detail ??
+                  this.problemMapper.fromHttpError(err)?.title ??
+                  'No se pudo generar el resumen de IA.'),
+          );
+          return EMPTY;
+        }),
+        finalize(() => this.aiSummaryLoading.set(false)),
+      )
+      .subscribe((summary) => this.aiSummary.set(summary));
   }
 
   protected submitNote(): void {
@@ -520,14 +629,14 @@ export class RequestDetailPage {
         finalize(() => this.loading.set(false)),
       )
       .subscribe(({ detail, history }) => {
-        this.detail.set(detail);
-        this.history.set(history);
+        this.detail.set(adaptRequestDetail(detail));
+        this.history.set(history.map(adaptHistoryEntry));
       });
   }
 
   private reloadHistoryOnly(): void {
     this.api.getRequestHistory(this.requestId).subscribe({
-      next: (h) => this.history.set(h),
+      next: (h) => this.history.set(h.map(adaptHistoryEntry)),
       error: (err: HttpErrorResponse) => {
         this.actionError.set(this.mapErr(err));
       },
