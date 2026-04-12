@@ -11,8 +11,7 @@ import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { catchError, finalize } from 'rxjs';
-import { EMPTY, forkJoin, type Observable } from 'rxjs';
+import { catchError, EMPTY, finalize, type Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { AuthSessionStore } from '@core/auth/auth-session.store';
@@ -614,10 +613,8 @@ export class RequestDetailPage {
   private reload(): void {
     this.loading.set(true);
     this.loadError.set(null);
-    forkJoin({
-      detail: this.api.getRequestById(this.requestId),
-      history: this.api.getRequestHistory(this.requestId),
-    })
+    this.api
+      .getRequestById(this.requestId)
       .pipe(
         catchError((err: HttpErrorResponse) => {
           const p = this.problemMapper.fromHttpError(err);
@@ -628,9 +625,9 @@ export class RequestDetailPage {
         }),
         finalize(() => this.loading.set(false)),
       )
-      .subscribe(({ detail, history }) => {
+      .subscribe((detail) => {
         this.detail.set(adaptRequestDetail(detail));
-        this.history.set(history.map(adaptHistoryEntry));
+        this.history.set((detail.history ?? []).map(adaptHistoryEntry));
       });
   }
 

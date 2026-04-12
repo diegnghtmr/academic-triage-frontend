@@ -29,3 +29,11 @@ Thumbs.db
 .claude/
 .playwright-mcp/
 info-no-subir-al-git/
+
+# Local planning/docs (do not version)
+docs/
+FRONTEND_OFFICIAL_BACKEND_MIGRATION_PRD.md
+FRONTEND_OFFICIAL_BACKEND_BACKLOG.md
+FRONTEND_PAGES_SUMMARY.md
+GGA-AGENTS.md
+.gga/
