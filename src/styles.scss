@@ -1,0 +1,11 @@
+/* Global styles — Fase 2: mínimo; diseño final en fases posteriores */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+}

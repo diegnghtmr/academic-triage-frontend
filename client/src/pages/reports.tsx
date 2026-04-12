@@ -1,6 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { StatCard } from "@/components/cyber/stat-card";
-import type { DashboardMetrics } from "@shared/schema";
+
+// Tipo temporal local (FE-061: eliminado dominio local duplicado)
+type DashboardMetrics = {
+  totalRequests: number;
+  requestsByStatus: Record<string, number>;
+  requestsByType: Array<{ typeName: string; count: number }>;
+  requestsByPriority: Record<string, number>;
+  averageResolutionTimeHours: number;
+  topResponsibles: Array<{ userId: number; fullName: string; count: number }>;
+};
 
 export default function ReportsPage() {
   const { data: metrics } = useQuery<DashboardMetrics>({

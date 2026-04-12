@@ -5,8 +5,17 @@ import { StatCard } from "@/components/cyber/stat-card";
 import { DataTable } from "@/components/cyber/data-table";
 import { StatusBadge, PriorityBadge } from "@/components/cyber/triage-badge";
 import { TerminalLog } from "@/components/cyber/terminal-log";
-import type { DashboardMetrics } from "@shared/schema";
 import type { RequestStatus, Priority } from "@/components/cyber/triage-badge";
+
+// Tipo temporal local (FE-061: eliminado dominio local duplicado)
+type DashboardMetrics = {
+  totalRequests: number;
+  requestsByStatus: Record<string, number>;
+  requestsByType: Array<{ typeName: string; count: number }>;
+  requestsByPriority: Record<string, number>;
+  averageResolutionTimeHours: number;
+  topResponsibles: Array<{ userId: number; fullName: string; count: number }>;
+};
 
 export default function DashboardPage() {
   const { user } = useAuth();

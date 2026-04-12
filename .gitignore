@@ -1,5 +1,7 @@
 node_modules/
 dist/
+out-tsc/
+.atl/
 
 # Database
 *.db
@@ -20,3 +22,10 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Local agent/tooling artifacts
+.angular/
+.agents/
+.claude/
+.playwright-mcp/
+info-no-subir-al-git/
