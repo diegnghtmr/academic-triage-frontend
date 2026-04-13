@@ -20,5 +20,7 @@ import { RouterLink } from '@angular/router';
   `,
 })
 export class PublicHome {
-  protected readonly message = signal('Ruta pública — sin sesión requerida.');
+  protected readonly message = signal(
+    'Desde aquí puedes iniciar sesión, crear tu cuenta o continuar si ya tienes acceso.',
+  );
 }
