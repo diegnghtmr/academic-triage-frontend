@@ -1,21 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
-import {
-  FormBuilder,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
 import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
+import { DisplayLabelPipe } from '@shared/pipes/display-label.pipe';
 import { CatalogAdminApiService } from '@features/catalogs/data-access/catalog-admin-api.service';
 import type { RequestTypeResponse } from '@features/catalogs/models/catalog-admin.types';
 
@@ -27,10 +18,7 @@ import type {
   PriorityEnum,
   UpdateBusinessRuleBody,
 } from '../models/business-rule.types';
-import {
-  CONDITION_TYPE_OPTIONS,
-  PRIORITY_OPTIONS,
-} from '../models/business-rule.types';
+import { CONDITION_TYPE_OPTIONS, PRIORITY_OPTIONS } from '../models/business-rule.types';
 
 /**
  * Formulario de creación y edición de reglas de negocio.
@@ -50,7 +38,7 @@ import {
  */
 @Component({
   selector: 'at-business-rule-form-page',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, DisplayLabelPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section>
@@ -61,7 +49,6 @@ import {
         <p role="alert">{{ loadError() }}</p>
       } @else {
         <form [formGroup]="form" (ngSubmit)="submit()">
-
           <!-- Nombre -->
           <div>
             <label for="br-name">Nombre <span aria-hidden="true">*</span></label>
@@ -108,13 +95,7 @@ import {
                 Días límite <span aria-hidden="true">*</span>
                 <small>(número entero no negativo)</small>
               </label>
-              <input
-                id="br-days"
-                type="number"
-                min="0"
-                step="1"
-                formControlName="deadlineDays"
-              />
+              <input id="br-days" type="number" min="0" step="1" formControlName="deadlineDays" />
               @if (form.controls.deadlineDays.invalid && form.controls.deadlineDays.touched) {
                 <span role="alert">Ingrese un número entero mayor o igual a 0.</span>
               }
@@ -124,9 +105,7 @@ import {
           <!-- Tipo de solicitud: REQUEST_TYPE y REQUEST_TYPE_AND_DEADLINE -->
           @if (showRequestTypeSelector()) {
             <div>
-              <label for="br-rtype">
-                Tipo de solicitud <span aria-hidden="true">*</span>
-              </label>
+              <label for="br-rtype"> Tipo de solicitud <span aria-hidden="true">*</span> </label>
               @if (catalogLoading()) {
                 <p>Cargando tipos…</p>
               } @else {
@@ -137,10 +116,7 @@ import {
                   }
                 </select>
               }
-              @if (
-                form.controls.requestTypeId.invalid &&
-                form.controls.requestTypeId.touched
-              ) {
+              @if (form.controls.requestTypeId.invalid && form.controls.requestTypeId.touched) {
                 <span role="alert">Seleccione un tipo de solicitud.</span>
               }
             </div>
@@ -151,7 +127,7 @@ import {
             <label for="br-priority">Prioridad resultante <span aria-hidden="true">*</span></label>
             <select id="br-priority" formControlName="resultingPriority">
               @for (p of priorityOptions; track p) {
-                <option [value]="p">{{ p }}</option>
+                <option [value]="p">{{ p | displayLabel: 'priority' }}</option>
               }
             </select>
           </div>
@@ -170,10 +146,7 @@ import {
             <p role="alert">{{ submitError() }}</p>
           }
 
-          <button
-            type="submit"
-            [disabled]="form.invalid || submitting() || loadingItem()"
-          >
+          <button type="submit" [disabled]="form.invalid || submitting() || loadingItem()">
             @if (submitting()) {
               Guardando…
             } @else {
@@ -207,10 +180,7 @@ export class BusinessRuleFormPage {
   protected readonly isEdit = computed(() => this.ruleId() !== null);
 
   protected readonly form = this.fb.nonNullable.group({
-    name: this.fb.nonNullable.control('', [
-      Validators.required,
-      Validators.maxLength(150),
-    ]),
+    name: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(150)]),
     description: this.fb.nonNullable.control('', [Validators.maxLength(500)]),
     conditionType: this.fb.nonNullable.control<ConditionTypeEnum>(
       'REQUEST_TYPE',
@@ -218,18 +188,14 @@ export class BusinessRuleFormPage {
     ),
     deadlineDays: this.fb.control<number | null>(null),
     requestTypeId: this.fb.control<number | null>(null),
-    resultingPriority: this.fb.nonNullable.control<PriorityEnum>(
-      'HIGH',
-      Validators.required,
-    ),
+    resultingPriority: this.fb.nonNullable.control<PriorityEnum>('HIGH', Validators.required),
     active: this.fb.nonNullable.control(true),
   });
 
   /** Señal reactiva sobre el valor actual de conditionType en el formulario. */
-  private readonly selectedConditionType = toSignal(
-    this.form.controls.conditionType.valueChanges,
-    { initialValue: this.form.controls.conditionType.value },
-  );
+  private readonly selectedConditionType = toSignal(this.form.controls.conditionType.valueChanges, {
+    initialValue: this.form.controls.conditionType.value,
+  });
 
   protected readonly showDeadlineDays = computed(() => {
     const ct = this.selectedConditionType();
@@ -277,9 +243,7 @@ export class BusinessRuleFormPage {
       .pipe(
         catchError((err: HttpErrorResponse) => {
           const p = this.problemMapper.fromHttpError(err);
-          this.loadError.set(
-            p?.detail ?? p?.title ?? 'No se pudo cargar la regla de negocio.',
-          );
+          this.loadError.set(p?.detail ?? p?.title ?? 'No pudimos cargar la regla de negocio.');
           return EMPTY;
         }),
         finalize(() => this.loadingItem.set(false)),
@@ -291,18 +255,12 @@ export class BusinessRuleFormPage {
         let requestTypeId: number | null = null;
 
         if (ct === 'DEADLINE') {
-          deadlineDays =
-            rule.conditionValue !== undefined
-              ? Number(rule.conditionValue)
-              : null;
+          deadlineDays = rule.conditionValue !== undefined ? Number(rule.conditionValue) : null;
         } else if (ct === 'REQUEST_TYPE') {
           requestTypeId = rule.requestType?.id ?? null;
         } else {
           // REQUEST_TYPE_AND_DEADLINE
-          deadlineDays =
-            rule.conditionValue !== undefined
-              ? Number(rule.conditionValue)
-              : null;
+          deadlineDays = rule.conditionValue !== undefined ? Number(rule.conditionValue) : null;
           requestTypeId = rule.requestType?.id ?? null;
         }
 
@@ -333,9 +291,7 @@ export class BusinessRuleFormPage {
     switch (conditionType) {
       case 'REQUEST_TYPE':
         if (v.requestTypeId === null) {
-          this.submitError.set(
-            'Seleccione un tipo de solicitud para esta condición.',
-          );
+          this.submitError.set('Elegí un tipo de solicitud para completar esta condición.');
           return;
         }
         conditionValue = String(v.requestTypeId);
@@ -344,9 +300,7 @@ export class BusinessRuleFormPage {
 
       case 'DEADLINE':
         if (v.deadlineDays === null || v.deadlineDays < 0) {
-          this.submitError.set(
-            'Ingrese un número de días válido (entero no negativo).',
-          );
+          this.submitError.set('Ingresá una cantidad de días válida (0 o mayor).');
           return;
         }
         conditionValue = String(Math.trunc(v.deadlineDays));
@@ -355,15 +309,11 @@ export class BusinessRuleFormPage {
 
       case 'REQUEST_TYPE_AND_DEADLINE':
         if (v.requestTypeId === null) {
-          this.submitError.set(
-            'Seleccione un tipo de solicitud para esta condición.',
-          );
+          this.submitError.set('Elegí un tipo de solicitud para completar esta condición.');
           return;
         }
         if (v.deadlineDays === null || v.deadlineDays < 0) {
-          this.submitError.set(
-            'Ingrese un número de días válido (entero no negativo).',
-          );
+          this.submitError.set('Ingresá una cantidad de días válida (0 o mayor).');
           return;
         }
         conditionValue = String(Math.trunc(v.deadlineDays));
@@ -394,7 +344,7 @@ export class BusinessRuleFormPage {
           catchError((err: HttpErrorResponse) => {
             const p = this.problemMapper.fromHttpError(err);
             this.submitError.set(
-              p?.detail ?? p?.title ?? 'No se pudo actualizar la regla.',
+              p?.detail ?? p?.title ?? 'No pudimos actualizar la regla de negocio.',
             );
             return EMPTY;
           }),
@@ -419,9 +369,7 @@ export class BusinessRuleFormPage {
         .pipe(
           catchError((err: HttpErrorResponse) => {
             const p = this.problemMapper.fromHttpError(err);
-            this.submitError.set(
-              p?.detail ?? p?.title ?? 'No se pudo crear la regla.',
-            );
+            this.submitError.set(p?.detail ?? p?.title ?? 'No pudimos crear la regla de negocio.');
             return EMPTY;
           }),
           finalize(() => this.submitting.set(false)),

@@ -1,11 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
@@ -74,10 +68,7 @@ export class OriginChannelFormPage {
   protected readonly isEdit = computed(() => this.channelId() !== null);
 
   protected readonly form = this.fb.nonNullable.group({
-    name: this.fb.nonNullable.control('', [
-      Validators.required,
-      Validators.maxLength(100),
-    ]),
+    name: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(100)]),
   });
 
   constructor() {
@@ -98,9 +89,7 @@ export class OriginChannelFormPage {
       .pipe(
         catchError((err: HttpErrorResponse) => {
           const p = this.problemMapper.fromHttpError(err);
-          this.loadError.set(
-            p?.detail ?? p?.title ?? 'No se pudo cargar el canal de origen.',
-          );
+          this.loadError.set(p?.detail ?? p?.title ?? 'No pudimos cargar este canal de origen.');
           return EMPTY;
         }),
         finalize(() => this.loadingItem.set(false)),
@@ -123,17 +112,13 @@ export class OriginChannelFormPage {
 
     const id = this.channelId();
     const request$ =
-      id !== null
-        ? this.api.updateOriginChannel(id, body)
-        : this.api.createOriginChannel(body);
+      id !== null ? this.api.updateOriginChannel(id, body) : this.api.createOriginChannel(body);
 
     request$
       .pipe(
         catchError((err: HttpErrorResponse) => {
           const p = this.problemMapper.fromHttpError(err);
-          this.submitError.set(
-            p?.detail ?? p?.title ?? 'No se pudo guardar el canal de origen.',
-          );
+          this.submitError.set(p?.detail ?? p?.title ?? 'No pudimos guardar el canal de origen.');
           return EMPTY;
         }),
         finalize(() => this.submitting.set(false)),

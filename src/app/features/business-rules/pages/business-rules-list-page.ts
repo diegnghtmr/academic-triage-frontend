@@ -1,11 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
@@ -80,12 +74,16 @@ import type { BusinessRuleListItemView } from '../models/business-rule-list-view
                 @if (isAdmin()) {
                   <td>
                     @if (item.id !== undefined) {
-                      <a [routerLink]="[item.id, 'edit']" [attr.aria-label]="'Editar regla ' + (item.name ?? item.id)">Editar</a>
+                      <a
+                        [routerLink]="[item.id, 'edit']"
+                        [attr.aria-label]="'Editar regla ' + (item.name || item.id)"
+                        >Editar</a
+                      >
                       &nbsp;
                       <button
                         type="button"
                         [disabled]="deletingId() === item.id"
-                        [attr.aria-label]="'Eliminar regla ' + (item.name ?? item.id)"
+                        [attr.aria-label]="'Eliminar regla ' + (item.name || item.id)"
                         (click)="confirmDelete(item)"
                       >
                         @if (deletingId() === item.id) {
@@ -133,7 +131,7 @@ export class BusinessRulesListPage {
       return;
     }
     const confirmed = window.confirm(
-      `¿Eliminar la regla "${item.name ?? item.id}"? Esta acción no se puede deshacer.`,
+      `¿Eliminar la regla "${item.name || item.id}"? Esta acción no se puede deshacer.`,
     );
     if (!confirmed) {
       return;
@@ -151,7 +149,7 @@ export class BusinessRulesListPage {
         catchError((err: HttpErrorResponse) => {
           const p = this.problemMapper.fromHttpError(err);
           this.errorMessage.set(
-            p?.detail ?? p?.title ?? 'No se pudo cargar el listado.',
+            p?.detail ?? p?.title ?? 'No pudimos cargar la lista de reglas de negocio.',
           );
           return EMPTY;
         }),
@@ -168,9 +166,7 @@ export class BusinessRulesListPage {
       .pipe(
         catchError((err: HttpErrorResponse) => {
           const p = this.problemMapper.fromHttpError(err);
-          this.deleteError.set(
-            p?.detail ?? p?.title ?? 'No se pudo eliminar la regla.',
-          );
+          this.deleteError.set(p?.detail ?? p?.title ?? 'No pudimos eliminar la regla de negocio.');
           return EMPTY;
         }),
         finalize(() => this.deletingId.set(null)),

@@ -1,10 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
@@ -12,6 +7,7 @@ import { catchError, EMPTY, finalize } from 'rxjs';
 import type { RoleEnum, UserResponse } from '@core/auth/models/auth-api.types';
 import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
 import { ActiveBadgePipe } from '@shared/pipes/active-badge.pipe';
+import { DisplayLabelPipe } from '@shared/pipes/display-label.pipe';
 import { EmptyState } from '@shared/components/empty-state';
 import { ErrorAlert } from '@shared/components/error-alert';
 import { LoadingState } from '@shared/components/loading-state';
@@ -32,6 +28,7 @@ import type { ListUsersQueryParams } from '../models/user-admin.types';
     EmptyState,
     PaginationNav,
     ActiveBadgePipe,
+    DisplayLabelPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -42,7 +39,7 @@ import type { ListUsersQueryParams } from '../models/user-admin.types';
           <select formControlName="role">
             <option [ngValue]="null">(todos)</option>
             @for (r of roleOptions; track r) {
-              <option [ngValue]="r">{{ r }}</option>
+              <option [ngValue]="r">{{ r | displayLabel: 'role' }}</option>
             }
           </select>
         </label>
@@ -83,11 +80,15 @@ import type { ListUsersQueryParams } from '../models/user-admin.types';
                 <td>{{ u.username }}</td>
                 <td>{{ u.firstName }} {{ u.lastName }}</td>
                 <td>{{ u.email }}</td>
-                <td>{{ u.role }}</td>
+                <td>{{ u.role | displayLabel: 'role' }}</td>
                 <td>{{ u.active | activeBadge }}</td>
                 <td>
                   @if (u.id !== undefined) {
-                    <a [routerLink]="[u.id, 'edit']" [attr.aria-label]="'Editar usuario ' + u.username">Editar</a>
+                    <a
+                      [routerLink]="[u.id, 'edit']"
+                      [attr.aria-label]="'Editar usuario ' + u.username"
+                      >Editar</a
+                    >
                   }
                 </td>
               </tr>
@@ -167,7 +168,7 @@ export class UsersListPage {
         catchError((err: HttpErrorResponse) => {
           const p = this.problemMapper.fromHttpError(err);
           this.errorMessage.set(
-            p?.detail ?? p?.title ?? 'No se pudo cargar el listado de usuarios.',
+            p?.detail ?? p?.title ?? 'No pudimos cargar la lista de usuarios en este momento.',
           );
           return EMPTY;
         }),

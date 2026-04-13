@@ -1,23 +1,19 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
 import type { RoleEnum } from '@core/auth/models/auth-api.types';
 import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
+import { DisplayLabelPipe } from '@shared/pipes/display-label.pipe';
 
 import { UsersApiService } from '../data-access/users-api.service';
 import type { UpdateUserBody } from '../models/user-admin.types';
 
 @Component({
   selector: 'at-user-form-page',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, DisplayLabelPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section>
@@ -74,22 +70,14 @@ import type { UpdateUserBody } from '../models/user-admin.types';
               maxlength="20"
               autocomplete="off"
             />
-            @if (
-              form.controls.identification.invalid &&
-              form.controls.identification.touched
-            ) {
+            @if (form.controls.identification.invalid && form.controls.identification.touched) {
               <span role="alert">La identificación es requerida (máx. 20 caracteres).</span>
             }
           </div>
 
           <div>
             <label for="uf-email">Email <span aria-hidden="true">*</span></label>
-            <input
-              id="uf-email"
-              type="email"
-              formControlName="email"
-              autocomplete="email"
-            />
+            <input id="uf-email" type="email" formControlName="email" autocomplete="email" />
             @if (form.controls.email.invalid && form.controls.email.touched) {
               <span role="alert">Ingrese un email válido.</span>
             }
@@ -99,7 +87,7 @@ import type { UpdateUserBody } from '../models/user-admin.types';
             <label for="uf-role">Rol <span aria-hidden="true">*</span></label>
             <select id="uf-role" formControlName="role">
               @for (r of roleOptions; track r) {
-                <option [value]="r">{{ r }}</option>
+                <option [value]="r">{{ r | displayLabel: 'role' }}</option>
               }
             </select>
           </div>
@@ -146,22 +134,13 @@ export class UserFormPage {
   private userId: number | null = null;
 
   protected readonly form = this.fb.nonNullable.group({
-    firstName: this.fb.nonNullable.control('', [
-      Validators.required,
-      Validators.maxLength(75),
-    ]),
-    lastName: this.fb.nonNullable.control('', [
-      Validators.required,
-      Validators.maxLength(75),
-    ]),
+    firstName: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(75)]),
+    lastName: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(75)]),
     identification: this.fb.nonNullable.control('', [
       Validators.required,
       Validators.maxLength(20),
     ]),
-    email: this.fb.nonNullable.control('', [
-      Validators.required,
-      Validators.email,
-    ]),
+    email: this.fb.nonNullable.control('', [Validators.required, Validators.email]),
     role: this.fb.nonNullable.control<RoleEnum>('STUDENT', Validators.required),
     active: this.fb.nonNullable.control(true),
   });
@@ -174,11 +153,11 @@ export class UserFormPage {
         this.userId = parsed;
         this.loadUser(parsed);
       } else {
-        this.loadError.set('Identificador de usuario inválido.');
+        this.loadError.set('No pudimos identificar el usuario que quieres editar.');
         this.loadingItem.set(false);
       }
     } else {
-      this.loadError.set('No se especificó el usuario a editar.');
+      this.loadError.set('Falta indicar qué usuario quieres editar.');
       this.loadingItem.set(false);
     }
   }
@@ -190,7 +169,7 @@ export class UserFormPage {
         catchError((err: HttpErrorResponse) => {
           const p = this.problemMapper.fromHttpError(err);
           this.loadError.set(
-            p?.detail ?? p?.title ?? 'No se pudo cargar el usuario.',
+            p?.detail ?? p?.title ?? 'No pudimos cargar la información del usuario.',
           );
           return EMPTY;
         }),
@@ -234,7 +213,7 @@ export class UserFormPage {
         catchError((err: HttpErrorResponse) => {
           const p = this.problemMapper.fromHttpError(err);
           this.submitError.set(
-            p?.detail ?? p?.title ?? 'No se pudo guardar el usuario.',
+            p?.detail ?? p?.title ?? 'No pudimos guardar los cambios del usuario.',
           );
           return EMPTY;
         }),

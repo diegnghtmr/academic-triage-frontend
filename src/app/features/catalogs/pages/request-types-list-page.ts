@@ -1,10 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
@@ -105,7 +100,7 @@ export class RequestTypesListPage {
         catchError((err: HttpErrorResponse) => {
           const p = this.problemMapper.fromHttpError(err);
           this.errorMessage.set(
-            p?.detail ?? p?.title ?? 'No se pudo cargar el listado.',
+            p?.detail ?? p?.title ?? 'No pudimos cargar la lista de tipos de solicitud.',
           );
           return EMPTY;
         }),

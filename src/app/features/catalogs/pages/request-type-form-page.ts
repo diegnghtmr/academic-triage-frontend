@@ -1,11 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
@@ -87,10 +81,7 @@ export class RequestTypeFormPage {
   protected readonly isEdit = computed(() => this.typeId() !== null);
 
   protected readonly form = this.fb.nonNullable.group({
-    name: this.fb.nonNullable.control('', [
-      Validators.required,
-      Validators.maxLength(100),
-    ]),
+    name: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(100)]),
     description: this.fb.nonNullable.control('', [Validators.maxLength(500)]),
   });
 
@@ -112,9 +103,7 @@ export class RequestTypeFormPage {
       .pipe(
         catchError((err: HttpErrorResponse) => {
           const p = this.problemMapper.fromHttpError(err);
-          this.loadError.set(
-            p?.detail ?? p?.title ?? 'No se pudo cargar el tipo de solicitud.',
-          );
+          this.loadError.set(p?.detail ?? p?.title ?? 'No pudimos cargar este tipo de solicitud.');
           return EMPTY;
         }),
         finalize(() => this.loadingItem.set(false)),
@@ -142,17 +131,13 @@ export class RequestTypeFormPage {
 
     const id = this.typeId();
     const request$ =
-      id !== null
-        ? this.api.updateRequestType(id, body)
-        : this.api.createRequestType(body);
+      id !== null ? this.api.updateRequestType(id, body) : this.api.createRequestType(body);
 
     request$
       .pipe(
         catchError((err: HttpErrorResponse) => {
           const p = this.problemMapper.fromHttpError(err);
-          this.submitError.set(
-            p?.detail ?? p?.title ?? 'No se pudo guardar el tipo de solicitud.',
-          );
+          this.submitError.set(p?.detail ?? p?.title ?? 'No pudimos guardar el tipo de solicitud.');
           return EMPTY;
         }),
         finalize(() => this.submitting.set(false)),
