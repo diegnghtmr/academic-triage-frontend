@@ -37,3 +37,6 @@ FRONTEND_OFFICIAL_BACKEND_BACKLOG.md
 FRONTEND_PAGES_SUMMARY.md
 GGA-AGENTS.md
 .gga/
+.gga
+playwright-report/
+test-results/

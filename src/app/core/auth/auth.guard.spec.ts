@@ -1,28 +1,82 @@
-import { describe, expect, it } from 'vitest';
+import { provideZonelessChangeDetection } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
+import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
+import type { UrlTree } from '@angular/router';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-/**
- * Decision logic of `authGuard` — validated as pure function.
- *
- * The actual guard wires this logic to `AuthSessionStore` and `Router` via `inject()`.
- * Angular DI integration is covered by E2E smoke tests (`e2e/role-access.spec.ts`).
- *
- * Contract (from `src/app/core/auth/auth.guard.ts`):
- *   - Authenticated   → allow navigation
- *   - Unauthenticated → redirect to `/auth/login?returnUrl=<current>`
- */
+import { authGuard } from './auth.guard';
+import { AuthSessionStore } from './auth-session.store';
 
-type AuthGuardOutcome = 'allow' | 'redirect-login';
+describe('authGuard', () => {
+  beforeAll(() => {
+    if (!('document' in globalThis)) {
+      Object.defineProperty(globalThis, 'document', {
+        value: {},
+        configurable: true,
+      });
+    }
 
-function resolveAuthGuard(isAuthenticated: boolean): AuthGuardOutcome {
-  return isAuthenticated ? 'allow' : 'redirect-login';
-}
-
-describe('authGuard decision logic', () => {
-  it('allows navigation when user is authenticated', () => {
-    expect(resolveAuthGuard(true)).toBe('allow');
+    try {
+      TestBed.initTestEnvironment(BrowserTestingModule, platformBrowserTesting());
+    } catch {
+      // Environment already initialized by another spec file.
+    }
   });
 
-  it('redirects to login when user is not authenticated', () => {
-    expect(resolveAuthGuard(false)).toBe('redirect-login');
+  const createUrlTree = vi.fn<[commands: unknown[], extras?: unknown], UrlTree>();
+  const isAuthenticated = vi.fn<[], boolean>();
+
+  afterEach(() => {
+    TestBed.resetTestingModule();
+  });
+
+  beforeEach(() => {
+    createUrlTree.mockReset();
+    isAuthenticated.mockReset();
+
+    TestBed.configureTestingModule({
+      providers: [
+        provideZonelessChangeDetection(),
+        {
+          provide: Router,
+          useValue: {
+            createUrlTree,
+          } satisfies Pick<Router, 'createUrlTree'>,
+        },
+        {
+          provide: AuthSessionStore,
+          useValue: {
+            isAuthenticated,
+          } satisfies Pick<AuthSessionStore, 'isAuthenticated'>,
+        },
+      ],
+    });
+  });
+
+  it('allows navigation when user is authenticated', () => {
+    isAuthenticated.mockReturnValue(true);
+
+    const result = TestBed.runInInjectionContext(() =>
+      authGuard({} as never, { url: '/app' } as never),
+    );
+
+    expect(result).toBe(true);
+    expect(createUrlTree).not.toHaveBeenCalled();
+  });
+
+  it('redirects to login with returnUrl when user is unauthenticated', () => {
+    const redirectTree = {} as UrlTree;
+    isAuthenticated.mockReturnValue(false);
+    createUrlTree.mockReturnValue(redirectTree);
+
+    const result = TestBed.runInInjectionContext(() =>
+      authGuard({} as never, { url: '/app/admin' } as never),
+    );
+
+    expect(result).toBe(redirectTree);
+    expect(createUrlTree).toHaveBeenCalledWith(['/auth/login'], {
+      queryParams: { returnUrl: '/app/admin' },
+    });
   });
 });

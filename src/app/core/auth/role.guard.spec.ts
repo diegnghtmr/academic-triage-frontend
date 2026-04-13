@@ -1,95 +1,120 @@
-import { describe, expect, it } from 'vitest';
+import { provideZonelessChangeDetection } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
+import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
+import type { ActivatedRouteSnapshot, UrlTree } from '@angular/router';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { roleGuard } from './role.guard';
+import { AuthSessionStore } from './auth-session.store';
 import type { RoleEnum } from './models/auth-api.types';
 
-/**
- * Decision logic of `roleGuard` — validated as pure function.
- *
- * The actual guard wires this logic to `AuthSessionStore`, `Router`, and `ActivatedRouteSnapshot`
- * via `inject()`. Angular DI integration is covered by E2E smoke tests (`e2e/role-access.spec.ts`).
- *
- * Contract (from `src/app/core/auth/role.guard.ts`):
- *   - No `roles` array in route data (undefined / empty) → allow (neutral guard)
- *   - Role is null (session cleared)                    → redirect to `/auth/login`
- *   - Role not in allowed list                          → redirect to `/app`
- *   - Role is in allowed list                           → allow
- */
-
-type RoleGuardOutcome = 'allow' | 'redirect-login' | 'redirect-app';
-
-function resolveRoleGuard(
-  allowed: RoleEnum[] | undefined,
-  role: RoleEnum | null,
-): RoleGuardOutcome {
-  if (allowed === undefined || allowed.length === 0) return 'allow';
-  if (role === null) return 'redirect-login';
-  if (!allowed.includes(role)) return 'redirect-app';
-  return 'allow';
+function createRouteSnapshot(roles?: RoleEnum[]): ActivatedRouteSnapshot {
+  return {
+    data: roles === undefined ? {} : { roles },
+  } as ActivatedRouteSnapshot;
 }
 
-describe('roleGuard decision logic', () => {
-  describe('no roles configured (neutral guard)', () => {
-    it('allows when allowed list is undefined', () => {
-      expect(resolveRoleGuard(undefined, 'ADMIN')).toBe('allow');
-    });
+describe('roleGuard', () => {
+  beforeAll(() => {
+    if (!('document' in globalThis)) {
+      Object.defineProperty(globalThis, 'document', {
+        value: {},
+        configurable: true,
+      });
+    }
 
-    it('allows when allowed list is empty', () => {
-      expect(resolveRoleGuard([], 'STAFF')).toBe('allow');
+    try {
+      TestBed.initTestEnvironment(BrowserTestingModule, platformBrowserTesting());
+    } catch {
+      // Environment already initialized by another spec file.
+    }
+  });
+
+  const createUrlTree = vi.fn<[commands: unknown[], extras?: unknown], UrlTree>();
+  const role = vi.fn<[], RoleEnum | null>();
+
+  afterEach(() => {
+    TestBed.resetTestingModule();
+  });
+
+  beforeEach(() => {
+    createUrlTree.mockReset();
+    role.mockReset();
+
+    TestBed.configureTestingModule({
+      providers: [
+        provideZonelessChangeDetection(),
+        {
+          provide: Router,
+          useValue: {
+            createUrlTree,
+          } satisfies Pick<Router, 'createUrlTree'>,
+        },
+        {
+          provide: AuthSessionStore,
+          useValue: {
+            role,
+          } satisfies Pick<AuthSessionStore, 'role'>,
+        },
+      ],
     });
   });
 
-  describe('role is null (session cleared mid-navigation)', () => {
-    it('redirects to login when no session and roles are required', () => {
-      expect(resolveRoleGuard(['ADMIN'], null)).toBe('redirect-login');
-      expect(resolveRoleGuard(['ADMIN', 'STAFF'], null)).toBe('redirect-login');
-    });
+  it('allows when route does not define roles', () => {
+    const result = TestBed.runInInjectionContext(() =>
+      roleGuard(createRouteSnapshot(), {} as never),
+    );
+
+    expect(result).toBe(true);
+    expect(role).not.toHaveBeenCalled();
+    expect(createUrlTree).not.toHaveBeenCalled();
   });
 
-  describe('ADMIN-only routes', () => {
-    const adminOnly: RoleEnum[] = ['ADMIN'];
+  it('allows when route defines an empty roles list', () => {
+    const result = TestBed.runInInjectionContext(() =>
+      roleGuard(createRouteSnapshot([]), {} as never),
+    );
 
-    it('allows ADMIN', () => {
-      expect(resolveRoleGuard(adminOnly, 'ADMIN')).toBe('allow');
-    });
-
-    it('redirects STAFF to /app', () => {
-      expect(resolveRoleGuard(adminOnly, 'STAFF')).toBe('redirect-app');
-    });
-
-    it('redirects STUDENT to /app', () => {
-      expect(resolveRoleGuard(adminOnly, 'STUDENT')).toBe('redirect-app');
-    });
+    expect(result).toBe(true);
+    expect(role).not.toHaveBeenCalled();
+    expect(createUrlTree).not.toHaveBeenCalled();
   });
 
-  describe('ADMIN + STAFF routes (business-rules)', () => {
-    const adminOrStaff: RoleEnum[] = ['ADMIN', 'STAFF'];
+  it('redirects to login when role is null and route requires roles', () => {
+    const redirectTree = {} as UrlTree;
+    role.mockReturnValue(null);
+    createUrlTree.mockReturnValue(redirectTree);
 
-    it('allows ADMIN', () => {
-      expect(resolveRoleGuard(adminOrStaff, 'ADMIN')).toBe('allow');
-    });
+    const result = TestBed.runInInjectionContext(() =>
+      roleGuard(createRouteSnapshot(['ADMIN']), {} as never),
+    );
 
-    it('allows STAFF', () => {
-      expect(resolveRoleGuard(adminOrStaff, 'STAFF')).toBe('allow');
-    });
-
-    it('redirects STUDENT to /app', () => {
-      expect(resolveRoleGuard(adminOrStaff, 'STUDENT')).toBe('redirect-app');
-    });
+    expect(result).toBe(redirectTree);
+    expect(createUrlTree).toHaveBeenCalledWith(['/auth/login']);
   });
 
-  describe('STUDENT + STAFF routes (create request)', () => {
-    const studentOrStaff: RoleEnum[] = ['STUDENT', 'STAFF'];
+  it('redirects to /app when role is not allowed', () => {
+    const redirectTree = {} as UrlTree;
+    role.mockReturnValue('STUDENT');
+    createUrlTree.mockReturnValue(redirectTree);
 
-    it('allows STUDENT', () => {
-      expect(resolveRoleGuard(studentOrStaff, 'STUDENT')).toBe('allow');
-    });
+    const result = TestBed.runInInjectionContext(() =>
+      roleGuard(createRouteSnapshot(['ADMIN', 'STAFF']), {} as never),
+    );
 
-    it('allows STAFF', () => {
-      expect(resolveRoleGuard(studentOrStaff, 'STAFF')).toBe('allow');
-    });
+    expect(result).toBe(redirectTree);
+    expect(createUrlTree).toHaveBeenCalledWith(['/app']);
+  });
 
-    it('redirects ADMIN to /app', () => {
-      expect(resolveRoleGuard(studentOrStaff, 'ADMIN')).toBe('redirect-app');
-    });
+  it('allows when role is included in allowed roles', () => {
+    role.mockReturnValue('STAFF');
+
+    const result = TestBed.runInInjectionContext(() =>
+      roleGuard(createRouteSnapshot(['ADMIN', 'STAFF']), {} as never),
+    );
+
+    expect(result).toBe(true);
+    expect(createUrlTree).not.toHaveBeenCalled();
   });
 });
