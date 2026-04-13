@@ -6,10 +6,27 @@
 /** `RoleEnum` en el contrato. */
 export type RoleEnum = 'ADMIN' | 'STAFF' | 'STUDENT';
 
-/** `LoginRequest` */
+/**
+ * `LoginRequest` — contrato canónico de login.
+ *
+ * **Campo canónico**: `identifier` (acepta nombre de usuario o correo electrónico).
+ * **Alias deprecado**: `username` se mantiene solo para compatibilidad hacia atrás durante
+ * la ventana de transición. Será eliminado en una versión futura.
+ *
+ * Reglas de precedencia (alineadas con el backend):
+ * - Solo `identifier` → ruta canónica.
+ * - Solo `username` → ruta alias (deprecada).
+ * - Ambos con el **mismo** valor → se acepta como canónico.
+ * - Ambos con **valores distintos** → 400 Bad Request (backend rechaza sin token).
+ *
+ * El frontend debe enviar únicamente `identifier` en flujos nuevos.
+ * El campo `username` se expone aquí solo para tooling/tests de compatibilidad.
+ */
 export interface LoginRequest {
-  username: string;
+  identifier: string;
   password: string;
+  /** @deprecated Use `identifier`. Kept for backward-compatibility tooling and tests only. */
+  username?: string;
 }
 
 /** `RegisterRequest` — `role` solo asignable por ADMIN con token (no aplica al registro público). */

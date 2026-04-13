@@ -26,8 +26,14 @@ import { AuthApiService } from './auth-api.service';
       }
       <form [formGroup]="form" (ngSubmit)="submit()">
         <div>
-          <label for="login-username">Usuario</label>
-          <input id="login-username" type="text" formControlName="username" autocomplete="username" />
+          <label for="login-identifier">Usuario o correo</label>
+          <input
+            id="login-identifier"
+            type="text"
+            formControlName="identifier"
+            autocomplete="username"
+            placeholder="nombre de usuario o correo electrónico"
+          />
         </div>
         <div>
           <label for="login-password">Contraseña</label>
@@ -68,12 +74,12 @@ export class LoginPage {
   protected readonly registeredNotice = signal(false);
 
   protected readonly form = this.fb.nonNullable.group({
-    username: [
+    identifier: [
       '',
       [
         Validators.required,
         Validators.minLength(3),
-        Validators.maxLength(50),
+        Validators.maxLength(255),
       ],
     ],
     password: ['', [Validators.required, Validators.minLength(8)]],
