@@ -1,11 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -26,8 +20,7 @@ import type {
 } from '../models/request-api.types';
 
 /** Mensaje estándar cuando la IA devuelve 503. */
-const AI_UNAVAILABLE_MSG =
-  'La asistencia de IA no está disponible en este entorno.';
+const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este entorno.';
 
 @Component({
   selector: 'at-request-create-page',
@@ -52,12 +45,24 @@ const AI_UNAVAILABLE_MSG =
         </div>
         <div>
           <label for="crt-ch">Canal de origen</label>
-          <select id="crt-ch" formControlName="originChannelId">
-            <option [ngValue]="null">Seleccionar…</option>
-            @for (c of originChannels(); track c.id) {
-              <option [ngValue]="c.id">{{ c.name }}</option>
-            }
-          </select>
+          @if (isStudent()) {
+            @let fixedChannel = selectedOriginChannel();
+            <input
+              id="crt-ch"
+              type="text"
+              [value]="fixedChannel?.name ?? 'Sistema web'"
+              readonly
+              aria-readonly="true"
+            />
+            <small>Este canal se asigna automáticamente para estudiantes.</small>
+          } @else {
+            <select id="crt-ch" formControlName="originChannelId">
+              <option [ngValue]="null">Seleccionar…</option>
+              @for (c of originChannels(); track c.id) {
+                <option [ngValue]="c.id">{{ c.name }}</option>
+              }
+            </select>
+          }
         </div>
         <div>
           <label for="crt-desc">Descripción</label>
@@ -66,58 +71,58 @@ const AI_UNAVAILABLE_MSG =
 
         <!-- Asistente de IA: solo STAFF (contrato: POST /ai/suggest-classification → STAFF only) -->
         @if (canSuggestAiRole()) {
-        <section aria-labelledby="ai-suggest-heading">
-          <h3 id="ai-suggest-heading">Sugerencia de IA (opcional)</h3>
-          <p>
-            <small>
-              Si escribiste al menos 10 caracteres en la descripción, la IA puede
-              sugerir un tipo y prioridad. No reemplaza tu selección manual.
-            </small>
-          </p>
-          <button
-            type="button"
-            [disabled]="!canSuggestAi()"
-            (click)="suggestClassification()"
-            aria-label="Obtener sugerencia de clasificación de IA"
-          >
-            @if (aiLoading()) {
-              Consultando IA…
-            } @else {
-              Sugerir con IA
-            }
-          </button>
-
-          @if (aiError()) {
-            <p role="status">{{ aiError() }}</p>
-          }
-
-          @if (aiSuggestion()) {
-            @let s = aiSuggestion()!;
-            <div role="region" aria-label="Resultado de sugerencia IA">
-              <dl>
-                <dt>Tipo sugerido</dt>
-                <dd>{{ s.suggestedRequestType ?? '—' }}</dd>
-                <dt>Prioridad sugerida</dt>
-                <dd>{{ s.suggestedPriority ?? '—' }}</dd>
-                @if (s.confidence !== undefined) {
-                  <dt>Confianza</dt>
-                  <dd>{{ s.confidence * 100 | number: '1.0-0' }}%</dd>
-                }
-                @if (s.reasoning) {
-                  <dt>Razonamiento</dt>
-                  <dd>{{ s.reasoning }}</dd>
-                }
-              </dl>
-              @if (canApplyAiSuggestion()) {
-                <button type="button" (click)="applyAiSuggestion()">
-                  Aplicar tipo sugerido al formulario
-                </button>
+          <section aria-labelledby="ai-suggest-heading">
+            <h3 id="ai-suggest-heading">Ayuda de IA (opcional)</h3>
+            <p>
+              <small>
+                Cuando la descripción tiene suficiente detalle, la IA puede orientarte con un tipo
+                de solicitud y una prioridad sugerida. Después puedes ajustarlo manualmente.
+              </small>
+            </p>
+            <button
+              type="button"
+              [disabled]="!canSuggestAi()"
+              (click)="suggestClassification()"
+              aria-label="Obtener sugerencia de clasificación de IA"
+            >
+              @if (aiLoading()) {
+                Consultando IA…
+              } @else {
+                Pedir ayuda a la IA
               }
-            </div>
-          }
-        </section>
-        }<!-- fin @if (canSuggestAiRole()) -->
+            </button>
 
+            @if (aiError()) {
+              <p role="status">{{ aiError() }}</p>
+            }
+
+            @if (aiSuggestion()) {
+              @let s = aiSuggestion()!;
+              <div role="region" aria-label="Resultado de sugerencia IA">
+                <dl>
+                  <dt>Tipo sugerido</dt>
+                  <dd>{{ s.suggestedRequestType ?? '—' }}</dd>
+                  <dt>Prioridad sugerida</dt>
+                  <dd>{{ s.suggestedPriority ?? '—' }}</dd>
+                  @if (s.confidence !== undefined) {
+                    <dt>Confianza</dt>
+                    <dd>{{ s.confidence * 100 | number: '1.0-0' }}%</dd>
+                  }
+                  @if (s.reasoning) {
+                    <dt>Motivo sugerido</dt>
+                    <dd>{{ s.reasoning }}</dd>
+                  }
+                </dl>
+                @if (canApplyAiSuggestion()) {
+                  <button type="button" (click)="applyAiSuggestion()">
+                    Usar este tipo en el formulario
+                  </button>
+                }
+              </div>
+            }
+          </section>
+        }
+        <!-- fin @if (canSuggestAiRole()) -->
         <div>
           <label for="crt-deadline">Fecha límite (opcional)</label>
           <input id="crt-deadline" type="date" formControlName="deadline" />
@@ -129,7 +134,7 @@ const AI_UNAVAILABLE_MSG =
           @if (submitting()) {
             Enviando…
           } @else {
-            Enviar
+            Crear solicitud
           }
         </button>
       </form>
@@ -146,9 +151,8 @@ export class RequestCreatePage {
   private readonly fb = inject(FormBuilder);
 
   /** POST /ai/suggest-classification → STAFF only (contrato OpenAPI). */
-  protected readonly canSuggestAiRole = computed(
-    () => this.session.role() === 'STAFF',
-  );
+  protected readonly canSuggestAiRole = computed(() => this.session.role() === 'STAFF');
+  protected readonly isStudent = computed(() => this.session.role() === 'STUDENT');
 
   protected readonly requestTypes = signal<RequestTypeResponse[]>([]);
   protected readonly originChannels = signal<OriginChannelResponse[]>([]);
@@ -169,6 +173,14 @@ export class RequestCreatePage {
       Validators.maxLength(2000),
     ]),
     deadline: this.fb.nonNullable.control(''),
+  });
+
+  protected readonly selectedOriginChannel = computed(() => {
+    const channelId = this.form.controls.originChannelId.value;
+    if (channelId === null) {
+      return null;
+    }
+    return this.originChannels().find((channel) => channel.id === channelId) ?? null;
   });
 
   /** Longitud reactiva del campo descripción — determina si habilitar "Sugerir con IA". */
@@ -202,14 +214,36 @@ export class RequestCreatePage {
       next: ({ types, channels }) => {
         this.requestTypes.set(types);
         this.originChannels.set(channels);
+        this.assignStudentDefaultChannel(channels);
       },
       error: (err: HttpErrorResponse) => {
         const p = this.problemMapper.fromHttpError(err);
         this.catalogError.set(
-          p?.detail ?? p?.title ?? 'No se pudieron cargar los catálogos.',
+          p?.detail ??
+            p?.title ??
+            'No pudimos cargar los datos necesarios para crear la solicitud.',
         );
       },
     });
+  }
+
+  private assignStudentDefaultChannel(channels: OriginChannelResponse[]): void {
+    if (!this.isStudent()) {
+      return;
+    }
+
+    const webChannelId = channels.find(
+      (channel) => (channel.name?.trim().toLowerCase() ?? '') === 'sistema web',
+    )?.id;
+    if (typeof webChannelId === 'number') {
+      this.form.controls.originChannelId.setValue(webChannelId);
+      return;
+    }
+
+    const firstAvailableChannelId = channels.find((channel) => typeof channel.id === 'number')?.id;
+    if (typeof firstAvailableChannelId === 'number') {
+      this.form.controls.originChannelId.setValue(firstAvailableChannelId);
+    }
   }
 
   protected suggestClassification(): void {
@@ -230,7 +264,7 @@ export class RequestCreatePage {
               ? AI_UNAVAILABLE_MSG
               : (this.problemMapper.fromHttpError(err)?.detail ??
                   this.problemMapper.fromHttpError(err)?.title ??
-                  'No se pudo obtener la sugerencia de IA.'),
+                  'No pudimos pedirle ayuda a la IA en este momento.'),
           );
           return EMPTY;
         }),
@@ -277,7 +311,9 @@ export class RequestCreatePage {
         catchError((err: HttpErrorResponse) => {
           const p = this.problemMapper.fromHttpError(err);
           this.errorMessage.set(
-            p?.detail ?? p?.title ?? 'No se pudo crear la solicitud.',
+            p?.detail ??
+              p?.title ??
+              'No pudimos crear la solicitud. Inténtalo de nuevo en unos instantes.',
           );
           return EMPTY;
         }),

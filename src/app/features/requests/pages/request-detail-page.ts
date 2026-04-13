@@ -16,11 +16,10 @@ import { map } from 'rxjs/operators';
 
 import { AuthSessionStore } from '@core/auth/auth-session.store';
 import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
+import { DateTimeLabelPipe } from '@shared/pipes/date-time-label.pipe';
+import { DisplayLabelPipe } from '@shared/pipes/display-label.pipe';
 
-import {
-  adaptHistoryEntry,
-  adaptRequestDetail,
-} from '../adapters/request-detail.adapter';
+import { adaptHistoryEntry, adaptRequestDetail } from '../adapters/request-detail.adapter';
 import { AiApiService } from '../data-access/ai-api.service';
 import { CatalogApiService } from '../data-access/catalog-api.service';
 import { RequestsApiService } from '../data-access/requests-api.service';
@@ -46,12 +45,11 @@ import {
 } from '../utils/request-action-visibility';
 
 /** Mensaje estándar cuando la IA devuelve 503. */
-const AI_UNAVAILABLE_MSG =
-  'La asistencia de IA no está disponible en este entorno.';
+const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este entorno.';
 
 @Component({
   selector: 'at-request-detail-page',
-  imports: [ReactiveFormsModule, RouterLink, DatePipe],
+  imports: [ReactiveFormsModule, RouterLink, DatePipe, DisplayLabelPipe, DateTimeLabelPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section>
@@ -62,14 +60,14 @@ const AI_UNAVAILABLE_MSG =
         <p>Cargando…</p>
       } @else if (detail()) {
         @let d = detail()!;
-        <h2>Solicitud #{{ d.id }}</h2>
+        <h2>Número de solicitud: {{ d.id }}</h2>
         <dl>
           <dt>Estado</dt>
           <dd>{{ d.statusLabel }}</dd>
           <dt>Descripción</dt>
           <dd>{{ d.description }}</dd>
           <dt>Registro</dt>
-          <dd>{{ d.registrationDateTime }}</dd>
+          <dd>{{ d.registrationDateTime | dateTimeLabel }}</dd>
           <dt>Prioridad</dt>
           <dd>{{ d.priorityLabel ?? '—' }}</dd>
           <dt>Tipo</dt>
@@ -82,41 +80,57 @@ const AI_UNAVAILABLE_MSG =
           <dd>{{ d.assignedToName ?? '—' }}</dd>
         </dl>
 
-        <section>
-          <h3>Sugerencia de prioridad (solo lectura)</h3>
-          <button type="button" (click)="loadSuggestion()" [disabled]="suggestionLoading()">
-            @if (suggestionLoading()) {
-              Consultando…
-            } @else {
-              Obtener sugerencia
+        @if (showPrioritySuggestion()) {
+          <section>
+            <h3>Orientación de prioridad</h3>
+            <p>
+              <small>
+                Esta recomendación se calcula según las reglas vigentes para este tipo de solicitud.
+                Solo sirve como guía y no cambia la solicitud por sí sola.
+              </small>
+            </p>
+            <button type="button" (click)="loadSuggestion()" [disabled]="suggestionLoading()">
+              @if (suggestionLoading()) {
+                Consultando…
+              } @else {
+                Ver recomendación
+              }
+            </button>
+            @if (suggestionError()) {
+              <p role="alert">{{ suggestionError() }}</p>
             }
-          </button>
-          @if (suggestionError()) {
-            <p role="alert">{{ suggestionError() }}</p>
-          }
-          @if (suggestion()) {
-            @let s = suggestion()!;
-            <p><strong>Sugerida:</strong> {{ s.suggestedPriority }}</p>
-            @if (s.matchedRules?.length) {
-              <ul>
-                @for (m of s.matchedRules; track $index) {
-                  <li>
-                    {{ m.name }} → {{ m.resultingPriority }} (regla #{{ m.ruleId }})
-                  </li>
-                }
-              </ul>
+            @if (suggestion()) {
+              @let s = suggestion()!;
+              <p>
+                <strong>Prioridad recomendada:</strong>
+                {{ s.suggestedPriority | displayLabel: 'priority' }}
+              </p>
+              @if (s.matchedRules?.length) {
+                <ul>
+                  @for (m of s.matchedRules; track $index) {
+                    <li>{{ m.name }} → {{ m.resultingPriority | displayLabel: 'priority' }}</li>
+                  }
+                </ul>
+              } @else {
+                <p>
+                  <small>
+                    No hay una regla específica para este caso. Si lo necesitas, puedes definir la
+                    prioridad manualmente.
+                  </small>
+                </p>
+              }
             }
-          }
-        </section>
+          </section>
+        }
 
         <!-- Resumen IA: solo STAFF y ADMIN (contrato: GET /ai/summarize → STAFF, ADMIN) -->
         @if (canSummarizeAiRole()) {
           <section aria-labelledby="ai-summary-heading">
-            <h3 id="ai-summary-heading">Resumen IA (asistencia de lectura)</h3>
+            <h3 id="ai-summary-heading">Resumen con IA</h3>
             <p>
               <small>
-                Generado por IA a partir del estado e historial de la solicitud.
-                No reemplaza los datos oficiales. No disponible en todos los entornos.
+                Esta sección usa IA para resumir el estado y el historial de la solicitud. Es una
+                ayuda de lectura y no reemplaza la información oficial.
               </small>
             </p>
             <button
@@ -128,7 +142,7 @@ const AI_UNAVAILABLE_MSG =
               @if (aiSummaryLoading()) {
                 Generando resumen…
               } @else {
-                Obtener resumen IA
+                Generar resumen
               }
             </button>
             @if (aiSummaryError()) {
@@ -140,9 +154,7 @@ const AI_UNAVAILABLE_MSG =
                 <p>{{ sum.summary }}</p>
                 @if (sum.generatedAt) {
                   <p>
-                    <small>
-                      Generado el {{ sum.generatedAt | date: 'dd/MM/yyyy HH:mm' }}
-                    </small>
+                    <small> Generado el {{ sum.generatedAt | date: 'dd/MM/yyyy HH:mm' }} </small>
                   </p>
                 }
               </div>
@@ -155,8 +167,8 @@ const AI_UNAVAILABLE_MSG =
           <ul>
             @for (h of history(); track h.id) {
               <li>
-                <strong>{{ h.timestamp }}</strong> — {{ h.action }}
-                ({{ h.performedByName }})
+                <strong>{{ h.timestamp | dateTimeLabel }}</strong> —
+                {{ h.action | displayLabel: 'historyAction' }} ({{ h.performedByName }})
                 @if (h.observations) {
                   <div>{{ h.observations }}</div>
                 }
@@ -166,7 +178,7 @@ const AI_UNAVAILABLE_MSG =
           @if (canNote()) {
             <form [formGroup]="noteForm" (ngSubmit)="submitNote()">
               <label>
-                Nota interna (STAFF)
+                Nota interna
                 <textarea formControlName="observations" rows="3"></textarea>
               </label>
               <button type="submit" [disabled]="noteForm.invalid || noteSubmitting()">
@@ -214,13 +226,17 @@ const AI_UNAVAILABLE_MSG =
                   <label for="detail-priority">Prioridad</label>
                   <select id="detail-priority" formControlName="priority">
                     @for (p of priorityOptions; track p) {
-                      <option [ngValue]="p">{{ p }}</option>
+                      <option [ngValue]="p">{{ p | displayLabel: 'priority' }}</option>
                     }
                   </select>
                 </div>
                 <div>
                   <label for="detail-priority-just">Justificación</label>
-                  <textarea id="detail-priority-just" formControlName="justification" rows="2"></textarea>
+                  <textarea
+                    id="detail-priority-just"
+                    formControlName="justification"
+                    rows="2"
+                  ></textarea>
                 </div>
                 <button type="submit" [disabled]="prioritizeForm.invalid || actionBusy()">
                   Priorizar
@@ -231,8 +247,9 @@ const AI_UNAVAILABLE_MSG =
               <form [formGroup]="assignForm" (ngSubmit)="submitAssign()">
                 <h4>Asignar responsable</h4>
                 <div>
-                  <label for="detail-assign-user">ID de usuario STAFF</label>
+                  <label for="detail-assign-user">Usuario responsable</label>
                   <input id="detail-assign-user" type="number" formControlName="assignedToUserId" />
+                  <small>Puedes tomar este dato del listado de usuarios.</small>
                 </div>
                 <div>
                   <label for="detail-assign-obs">Observaciones (opcional)</label>
@@ -252,10 +269,14 @@ const AI_UNAVAILABLE_MSG =
                 <h4>Atender</h4>
                 <div>
                   <label for="detail-attend-obs">Observaciones</label>
-                  <textarea id="detail-attend-obs" formControlName="observations" rows="3"></textarea>
+                  <textarea
+                    id="detail-attend-obs"
+                    formControlName="observations"
+                    rows="3"
+                  ></textarea>
                 </div>
                 <button type="submit" [disabled]="attendForm.invalid || actionBusy()">
-                  Marcar atendida
+                  Marcar como atendida
                 </button>
               </form>
             }
@@ -264,7 +285,11 @@ const AI_UNAVAILABLE_MSG =
                 <h4>Cerrar</h4>
                 <div>
                   <label for="detail-close-obs">Observación de cierre</label>
-                  <textarea id="detail-close-obs" formControlName="closingObservation" rows="3"></textarea>
+                  <textarea
+                    id="detail-close-obs"
+                    formControlName="closingObservation"
+                    rows="3"
+                  ></textarea>
                 </div>
                 <button type="submit" [disabled]="closeForm.invalid || actionBusy()">
                   Cerrar solicitud
@@ -276,7 +301,11 @@ const AI_UNAVAILABLE_MSG =
                 <h4>Cancelar</h4>
                 <div>
                   <label for="detail-cancel-reason">Motivo de cancelación</label>
-                  <textarea id="detail-cancel-reason" formControlName="cancellationReason" rows="3"></textarea>
+                  <textarea
+                    id="detail-cancel-reason"
+                    formControlName="cancellationReason"
+                    rows="3"
+                  ></textarea>
                 </div>
                 <button type="submit" [disabled]="cancelForm.invalid || actionBusy()">
                   Cancelar solicitud
@@ -288,7 +317,11 @@ const AI_UNAVAILABLE_MSG =
                 <h4>Rechazar (ADMIN)</h4>
                 <div>
                   <label for="detail-reject-reason">Motivo de rechazo</label>
-                  <textarea id="detail-reject-reason" formControlName="rejectionReason" rows="3"></textarea>
+                  <textarea
+                    id="detail-reject-reason"
+                    formControlName="rejectionReason"
+                    rows="3"
+                  ></textarea>
                 </div>
                 <button type="submit" [disabled]="rejectForm.invalid || actionBusy()">
                   Rechazar
@@ -343,10 +376,7 @@ export class RequestDetailPage {
 
   protected readonly prioritizeForm = this.fb.nonNullable.group({
     priority: this.fb.control<PriorityEnum | null>(null, Validators.required),
-    justification: [
-      '',
-      [Validators.required, Validators.minLength(5), Validators.maxLength(1000)],
-    ],
+    justification: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(1000)]],
   });
 
   protected readonly assignForm = this.fb.nonNullable.group({
@@ -358,10 +388,7 @@ export class RequestDetailPage {
   });
 
   protected readonly attendForm = this.fb.nonNullable.group({
-    observations: [
-      '',
-      [Validators.required, Validators.minLength(5), Validators.maxLength(2000)],
-    ],
+    observations: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(2000)]],
   });
 
   protected readonly closeForm = this.fb.nonNullable.group({
@@ -389,36 +416,29 @@ export class RequestDetailPage {
 
   protected readonly canClassify = computed(() => {
     const role = this.session.role();
-    return (status: RequestStatusEnum | undefined) =>
-      canShowClassify(role, status);
+    return (status: RequestStatusEnum | undefined) => canShowClassify(role, status);
   });
 
   protected readonly canPrioritize = computed(() => {
     const role = this.session.role();
-    return (
-      status: RequestStatusEnum | undefined,
-      priority: PriorityEnum | null | undefined,
-    ) => canShowPrioritize(role, status, priority);
+    return (status: RequestStatusEnum | undefined, priority: PriorityEnum | null | undefined) =>
+      canShowPrioritize(role, status, priority);
   });
 
   protected readonly canAssign = computed(() => {
     const role = this.session.role();
-    return (
-      status: RequestStatusEnum | undefined,
-      priority: PriorityEnum | null | undefined,
-    ) => canShowAssign(role, status, priority);
+    return (status: RequestStatusEnum | undefined, priority: PriorityEnum | null | undefined) =>
+      canShowAssign(role, status, priority);
   });
 
   protected readonly canAttend = computed(() => {
     const role = this.session.role();
-    return (status: RequestStatusEnum | undefined) =>
-      canShowAttend(role, status);
+    return (status: RequestStatusEnum | undefined) => canShowAttend(role, status);
   });
 
   protected readonly canClose = computed(() => {
     const role = this.session.role();
-    return (status: RequestStatusEnum | undefined) =>
-      canShowClose(role, status);
+    return (status: RequestStatusEnum | undefined) => canShowClose(role, status);
   });
 
   protected readonly canCancel = computed(() => {
@@ -430,13 +450,19 @@ export class RequestDetailPage {
 
   protected readonly canReject = computed(() => {
     const role = this.session.role();
-    return (status: RequestStatusEnum | undefined) =>
-      canShowReject(role, status);
+    return (status: RequestStatusEnum | undefined) => canShowReject(role, status);
   });
 
-  protected readonly canNote = computed(() =>
-    canShowAddHistoryNote(this.session.role()),
-  );
+  protected readonly canNote = computed(() => canShowAddHistoryNote(this.session.role()));
+
+  protected readonly showPrioritySuggestion = computed(() => {
+    const d = this.detail();
+    if (d === null) {
+      return false;
+    }
+
+    return !isTerminalStatus(d.status) && d.priority === null;
+  });
 
   /** GET /ai/summarize/{requestId} → STAFF, ADMIN (contrato OpenAPI). */
   protected readonly canSummarizeAiRole = computed(() => {
@@ -459,7 +485,7 @@ export class RequestDetailPage {
       )
       .subscribe((id) => {
         if (!Number.isFinite(id)) {
-          this.loadError.set('Identificador inválido.');
+          this.loadError.set('No pudimos identificar la solicitud que deseas ver.');
           return;
         }
         this.requestId = id;
@@ -476,7 +502,7 @@ export class RequestDetailPage {
         catchError((err: HttpErrorResponse) => {
           const p = this.problemMapper.fromHttpError(err);
           this.suggestionError.set(
-            p?.detail ?? p?.title ?? 'No se pudo obtener la sugerencia.',
+            p?.detail ?? p?.title ?? 'No pudimos calcular una recomendación en este momento.',
           );
           return EMPTY;
         }),
@@ -498,7 +524,7 @@ export class RequestDetailPage {
               ? AI_UNAVAILABLE_MSG
               : (this.problemMapper.fromHttpError(err)?.detail ??
                   this.problemMapper.fromHttpError(err)?.title ??
-                  'No se pudo generar el resumen de IA.'),
+                  'No pudimos generar el resumen en este momento.'),
           );
           return EMPTY;
         }),
@@ -568,32 +594,24 @@ export class RequestDetailPage {
   }
 
   protected submitAttend(): void {
-    this.runAction(
-      this.api.attendRequest(this.requestId, this.attendForm.getRawValue()),
-    );
+    this.runAction(this.api.attendRequest(this.requestId, this.attendForm.getRawValue()));
   }
 
   protected submitClose(): void {
-    this.runAction(
-      this.api.closeRequest(this.requestId, this.closeForm.getRawValue()),
-    );
+    this.runAction(this.api.closeRequest(this.requestId, this.closeForm.getRawValue()));
   }
 
   protected submitCancel(): void {
-    this.runAction(
-      this.api.cancelRequest(this.requestId, this.cancelForm.getRawValue()),
-    );
+    this.runAction(this.api.cancelRequest(this.requestId, this.cancelForm.getRawValue()));
   }
 
   protected submitReject(): void {
-    this.runAction(
-      this.api.rejectRequest(this.requestId, this.rejectForm.getRawValue()),
-    );
+    this.runAction(this.api.rejectRequest(this.requestId, this.rejectForm.getRawValue()));
   }
 
   private mapErr(err: HttpErrorResponse): string {
     const p = this.problemMapper.fromHttpError(err);
-    return p?.detail ?? p?.title ?? 'Error en la operación.';
+    return p?.detail ?? p?.title ?? 'No pudimos completar la acción. Inténtalo de nuevo.';
   }
 
   private runAction(obs: Observable<RequestResponse>): void {
@@ -619,7 +637,7 @@ export class RequestDetailPage {
         catchError((err: HttpErrorResponse) => {
           const p = this.problemMapper.fromHttpError(err);
           this.loadError.set(
-            p?.detail ?? p?.title ?? 'No se pudo cargar la solicitud.',
+            p?.detail ?? p?.title ?? 'No pudimos cargar la solicitud en este momento.',
           );
           return EMPTY;
         }),

@@ -1,10 +1,32 @@
 import type { HistoryEntryResponse, RequestDetailResponse } from '../models/request-api.types';
-import {
-  PRIORITY_LABELS,
-  STATUS_LABELS,
-  type HistoryEntryView,
-  type RequestDetailView,
-} from '../models/request-detail-view';
+import type { HistoryEntryView, RequestDetailView } from '../models/request-detail-view';
+
+import { formatDisplayLabel, formatUsernameLabel } from '@shared/utils/display-format';
+
+function formatPersonName(
+  person:
+    | {
+        firstName?: string;
+        lastName?: string;
+        username?: string;
+      }
+    | null
+    | undefined,
+): string {
+  if (person === null || person === undefined) {
+    return '—';
+  }
+
+  const firstName = person.firstName?.trim() ?? '';
+  const lastName = person.lastName?.trim() ?? '';
+  const fullName = `${firstName} ${lastName}`.trim();
+
+  if (fullName !== '') {
+    return fullName;
+  }
+
+  return formatUsernameLabel(person.username);
+}
 
 /**
  * Convierte `RequestDetailResponse` (DTO HTTP) a `RequestDetailView`.
@@ -23,15 +45,15 @@ export function adaptRequestDetail(raw: RequestDetailResponse): RequestDetailVie
     id: raw.id ?? 0,
     status,
     priority,
-    statusLabel: STATUS_LABELS[status],
-    priorityLabel: priority !== null ? PRIORITY_LABELS[priority] : null,
+    statusLabel: formatDisplayLabel(status, 'requestStatus'),
+    priorityLabel: priority !== null ? formatDisplayLabel(priority, 'priority') : null,
     description: raw.description ?? '',
     registrationDateTime: raw.registrationDateTime ?? '',
     deadline: raw.deadline ?? null,
     typeName: raw.requestType?.name ?? '—',
     channelName: raw.originChannel?.name ?? '—',
-    requesterName: raw.requester?.username ?? '—',
-    assignedToName: raw.assignedTo?.username ?? null,
+    requesterName: formatPersonName(raw.requester),
+    assignedToName: raw.assignedTo !== undefined ? formatPersonName(raw.assignedTo) : null,
     requesterId: raw.requester?.id,
   };
 }
@@ -47,6 +69,7 @@ export function adaptHistoryEntry(raw: HistoryEntryResponse): HistoryEntryView {
     action: raw.action ?? '',
     observations: raw.observations ?? null,
     timestamp: raw.timestamp ?? '',
-    performedByName: raw.performedBy?.username ?? '(sistema)',
+    performedByName:
+      raw.performedBy !== undefined ? formatPersonName(raw.performedBy) : '(sistema)',
   };
 }

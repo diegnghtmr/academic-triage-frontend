@@ -50,8 +50,22 @@ export class AppShell {
 
   protected readonly sessionLabel = computed(() => {
     const u = this.session.user();
+    const firstName = u?.firstName?.trim() ?? '';
+    const lastName = u?.lastName?.trim() ?? '';
+    const fullName = `${firstName} ${lastName}`.trim();
+    const email = u?.email?.trim() ?? '';
+
+    if (fullName !== '' && email !== '') {
+      return `${fullName} · ${email}`;
+    }
+    if (fullName !== '') {
+      return fullName;
+    }
+    if (email !== '') {
+      return email;
+    }
     if (u?.username !== undefined && u.username !== '') {
-      return `${u.username} (${u.role ?? '—'})`;
+      return u.username;
     }
     return 'autenticado';
   });

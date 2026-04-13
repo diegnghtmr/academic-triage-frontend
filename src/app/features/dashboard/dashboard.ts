@@ -1,12 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
-import { DecimalPipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize, forkJoin } from 'rxjs';
 
@@ -14,6 +7,10 @@ import { AuthSessionStore } from '@core/auth/auth-session.store';
 import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
 import { ErrorAlert } from '@shared/components/error-alert';
 import { LoadingState } from '@shared/components/loading-state';
+import { DateTimeLabelPipe } from '@shared/pipes/date-time-label.pipe';
+import { DisplayLabelPipe } from '@shared/pipes/display-label.pipe';
+import { DurationHoursLabelPipe } from '@shared/pipes/duration-hours-label.pipe';
+import { UsernameLabelPipe } from '@shared/pipes/username-label.pipe';
 import { adaptDashboardMetrics } from '@features/reports/adapters/dashboard-metrics.adapter';
 import { ReportsApiService } from '@features/reports/data-access/reports-api.service';
 import type { DashboardMetricsView } from '@features/reports/models/dashboard-metrics.types';
@@ -33,7 +30,15 @@ import type { RequestsSummaryView } from './models/dashboard-view';
  */
 @Component({
   selector: 'at-dashboard',
-  imports: [RouterLink, DecimalPipe, ErrorAlert, LoadingState],
+  imports: [
+    RouterLink,
+    ErrorAlert,
+    LoadingState,
+    DisplayLabelPipe,
+    DateTimeLabelPipe,
+    DurationHoursLabelPipe,
+    UsernameLabelPipe,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section>
@@ -48,8 +53,8 @@ import type { RequestsSummaryView } from './models/dashboard-view';
           @case ('STUDENT') {
             @let s = requestsSummary();
             <p>
-              Bienvenido/a, <strong>{{ userName() }}</strong>.
-              Tenés <strong>{{ s?.total ?? 0 }}</strong>
+              Hola, <strong>{{ userName() }}</strong
+              >. Tienes <strong>{{ s?.total ?? 0 }}</strong>
               {{ (s?.total ?? 0) === 1 ? 'solicitud registrada' : 'solicitudes registradas' }}.
             </p>
 
@@ -65,7 +70,7 @@ import type { RequestsSummaryView } from './models/dashboard-view';
                 <table>
                   <thead>
                     <tr>
-                      <th scope="col">ID</th>
+                      <th scope="col">Número de solicitud</th>
                       <th scope="col">Tipo</th>
                       <th scope="col">Estado</th>
                       <th scope="col">Registro</th>
@@ -77,14 +82,15 @@ import type { RequestsSummaryView } from './models/dashboard-view';
                       <tr>
                         <td>{{ r.id }}</td>
                         <td>{{ r.requestType?.name ?? '—' }}</td>
-                        <td>{{ r.status ?? '—' }}</td>
-                        <td>{{ r.registrationDateTime ?? '—' }}</td>
+                        <td>{{ r.status | displayLabel: 'requestStatus' }}</td>
+                        <td>{{ r.registrationDateTime | dateTimeLabel }}</td>
                         <td>
                           @if (r.id !== undefined) {
                             <a
                               [routerLink]="['/app/requests', r.id]"
-                              [attr.aria-label]="'Ver solicitud #' + r.id"
-                            >Ver</a>
+                              [attr.aria-label]="'Ver solicitud número ' + r.id"
+                              >Ver</a
+                            >
                           }
                         </td>
                       </tr>
@@ -93,15 +99,18 @@ import type { RequestsSummaryView } from './models/dashboard-view';
                 </table>
               </section>
             } @else if (s && s.recent.length === 0 && s.total === 0) {
-              <p>Aún no tenés solicitudes. Podés crear una nueva solicitud desde el enlace de arriba.</p>
+              <p>
+                Aún no tienes solicitudes. Puedes crear una nueva solicitud desde el enlace de
+                arriba.
+              </p>
             }
           }
 
           @case ('STAFF') {
             @let s = requestsSummary();
             <p>
-              Bienvenido/a, <strong>{{ userName() }}</strong>.
-              Hay <strong>{{ s?.total ?? 0 }}</strong>
+              Hola, <strong>{{ userName() }}</strong
+              >. Hay <strong>{{ s?.total ?? 0 }}</strong>
               {{ (s?.total ?? 0) === 1 ? 'solicitud en el sistema' : 'solicitudes en el sistema' }}.
             </p>
 
@@ -117,7 +126,7 @@ import type { RequestsSummaryView } from './models/dashboard-view';
                 <table>
                   <thead>
                     <tr>
-                      <th scope="col">ID</th>
+                      <th scope="col">Número de solicitud</th>
                       <th scope="col">Tipo</th>
                       <th scope="col">Estado</th>
                       <th scope="col">Prioridad</th>
@@ -130,15 +139,16 @@ import type { RequestsSummaryView } from './models/dashboard-view';
                       <tr>
                         <td>{{ r.id }}</td>
                         <td>{{ r.requestType?.name ?? '—' }}</td>
-                        <td>{{ r.status ?? '—' }}</td>
-                        <td>{{ r.priority ?? '—' }}</td>
-                        <td>{{ r.registrationDateTime ?? '—' }}</td>
+                        <td>{{ r.status | displayLabel: 'requestStatus' }}</td>
+                        <td>{{ r.priority | displayLabel: 'priority' }}</td>
+                        <td>{{ r.registrationDateTime | dateTimeLabel }}</td>
                         <td>
                           @if (r.id !== undefined) {
                             <a
                               [routerLink]="['/app/requests', r.id]"
-                              [attr.aria-label]="'Ver solicitud #' + r.id"
-                            >Ver</a>
+                              [attr.aria-label]="'Ver solicitud número ' + r.id"
+                              >Ver</a
+                            >
                           }
                         </td>
                       </tr>
@@ -175,7 +185,7 @@ import type { RequestsSummaryView } from './models/dashboard-view';
                   <dd>{{ m.totalRequests }}</dd>
                   @if (m.averageResolutionTimeHours !== null) {
                     <dt>Tiempo promedio de resolución</dt>
-                    <dd>{{ m.averageResolutionTimeHours | number: '1.1-1' }} horas</dd>
+                    <dd>{{ m.averageResolutionTimeHours | durationHoursLabel }}</dd>
                   }
                 </dl>
               </section>
@@ -193,7 +203,7 @@ import type { RequestsSummaryView } from './models/dashboard-view';
                     <tbody>
                       @for (entry of m.byStatus; track entry.key) {
                         <tr>
-                          <td>{{ entry.key }}</td>
+                          <td>{{ entry.key | displayLabel: 'requestStatus' }}</td>
                           <td>{{ entry.value }}</td>
                         </tr>
                       }
@@ -218,7 +228,7 @@ import type { RequestsSummaryView } from './models/dashboard-view';
                           <td>
                             {{ entry.user?.firstName }} {{ entry.user?.lastName }}
                             @if (entry.user?.username) {
-                              <small>({{ entry.user?.username }})</small>
+                              <small>({{ entry.user?.username | usernameLabel }})</small>
                             }
                           </td>
                           <td>{{ entry.resolvedCount ?? 0 }}</td>
@@ -229,16 +239,18 @@ import type { RequestsSummaryView } from './models/dashboard-view';
                 </section>
               }
             } @else if (!loading() && !error()) {
-              <p>No hay datos de reportes disponibles.</p>
+              <p>Todavía no hay información disponible para mostrar en este resumen.</p>
             }
 
             @if (s && s.recent.length > 0) {
               <section aria-labelledby="admin-recent-heading">
-                <h3 id="admin-recent-heading">Solicitudes recientes (últimas {{ s.recent.length }})</h3>
+                <h3 id="admin-recent-heading">
+                  Solicitudes recientes (últimas {{ s.recent.length }})
+                </h3>
                 <table aria-labelledby="admin-recent-heading">
                   <thead>
                     <tr>
-                      <th scope="col">ID</th>
+                      <th scope="col">Número de solicitud</th>
                       <th scope="col">Tipo</th>
                       <th scope="col">Estado</th>
                       <th scope="col">Prioridad</th>
@@ -251,15 +263,16 @@ import type { RequestsSummaryView } from './models/dashboard-view';
                       <tr>
                         <td>{{ r.id }}</td>
                         <td>{{ r.requestType?.name ?? '—' }}</td>
-                        <td>{{ r.status ?? '—' }}</td>
-                        <td>{{ r.priority ?? '—' }}</td>
-                        <td>{{ r.registrationDateTime ?? '—' }}</td>
+                        <td>{{ r.status | displayLabel: 'requestStatus' }}</td>
+                        <td>{{ r.priority | displayLabel: 'priority' }}</td>
+                        <td>{{ r.registrationDateTime | dateTimeLabel }}</td>
                         <td>
                           @if (r.id !== undefined) {
                             <a
                               [routerLink]="['/app/requests', r.id]"
-                              [attr.aria-label]="'Ver solicitud #' + r.id"
-                            >Ver</a>
+                              [attr.aria-label]="'Ver solicitud número ' + r.id"
+                              >Ver</a
+                            >
                           }
                         </td>
                       </tr>
@@ -271,7 +284,7 @@ import type { RequestsSummaryView } from './models/dashboard-view';
           }
 
           @default {
-            <p>Rol no reconocido. Cerrá sesión e ingresá nuevamente.</p>
+            <p>Rol no reconocido. Cierra sesión e inicia nuevamente.</p>
           }
         }
       }
@@ -296,10 +309,14 @@ export class Dashboard {
 
   protected readonly roleLabel = computed(() => {
     switch (this.role()) {
-      case 'STUDENT': return 'Estudiante';
-      case 'STAFF':   return 'Staff';
-      case 'ADMIN':   return 'Administrador';
-      default:        return '';
+      case 'STUDENT':
+        return 'Estudiante';
+      case 'STAFF':
+        return 'Staff';
+      case 'ADMIN':
+        return 'Administrador';
+      default:
+        return '';
     }
   });
 
@@ -347,7 +364,11 @@ export class Dashboard {
   private loadAdminData(): void {
     forkJoin({
       metrics: this.reportsApi.getDashboard(),
-      requests: this.requestsApi.listRequests({ page: 0, size: 5, sort: 'registrationDateTime,desc' }),
+      requests: this.requestsApi.listRequests({
+        page: 0,
+        size: 5,
+        sort: 'registrationDateTime,desc',
+      }),
     })
       .pipe(
         catchError((err: HttpErrorResponse) => {

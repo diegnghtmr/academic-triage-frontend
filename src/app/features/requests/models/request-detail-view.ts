@@ -14,22 +14,6 @@
 
 import type { PriorityEnum, RequestStatusEnum } from './request-api.types';
 
-export const STATUS_LABELS: Record<RequestStatusEnum, string> = {
-  REGISTERED: 'Registrada',
-  CLASSIFIED: 'Clasificada',
-  IN_PROGRESS: 'En proceso',
-  ATTENDED: 'Atendida',
-  CLOSED: 'Cerrada',
-  CANCELLED: 'Cancelada',
-  REJECTED: 'Rechazada',
-};
-
-export const PRIORITY_LABELS: Record<PriorityEnum, string> = {
-  HIGH: 'Alta',
-  MEDIUM: 'Media',
-  LOW: 'Baja',
-};
-
 /** View model de la cabecera/resumen de una solicitud. */
 export interface RequestDetailView {
   id: number;

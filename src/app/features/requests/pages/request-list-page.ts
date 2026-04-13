@@ -1,11 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
@@ -16,6 +10,8 @@ import { ErrorAlert } from '@shared/components/error-alert';
 import { LoadingState } from '@shared/components/loading-state';
 import { PageSection } from '@shared/components/page-section';
 import { PaginationNav } from '@shared/components/pagination-nav';
+import { DateTimeLabelPipe } from '@shared/pipes/date-time-label.pipe';
+import { DisplayLabelPipe } from '@shared/pipes/display-label.pipe';
 
 import { RequestsApiService } from '../data-access/requests-api.service';
 import type {
@@ -33,6 +29,8 @@ import type {
     LoadingState,
     ErrorAlert,
     PaginationNav,
+    DisplayLabelPipe,
+    DateTimeLabelPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -47,7 +45,7 @@ import type {
           <select formControlName="status">
             <option [ngValue]="null">(todos)</option>
             @for (s of statusOptions; track s) {
-              <option [ngValue]="s">{{ s }}</option>
+              <option [ngValue]="s">{{ s | displayLabel: 'requestStatus' }}</option>
             }
           </select>
         </label>
@@ -62,7 +60,7 @@ import type {
         <table>
           <thead>
             <tr>
-              <th scope="col">ID</th>
+              <th scope="col">Número de solicitud</th>
               <th scope="col">Estado</th>
               <th scope="col">Tipo</th>
               <th scope="col">Registro</th>
@@ -73,12 +71,16 @@ import type {
             @for (r of rows(); track $index) {
               <tr>
                 <td>{{ r.id }}</td>
-                <td>{{ r.status }}</td>
+                <td>{{ r.status | displayLabel: 'requestStatus' }}</td>
                 <td>{{ r.requestType?.name }}</td>
-                <td>{{ r.registrationDateTime }}</td>
+                <td>{{ r.registrationDateTime | dateTimeLabel }}</td>
                 <td>
                   @if (r.id !== undefined) {
-                    <a [routerLink]="['/app/requests', r.id]" [attr.aria-label]="'Ver solicitud #' + r.id">Ver</a>
+                    <a
+                      [routerLink]="['/app/requests', r.id]"
+                      [attr.aria-label]="'Ver solicitud número ' + r.id"
+                      >Ver</a
+                    >
                   }
                 </td>
               </tr>
@@ -165,7 +167,7 @@ export class RequestListPage {
         catchError((err: HttpErrorResponse) => {
           const p = this.problemMapper.fromHttpError(err);
           this.errorMessage.set(
-            p?.detail ?? p?.title ?? 'No se pudo cargar el listado.',
+            p?.detail ?? p?.title ?? 'No pudimos cargar la lista de solicitudes.',
           );
           return EMPTY;
         }),
