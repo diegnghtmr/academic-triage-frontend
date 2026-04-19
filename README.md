@@ -50,3 +50,16 @@ Esta aplicación es una **Single Page Application (SPA) Angular 20 standalone** 
 | [`docs/migration/local-dev-runbook.md`](docs/migration/local-dev-runbook.md) | Setup de desarrollo local |
 | [`docs/migration/cutover-parity-ledger.md`](docs/migration/cutover-parity-ledger.md) | Ledger de paridad Angular/legacy — gate de cutover completo |
 | [`docs/archive/react-reference/`](docs/archive/react-reference/) | Referencia histórica del stack React (no operativo) |
+
+## Idempotency & Concurrency Quick Guide
+
+Para asegurar operaciones seguras y consistentes, el frontend debe respetar las siguientes reglas del backend:
+
+- **Idempotency-Key**: Obligatorio en operaciones mutantes (`POST`, `PATCH`). El frontend debe generar y persistir una clave (ej. UUID v4) por intento lógico de operación. Si una solicitud falla por timeout, se puede reintentar con la misma clave. El backend responderá con el header `Idempotency-Status: fresh` o `replayed`.
+- **ETag / If-Match**: Obligatorio en actualizaciones y borrados administrativos (`PUT`, `DELETE`). Los endpoints `GET` administrativos devuelven un header `ETag`. El frontend debe capturar ese ETag y enviarlo en el header `If-Match` al modificar el recurso (Optimistic Locking).
+- **Manejo de Errores Comunes**:
+  - `409 Conflict`: Regla de negocio no cumplida o recurso duplicado.
+  - `412 Precondition Failed`: ETag obsoleto (el recurso fue modificado por otro usuario). El frontend debe refrescar los datos.
+  - `422 Unprocessable Entity`: La carga útil (body) difiere en un reintento con el mismo `Idempotency-Key` (mismatch), o error de validación de campos.
+  - `428 Precondition Required`: Falta el header `If-Match` en una operación que lo requiere.
+- **Cache de IA**: El endpoint `GET /api/v1/ai/summarize/{requestId}` está cacheado por la versión (ETag) del request.
