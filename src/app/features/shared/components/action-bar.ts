@@ -11,6 +11,8 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
       align-items: center;
       gap: var(--at-s3);
       flex-wrap: wrap;
+      padding: var(--at-s2) 0;
+      border-bottom: 1px solid var(--at-border);
     }
   `,
   template: `<div class="bar"><ng-content /></div>`,

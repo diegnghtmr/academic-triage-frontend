@@ -20,8 +20,32 @@ import {
       margin-top: var(--at-s2);
     }
 
+    button {
+      background: transparent;
+      border: 1px solid var(--at-border-hi);
+      border-radius: var(--at-radius);
+      color: var(--at-text-muted);
+      font-family: var(--at-font-mono);
+      font-size: var(--at-fs-xs);
+      padding: var(--at-s1) var(--at-s3);
+      cursor: pointer;
+      transition: border-color var(--at-dur-fast) var(--at-ease),
+                  color var(--at-dur-fast) var(--at-ease);
+
+      &:not([disabled]):hover {
+        border-color: var(--at-mercury);
+        color: var(--at-mercury);
+      }
+
+      &[disabled] {
+        opacity: 0.38;
+        cursor: not-allowed;
+      }
+    }
+
     span {
       color: var(--at-text-muted);
+      font-family: var(--at-font-mono);
       font-size: var(--at-fs-xs);
       letter-spacing: 0.06em;
       flex: 1;

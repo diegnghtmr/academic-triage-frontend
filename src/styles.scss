@@ -1,6 +1,6 @@
 // ============================================================
 // Academic Triage — Design Tokens + Base Styles
-// Identidad visual: cyber / terminal / información densa
+// Identidad visual: Cyber-Classicism — monochrome, flat, dense
 // ============================================================
 
 *,
@@ -11,42 +11,91 @@
 
 // ── Design Tokens ────────────────────────────────────────────
 :root {
-  // Palette
-  --at-bg:             #080810;
-  --at-surface:        #0e0e1c;
-  --at-surface-2:      #141428;
-  --at-border:         #1c1c36;
-  --at-border-hi:      #2c2c50;
+  // Palette — Cyber-Classicism (monochrome)
+  --at-bg:             #0A0A0A;
+  --at-surface:        #111111;
+  --at-surface-2:      #1A1A1A;
+  --at-border:         #222222;
+  --at-border-hi:      #333333;
 
-  --at-text:           #c6c6de;
-  --at-text-muted:     #55557a;
-  --at-text-dim:       #3a3a5a;
+  --at-text:           #F5F5F5;
+  --at-text-muted:     #8A8A8A;
+  --at-text-dim:       #555555;
 
-  --at-accent:         #5b8fff;
-  --at-accent-hi:      #93b8ff;
+  --at-mercury:        #C0C0C0;
 
   --at-success:        #3ecf6e;
   --at-warning:        #e8c533;
   --at-danger:         #e06060;
   --at-info:           #9b8fff;
 
-  // Spacing scale
+  --at-err-bg:         #4A2020;
+  --at-ok-bg:          #1A2E1A;
+
+  // Typography
+  --at-font-sans:  'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --at-font-mono:  'JetBrains Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+
+  --at-fs-xs:     0.7rem;
+  --at-fs-sm:     0.875rem;
+  --at-fs:        1rem;
+  --at-fs-lg:     1.25rem;
+  --at-fs-xl:     1.5rem;
+  --at-fs-2xl:    2rem;
+  --at-fs-3xl:    3rem;
+  --at-lh:        1.5;
+  --at-tracking-tight: -0.03em;
+  --at-tracking-wide:  0.08em;
+
+  // Spacing scale (8pt grid)
   --at-s1: 0.25rem;
   --at-s2: 0.5rem;
   --at-s3: 0.75rem;
   --at-s4: 1rem;
   --at-s5: 1.25rem;
   --at-s6: 1.5rem;
+  --at-s7: 1.75rem;
   --at-s8: 2rem;
+  --at-s10: 2.5rem;
+  --at-s12: 3rem;
 
-  // Typography
-  --at-font:      'Consolas', 'Menlo', 'Courier New', monospace;
-  --at-fs-xs:     0.7rem;
-  --at-fs-sm:     0.775rem;
-  --at-fs:        0.875rem;
-  --at-fs-lg:     1rem;
-  --at-fs-xl:     1.2rem;
-  --at-lh:        1.65;
+  // Radius — flat (0px)
+  --at-radius: 0;
+
+  // Shadow — border-based; single for modal
+  --at-shadow-modal: 0 0 0 1px var(--at-border-hi), 0 24px 48px -12px rgba(0, 0, 0, 0.6);
+
+  // Backdrop overlay
+  --at-backdrop: rgba(0, 0, 0, 0.7);
+
+  // Motion
+  --at-ease:      cubic-bezier(0.25, 0.1, 0.25, 1);
+  --at-dur-fast:  120ms;
+  --at-dur:       150ms;
+
+  // Font-size alias (used by dashboard, reports, public-home, request-detail)
+  --at-fs-base: var(--at-fs);
+}
+
+// ── Keyframes ────────────────────────────────────────────────
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50%       { opacity: 1; }
+}
+
+@keyframes skelpulse {
+  0%, 100% { opacity: 0.15; }
+  50%       { opacity: 0.35; }
+}
+
+@keyframes fade {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 // ── Base reset ───────────────────────────────────────────────
@@ -54,7 +103,7 @@ body {
   margin: 0;
   background: var(--at-bg);
   color: var(--at-text);
-  font-family: var(--at-font);
+  font-family: var(--at-font-sans);
   font-size: var(--at-fs);
   line-height: var(--at-lh);
   -webkit-font-smoothing: antialiased;
@@ -63,26 +112,26 @@ body {
 // ── Headings ─────────────────────────────────────────────────
 h1, h2, h3, h4, h5 {
   margin: 0 0 var(--at-s4);
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  line-height: 1.3;
+  font-weight: 800;
+  letter-spacing: var(--at-tracking-tight);
+  line-height: 1.2;
   color: var(--at-text);
 }
 
-h1 { font-size: 1.4rem; }
-h2 { font-size: var(--at-fs-xl); }
-h3 { font-size: var(--at-fs-lg); color: var(--at-accent); }
-h4 { font-size: var(--at-fs); color: var(--at-text-muted); text-transform: uppercase; letter-spacing: 0.07em; }
+h1 { font-size: var(--at-fs-3xl); }
+h2 { font-size: var(--at-fs-2xl); }
+h3 { font-size: var(--at-fs-xl); color: var(--at-text); }
+h4 { font-size: var(--at-fs-lg); color: var(--at-text-muted); text-transform: uppercase; letter-spacing: var(--at-tracking-wide); }
 
 p { margin: 0 0 var(--at-s3); }
 
 // ── Links ────────────────────────────────────────────────────
 a {
-  color: var(--at-accent);
+  color: var(--at-mercury);
   text-decoration: none;
 
   &:hover {
-    color: var(--at-accent-hi);
+    color: var(--at-text);
     text-decoration: underline;
   }
 }
@@ -92,16 +141,18 @@ button {
   cursor: pointer;
   background: transparent;
   border: 1px solid var(--at-border-hi);
+  border-radius: var(--at-radius);
   color: var(--at-text);
   font-family: inherit;
   font-size: var(--at-fs-sm);
   padding: var(--at-s1) var(--at-s3);
   letter-spacing: 0.03em;
-  transition: border-color 0.12s ease, color 0.12s ease;
+  transition: border-color var(--at-dur-fast) var(--at-ease),
+              color var(--at-dur-fast) var(--at-ease);
 
   &:not([disabled]):hover {
-    border-color: var(--at-accent);
-    color: var(--at-accent);
+    border-color: var(--at-mercury);
+    color: var(--at-mercury);
   }
 
   &[disabled] {
@@ -116,7 +167,7 @@ label {
   color: var(--at-text-muted);
   font-size: var(--at-fs-xs);
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: var(--at-tracking-wide);
   margin-bottom: var(--at-s1);
 }
 
@@ -129,17 +180,18 @@ select,
 textarea {
   display: block;
   width: 100%;
-  background: var(--at-surface);
+  background: var(--at-surface-2);
   border: 1px solid var(--at-border-hi);
+  border-radius: var(--at-radius);
   color: var(--at-text);
   font-family: inherit;
   font-size: var(--at-fs-sm);
   padding: var(--at-s2) var(--at-s3);
   outline: none;
-  transition: border-color 0.12s ease;
+  transition: border-color var(--at-dur-fast) var(--at-ease);
 
   &:focus {
-    border-color: var(--at-accent);
+    border-color: var(--at-mercury);
   }
 
   &:disabled {
@@ -178,7 +230,7 @@ th {
   padding: var(--at-s2) var(--at-s3);
   color: var(--at-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: var(--at-tracking-wide);
   font-size: var(--at-fs-xs);
   font-weight: 600;
 }
@@ -205,7 +257,7 @@ dt {
   color: var(--at-text-muted);
   font-size: var(--at-fs-xs);
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: var(--at-tracking-wide);
   padding-top: 2px;
 }
 
@@ -216,16 +268,17 @@ dd {
 
 // ── ARIA live regions ────────────────────────────────────────
 [role='alert'] {
-  background: color-mix(in srgb, var(--at-danger) 10%, transparent);
+  background: var(--at-err-bg);
   border: 1px solid var(--at-danger);
   color: var(--at-danger);
+  font-family: var(--at-font-mono);
   font-size: var(--at-fs-sm);
   padding: var(--at-s2) var(--at-s4);
   margin: var(--at-s2) 0;
 }
 
 [role='status'] {
-  background: color-mix(in srgb, var(--at-success) 10%, transparent);
+  background: var(--at-ok-bg);
   border: 1px solid var(--at-success);
   color: var(--at-success);
   font-size: var(--at-fs-sm);
@@ -233,45 +286,153 @@ dd {
   margin: var(--at-s2) 0;
 }
 
-// ── App shell ────────────────────────────────────────────────
-at-app-shell {
-  display: flex;
-  flex-direction: column;
-  min-height: 100dvh;
-}
+// ── .input utility — explicit class mirror for form controls ──
+// Used by login, register, request-detail, catalog forms, etc.
+// Mirrors the element-selector rules above so any element wearing
+// class="input" (e.g. <select>, <input type="number">) gets the same
+// consistent styling regardless of input type.
 
-[role='banner'] {
-  display: flex;
-  align-items: center;
-  gap: var(--at-s4);
-  padding: var(--at-s3) var(--at-s6);
-  background: var(--at-surface);
-  border-bottom: 1px solid var(--at-border-hi);
-  flex-wrap: wrap;
-
-  h1 {
-    margin: 0;
-    font-size: var(--at-fs-lg);
-    color: var(--at-accent);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-  }
-
-  nav {
-    display: flex;
-    align-items: center;
-    gap: var(--at-s3);
-    flex: 1;
-    flex-wrap: wrap;
-    font-size: var(--at-fs-sm);
-  }
-
-  p { margin: 0; font-size: var(--at-fs-xs); color: var(--at-text-muted); }
-}
-
-main {
-  flex: 1;
-  padding: var(--at-s6) var(--at-s8);
-  max-width: 1280px;
+.input {
+  display: block;
   width: 100%;
+  background: var(--at-surface-2);
+  border: 1px solid var(--at-border-hi);
+  border-radius: var(--at-radius);
+  color: var(--at-text);
+  font-family: inherit;
+  font-size: var(--at-fs-sm);
+  padding: var(--at-s2) var(--at-s3);
+  outline: none;
+  transition: border-color var(--at-dur-fast) var(--at-ease);
+
+  &:focus {
+    border-color: var(--at-mercury);
+  }
+
+  &:disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+  }
+}
+
+.input--sm {
+  padding: var(--at-s1) var(--at-s2);
+  font-size: var(--at-fs-xs);
+}
+
+// ── App shell (layout host) ───────────────────────────────────
+at-app-shell {
+  display: block;
+}
+
+// ── Global utility classes ────────────────────────────────────
+// .btn family — adapted from Cyber-Classicism token system
+// Referenced in 56+ template locations across catalog, admin, and public pages.
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--at-s2);
+  padding: var(--at-s3) var(--at-s6);
+  font-family: var(--at-font-mono);
+  font-size: 0.8125rem; // 13px
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--at-tracking-wide);
+  border: 1px solid transparent;
+  border-radius: var(--at-radius);
+  transition:
+    background var(--at-dur-fast) var(--at-ease),
+    border-color var(--at-dur-fast) var(--at-ease),
+    color var(--at-dur-fast) var(--at-ease);
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btn--primary {
+  background: var(--at-mercury);
+  color: var(--at-bg);
+  border-color: var(--at-mercury);
+
+  &:hover {
+    background: var(--at-text);
+    border-color: var(--at-text);
+    color: var(--at-bg);
+  }
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--at-text-muted);
+  border-color: var(--at-border-hi);
+
+  &:hover {
+    border-color: var(--at-mercury);
+    color: var(--at-text);
+  }
+}
+
+.btn--danger {
+  background: transparent;
+  color: var(--at-text);
+  border-color: var(--at-border-hi);
+
+  &:hover {
+    background: var(--at-err-bg);
+    border-color: var(--at-danger);
+    color: var(--at-text);
+  }
+}
+
+.btn--sm {
+  padding: var(--at-s1) var(--at-s3);
+  font-size: 0.6875rem; // 11px
+}
+
+// .tbl — full-width monospace table with row separators and hover state.
+// Referenced in catalog, admin and request-list pages.
+
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--at-surface);
+  border: 1px solid var(--at-border);
+  font-size: var(--at-fs-sm);
+
+  th,
+  td {
+    text-align: left;
+    padding: var(--at-s3) var(--at-s4);
+  }
+
+  thead th {
+    background: var(--at-surface);
+    font-family: var(--at-font-mono);
+    font-size: 0.6875rem; // 11px
+    color: var(--at-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 400;
+    border-bottom: 1px solid var(--at-border);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--at-border);
+    transition: background var(--at-dur-fast) var(--at-ease);
+    cursor: pointer;
+
+    &:last-child {
+      border-bottom: 0;
+    }
+
+    &:hover td {
+      background: var(--at-surface-2);
+    }
+  }
+
+  td {
+    color: var(--at-text);
+    vertical-align: middle;
+  }
 }

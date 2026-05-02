@@ -18,7 +18,8 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
     .title {
       margin: 0;
       font-size: var(--at-fs-xl);
-      letter-spacing: 0.03em;
+      font-weight: 800;
+      letter-spacing: var(--at-tracking-tight);
       color: var(--at-text);
     }
 
