@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
@@ -14,42 +15,55 @@ import type { CreateOriginChannelBody } from '../models/catalog-admin.types';
   imports: [ReactiveFormsModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section>
-      <h2>{{ isEdit() ? 'Editar canal de origen' : 'Nuevo canal de origen' }}</h2>
-      <p><a routerLink="/app/catalogs/origin-channels">Volver al listado</a></p>
+    <section class="section">
+      <h2 class="section__title">{{ isEdit() ? 'Editar canal de origen' : 'Nuevo canal de origen' }}</h2>
+      <p class="section__back"><a routerLink="/app/catalogs/origin-channels">← Volver al listado</a></p>
 
       @if (loadError()) {
-        <p role="alert">{{ loadError() }}</p>
+        <p class="field__error" role="alert">{{ loadError() }}</p>
       } @else {
-        <form [formGroup]="form" (ngSubmit)="submit()">
-          <div>
-            <label for="oc-name">Nombre <span aria-hidden="true">*</span></label>
-            <input
-              id="oc-name"
-              type="text"
-              formControlName="name"
-              maxlength="100"
-              autocomplete="off"
-            />
-            @if (form.controls.name.invalid && form.controls.name.touched) {
-              <span role="alert">El nombre es requerido (máx. 100 caracteres).</span>
-            }
-          </div>
+        <div class="card">
+          <form class="edit-form" [formGroup]="form" (ngSubmit)="submit()">
+            <div class="field">
+              <label class="field__label" for="oc-name">Nombre <span aria-hidden="true">*</span></label>
+              <input
+                class="input"
+                id="oc-name"
+                type="text"
+                formControlName="name"
+                maxlength="100"
+                autocomplete="off"
+              />
+              @if (form.controls.name.invalid && form.controls.name.touched) {
+                <span class="field__error" role="alert">El nombre es requerido (máx. 100 caracteres).</span>
+              }
+            </div>
 
-          @if (submitError()) {
-            <p role="alert">{{ submitError() }}</p>
-          }
-
-          <button type="submit" [disabled]="form.invalid || submitting() || loadingItem()">
-            @if (submitting()) {
-              Guardando…
-            } @else {
-              {{ isEdit() ? 'Guardar cambios' : 'Crear' }}
+            @if (submitError()) {
+              <p class="field__error" role="alert">{{ submitError() }}</p>
             }
-          </button>
-        </form>
+
+            <button class="btn btn--primary" type="submit" [disabled]="form.invalid || submitting() || loadingItem()">
+              @if (submitting()) {
+                Guardando…
+              } @else {
+                {{ isEdit() ? 'Guardar cambios' : 'Crear' }}
+              }
+            </button>
+          </form>
+        </div>
       }
     </section>
+  `,
+  styles: `
+    .section { padding: var(--at-s6); max-width: 480px; }
+    .section__title { font-size: var(--at-fs-xl); font-weight: 800; letter-spacing: var(--at-tracking-tight); margin-bottom: var(--at-s2); }
+    .section__back { margin-bottom: var(--at-s4); font-size: var(--at-fs-sm); }
+    .card { background: var(--at-surface); border: 1px solid var(--at-border); padding: var(--at-s5); }
+    .edit-form { display: flex; flex-direction: column; gap: var(--at-s3); }
+    .field { display: flex; flex-direction: column; gap: var(--at-s1); }
+    .field__label { font-size: var(--at-fs-sm); color: var(--at-text-muted); font-family: var(--at-font-mono); }
+    .field__error { font-size: var(--at-fs-sm); color: var(--at-danger); padding: var(--at-s1) var(--at-s2); background: var(--at-err-bg); }
   `,
 })
 export class OriginChannelFormPage {
@@ -58,6 +72,7 @@ export class OriginChannelFormPage {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly loadingItem = signal(false);
   protected readonly submitting = signal(false);
@@ -93,6 +108,7 @@ export class OriginChannelFormPage {
           return EMPTY;
         }),
         finalize(() => this.loadingItem.set(false)),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((item) => {
         this.form.setValue({ name: item.name ?? '' });
@@ -122,6 +138,7 @@ export class OriginChannelFormPage {
           return EMPTY;
         }),
         finalize(() => this.submitting.set(false)),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => {
         void this.router.navigate(['/app/catalogs/origin-channels']);

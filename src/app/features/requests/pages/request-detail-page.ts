@@ -18,8 +18,13 @@ import { AuthSessionStore } from '@core/auth/auth-session.store';
 import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
 import { DateTimeLabelPipe } from '@shared/pipes/date-time-label.pipe';
 import { DisplayLabelPipe } from '@shared/pipes/display-label.pipe';
+import { StateBadge } from '@shared/components/state-badge';
+import { PriorityBadge } from '@shared/components/priority-badge';
 
 import { adaptHistoryEntry, adaptRequestDetail } from '../adapters/request-detail.adapter';
+import { AiPanel } from '../components/ai-panel';
+import { Pipeline } from '../components/pipeline';
+import { TerminalHistory } from '../components/terminal-history';
 import { AiApiService } from '../data-access/ai-api.service';
 import { CatalogApiService } from '../data-access/catalog-api.service';
 import { RequestsApiService } from '../data-access/requests-api.service';
@@ -49,139 +54,146 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
 
 @Component({
   selector: 'at-request-detail-page',
-  imports: [ReactiveFormsModule, RouterLink, DatePipe, DisplayLabelPipe, DateTimeLabelPipe],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    DatePipe,
+    DisplayLabelPipe,
+    DateTimeLabelPipe,
+    StateBadge,
+    PriorityBadge,
+    Pipeline,
+    TerminalHistory,
+    AiPanel,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section>
-      <p><a routerLink="/app/requests/list">← Listado</a></p>
+    <section class="section">
+      <p class="section__back"><a routerLink="/app/requests/list">← Listado</a></p>
+
       @if (loadError()) {
-        <p role="alert">{{ loadError() }}</p>
+        <p role="alert" class="field__error">{{ loadError() }}</p>
       } @else if (loading()) {
-        <p>Cargando…</p>
+        <p class="section__loading">Cargando…</p>
       } @else if (detail()) {
         @let d = detail()!;
-        <h2>Número de solicitud: {{ d.id }}</h2>
-        <dl>
-          <dt>Estado</dt>
-          <dd>{{ d.statusLabel }}</dd>
-          <dt>Descripción</dt>
-          <dd>{{ d.description }}</dd>
-          <dt>Registro</dt>
-          <dd>{{ d.registrationDateTime | dateTimeLabel }}</dd>
-          <dt>Prioridad</dt>
-          <dd>{{ d.priorityLabel ?? '—' }}</dd>
-          <dt>Tipo</dt>
-          <dd>{{ d.typeName }}</dd>
-          <dt>Canal</dt>
-          <dd>{{ d.channelName }}</dd>
-          <dt>Solicitante</dt>
-          <dd>{{ d.requesterName }}</dd>
-          <dt>Asignado</dt>
-          <dd>{{ d.assignedToName ?? '—' }}</dd>
-        </dl>
 
-        @if (showPrioritySuggestion()) {
-          <section>
-            <h3>Orientación de prioridad</h3>
-            <p>
-              <small>
-                Esta recomendación se calcula según las reglas vigentes para este tipo de solicitud.
-                Solo sirve como guía y no cambia la solicitud por sí sola.
-              </small>
-            </p>
-            <button type="button" (click)="loadSuggestion()" [disabled]="suggestionLoading()">
-              @if (suggestionLoading()) {
-                Consultando…
-              } @else {
-                Ver recomendación
-              }
-            </button>
-            @if (suggestionError()) {
-              <p role="alert">{{ suggestionError() }}</p>
+        <div class="split">
+          <div class="split__main">
+            <h2 class="section__title">Solicitud #{{ d.id }}</h2>
+
+            @if (!terminalStatus(d.status)) {
+              <at-pipeline [currentStatus]="d.status" />
             }
-            @if (suggestion()) {
-              @let s = suggestion()!;
-              <p>
-                <strong>Prioridad recomendada:</strong>
-                {{ s.suggestedPriority | displayLabel: 'priority' }}
-              </p>
-              @if (s.matchedRules?.length) {
-                <ul>
-                  @for (m of s.matchedRules; track $index) {
-                    <li>{{ m.name }} → {{ m.resultingPriority | displayLabel: 'priority' }}</li>
-                  }
-                </ul>
-              } @else {
-                <p>
+
+            <dl class="card card--detail">
+              <dt>Estado</dt>
+              <dd><at-state-badge [state]="d.status" /></dd>
+              <dt>Prioridad</dt>
+              <dd>
+                @if (d.priority) {
+                  <at-priority-badge [priority]="d.priority" />
+                } @else {
+                  <span>—</span>
+                }
+              </dd>
+              <dt>Descripción</dt>
+              <dd>{{ d.description }}</dd>
+              <dt>Registro</dt>
+              <dd>{{ d.registrationDateTime | dateTimeLabel }}</dd>
+              <dt>Tipo</dt>
+              <dd>{{ d.typeName }}</dd>
+              <dt>Canal</dt>
+              <dd>{{ d.channelName }}</dd>
+              <dt>Solicitante</dt>
+              <dd>{{ d.requesterName }}</dd>
+              <dt>Asignado</dt>
+              <dd>{{ d.assignedToName ?? '—' }}</dd>
+            </dl>
+          </div>
+
+          <div class="split__aside">
+            @if (showPrioritySuggestion()) {
+              <section class="card" aria-labelledby="priority-suggestion-heading">
+                <h3 id="priority-suggestion-heading" class="card__title">Orientación de prioridad</h3>
+                <p class="card__hint">
                   <small>
-                    No hay una regla específica para este caso. Si lo necesitas, puedes definir la
-                    prioridad manualmente.
+                    Esta recomendación se calcula según las reglas vigentes para este tipo de solicitud.
+                    Solo sirve como guía y no cambia la solicitud por sí sola.
                   </small>
                 </p>
-              }
-            }
-          </section>
-        }
-
-        <!-- Resumen IA: solo STAFF y ADMIN (contrato: GET /ai/summarize → STAFF, ADMIN) -->
-        @if (canSummarizeAiRole()) {
-          <section aria-labelledby="ai-summary-heading">
-            <h3 id="ai-summary-heading">Resumen con IA</h3>
-            <p>
-              <small>
-                Esta sección usa IA para resumir el estado y el historial de la solicitud. Es una
-                ayuda de lectura y no reemplaza la información oficial.
-              </small>
-            </p>
-            <button
-              type="button"
-              (click)="loadAiSummary()"
-              [disabled]="aiSummaryLoading()"
-              aria-label="Generar resumen IA de esta solicitud"
-            >
-              @if (aiSummaryLoading()) {
-                Generando resumen…
-              } @else {
-                Generar resumen
-              }
-            </button>
-            @if (aiSummaryError()) {
-              <p role="status">{{ aiSummaryError() }}</p>
-            }
-            @if (aiSummary()) {
-              @let sum = aiSummary()!;
-              <div role="region" aria-label="Resumen generado por IA">
-                <p>{{ sum.summary }}</p>
-                @if (sum.generatedAt) {
-                  <p>
-                    <small> Generado el {{ sum.generatedAt | date: 'dd/MM/yyyy HH:mm' }} </small>
+                <button class="btn btn--sm" type="button" (click)="loadSuggestion()" [disabled]="suggestionLoading()">
+                  @if (suggestionLoading()) {
+                    Consultando…
+                  } @else {
+                    Ver recomendación
+                  }
+                </button>
+                @if (suggestionError()) {
+                  <p role="alert" class="field__error">{{ suggestionError() }}</p>
+                }
+                @if (suggestion()) {
+                  @let s = suggestion()!;
+                  <p class="card__value">
+                    <strong>Recomendada:</strong>
+                    {{ s.suggestedPriority | displayLabel: 'priority' }}
                   </p>
+                  @if (s.matchedRules?.length) {
+                    <ul class="card__list">
+                      @for (m of s.matchedRules; track (m.ruleId ?? $index)) {
+                        <li>{{ m.name }} → {{ m.resultingPriority | displayLabel: 'priority' }}</li>
+                      }
+                    </ul>
+                  } @else {
+                    <p class="card__hint"><small>No hay una regla específica para este caso.</small></p>
+                  }
                 }
-              </div>
+              </section>
             }
-          </section>
-        }
 
-        <section>
-          <h3>Historial</h3>
-          <ul>
-            @for (h of history(); track h.id) {
-              <li>
-                <strong>{{ h.timestamp | dateTimeLabel }}</strong> —
-                {{ h.action | displayLabel: 'historyAction' }} ({{ h.performedByName }})
-                @if (h.observations) {
-                  <div>{{ h.observations }}</div>
-                }
-              </li>
+            <!-- Resumen IA: solo STAFF y ADMIN (contrato: GET /ai/summarize → STAFF, ADMIN) -->
+            @if (canSummarizeAiRole()) {
+              <section class="card" aria-labelledby="ai-summary-heading">
+                <h3 id="ai-summary-heading" class="card__title">Resumen con IA</h3>
+                <p class="card__hint">
+                  <small>
+                    Esta sección usa IA para resumir el estado y el historial de la solicitud. Es una
+                    ayuda de lectura y no reemplaza la información oficial.
+                  </small>
+                </p>
+                <button
+                  class="btn btn--sm"
+                  type="button"
+                  (click)="loadAiSummary()"
+                  [disabled]="aiSummaryLoading()"
+                  aria-label="Generar resumen IA de esta solicitud"
+                >
+                  @if (aiSummaryLoading()) {
+                    Generando resumen…
+                  } @else {
+                    Generar resumen
+                  }
+                </button>
+                <at-ai-panel
+                  [summary]="aiSummary()?.summary ?? null"
+                  [generatedAt]="aiSummary()?.generatedAt"
+                  [aiError]="aiSummaryError()"
+                />
+              </section>
             }
-          </ul>
+          </div>
+        </div>
+
+        <section class="card" aria-labelledby="history-heading">
+          <h3 id="history-heading" class="card__title">Historial</h3>
+          <at-terminal-history [entries]="history()" />
           @if (canNote()) {
-            <form [formGroup]="noteForm" (ngSubmit)="submitNote()">
-              <label>
+            <form class="note-form" [formGroup]="noteForm" (ngSubmit)="submitNote()">
+              <label class="field__label">
                 Nota interna
-                <textarea formControlName="observations" rows="3"></textarea>
+                <textarea class="input" formControlName="observations" rows="3"></textarea>
               </label>
-              <button type="submit" [disabled]="noteForm.invalid || noteSubmitting()">
+              <button class="btn btn--sm" type="submit" [disabled]="noteForm.invalid || noteSubmitting()">
                 Añadir nota
               </button>
             </form>
@@ -189,141 +201,151 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
         </section>
 
         @if (actionError()) {
-          <p role="alert">{{ actionError() }}</p>
+          <p role="alert" class="field__error">{{ actionError() }}</p>
         }
 
         @if (!terminalStatus(d.status)) {
-          <section>
-            <h3>Acciones</h3>
+          <section class="card" aria-labelledby="actions-heading">
+            <h3 id="actions-heading" class="card__title">Acciones</h3>
+            @if (catalogWarning() !== null) {
+              <p class="card__hint" role="status">{{ catalogWarning() }}</p>
+            }
             @if (canClassify()(d.status)) {
-              <form [formGroup]="classifyForm" (ngSubmit)="submitClassify()">
-                <h4>Clasificar</h4>
-                <div>
-                  <label for="detail-classify-type">Tipo de solicitud</label>
-                  <select id="detail-classify-type" formControlName="requestTypeId">
-                    @for (t of requestTypes(); track t.id) {
+              <form class="action-form" [formGroup]="classifyForm" (ngSubmit)="submitClassify()">
+                <h4 class="action-form__title">Clasificar</h4>
+                <div class="field">
+                  <label class="field__label" for="detail-classify-type">Tipo de solicitud</label>
+                  <select class="input" id="detail-classify-type" formControlName="requestTypeId">
+                    @for (t of requestTypesWithId(); track t.id) {
                       <option [ngValue]="t.id">{{ t.name }}</option>
                     }
                   </select>
                 </div>
-                <div>
-                  <label for="detail-classify-obs">Observaciones (opcional)</label>
+                <div class="field">
+                  <label class="field__label" for="detail-classify-obs">Observaciones (opcional)</label>
                   <textarea
+                    class="input"
                     id="detail-classify-obs"
                     formControlName="observations"
                     rows="2"
                   ></textarea>
                 </div>
-                <button type="submit" [disabled]="classifyForm.invalid || actionBusy()">
+                <button class="btn btn--sm" type="submit" [disabled]="classifyForm.invalid || actionBusy()">
                   Clasificar
                 </button>
               </form>
             }
             @if (canPrioritize()(d.status, d.priority)) {
-              <form [formGroup]="prioritizeForm" (ngSubmit)="submitPrioritize()">
-                <h4>Priorizar</h4>
-                <div>
-                  <label for="detail-priority">Prioridad</label>
-                  <select id="detail-priority" formControlName="priority">
+              <form class="action-form" [formGroup]="prioritizeForm" (ngSubmit)="submitPrioritize()">
+                <h4 class="action-form__title">Priorizar</h4>
+                <div class="field">
+                  <label class="field__label" for="detail-priority">Prioridad</label>
+                  <select class="input" id="detail-priority" formControlName="priority">
                     @for (p of priorityOptions; track p) {
                       <option [ngValue]="p">{{ p | displayLabel: 'priority' }}</option>
                     }
                   </select>
                 </div>
-                <div>
-                  <label for="detail-priority-just">Justificación</label>
+                <div class="field">
+                  <label class="field__label" for="detail-priority-just">Justificación</label>
                   <textarea
+                    class="input"
                     id="detail-priority-just"
                     formControlName="justification"
                     rows="2"
                   ></textarea>
                 </div>
-                <button type="submit" [disabled]="prioritizeForm.invalid || actionBusy()">
+                <button class="btn btn--sm" type="submit" [disabled]="prioritizeForm.invalid || actionBusy()">
                   Priorizar
                 </button>
               </form>
             }
             @if (canAssign()(d.status, d.priority)) {
-              <form [formGroup]="assignForm" (ngSubmit)="submitAssign()">
-                <h4>Asignar responsable</h4>
-                <div>
-                  <label for="detail-assign-user">Usuario responsable</label>
-                  <input id="detail-assign-user" type="number" formControlName="assignedToUserId" />
+              <form class="action-form" [formGroup]="assignForm" (ngSubmit)="submitAssign()">
+                <h4 class="action-form__title">Asignar responsable</h4>
+                <div class="field">
+                  <label class="field__label" for="detail-assign-user">Usuario responsable</label>
+                  <input class="input" id="detail-assign-user" type="number" formControlName="assignedToUserId" />
                   <small>Puedes tomar este dato del listado de usuarios.</small>
                 </div>
-                <div>
-                  <label for="detail-assign-obs">Observaciones (opcional)</label>
+                <div class="field">
+                  <label class="field__label" for="detail-assign-obs">Observaciones (opcional)</label>
                   <textarea
+                    class="input"
                     id="detail-assign-obs"
                     formControlName="observations"
                     rows="2"
                   ></textarea>
                 </div>
-                <button type="submit" [disabled]="assignForm.invalid || actionBusy()">
+                <button class="btn btn--sm" type="submit" [disabled]="assignForm.invalid || actionBusy()">
                   Asignar
                 </button>
               </form>
             }
             @if (canAttend()(d.status)) {
-              <form [formGroup]="attendForm" (ngSubmit)="submitAttend()">
-                <h4>Atender</h4>
-                <div>
-                  <label for="detail-attend-obs">Observaciones</label>
+              <form class="action-form" [formGroup]="attendForm" (ngSubmit)="submitAttend()">
+                <h4 class="action-form__title">Atender</h4>
+                <div class="field">
+                  <label class="field__label" for="detail-attend-obs">Observaciones</label>
                   <textarea
+                    class="input"
                     id="detail-attend-obs"
                     formControlName="observations"
                     rows="3"
                   ></textarea>
                 </div>
-                <button type="submit" [disabled]="attendForm.invalid || actionBusy()">
+                <button class="btn btn--sm" type="submit" [disabled]="attendForm.invalid || actionBusy()">
                   Marcar como atendida
                 </button>
               </form>
             }
             @if (canClose()(d.status)) {
-              <form [formGroup]="closeForm" (ngSubmit)="submitClose()">
-                <h4>Cerrar</h4>
-                <div>
-                  <label for="detail-close-obs">Observación de cierre</label>
+              <form class="action-form" [formGroup]="closeForm" (ngSubmit)="submitClose()">
+                <h4 class="action-form__title">Cerrar</h4>
+                <div class="field">
+                  <label class="field__label" for="detail-close-obs">Observación de cierre</label>
                   <textarea
+                    class="input"
                     id="detail-close-obs"
                     formControlName="closingObservation"
                     rows="3"
                   ></textarea>
                 </div>
-                <button type="submit" [disabled]="closeForm.invalid || actionBusy()">
+                <button class="btn btn--sm" type="submit" [disabled]="closeForm.invalid || actionBusy()">
                   Cerrar solicitud
                 </button>
               </form>
             }
             @if (canCancel()(d.status)) {
-              <form [formGroup]="cancelForm" (ngSubmit)="submitCancel()">
-                <h4>Cancelar</h4>
-                <div>
-                  <label for="detail-cancel-reason">Motivo de cancelación</label>
+              <form class="action-form" [formGroup]="cancelForm" (ngSubmit)="submitCancel()">
+                <h4 class="action-form__title">Cancelar</h4>
+                <div class="field">
+                  <label class="field__label" for="detail-cancel-reason">Motivo de cancelación</label>
                   <textarea
+                    class="input"
                     id="detail-cancel-reason"
                     formControlName="cancellationReason"
                     rows="3"
                   ></textarea>
                 </div>
-                <button type="submit" [disabled]="cancelForm.invalid || actionBusy()">
+                <button class="btn btn--sm" type="submit" [disabled]="cancelForm.invalid || actionBusy()">
                   Cancelar solicitud
                 </button>
               </form>
             }
             @if (canReject()(d.status)) {
-              <form [formGroup]="rejectForm" (ngSubmit)="submitReject()">
-                <h4>Rechazar (ADMIN)</h4>
-                <div>
-                  <label for="detail-reject-reason">Motivo de rechazo</label>
+              <form class="action-form" [formGroup]="rejectForm" (ngSubmit)="submitReject()">
+                <h4 class="action-form__title">Rechazar (ADMIN)</h4>
+                <div class="field">
+                  <label class="field__label" for="detail-reject-reason">Motivo de rechazo</label>
                   <textarea
+                    class="input"
                     id="detail-reject-reason"
                     formControlName="rejectionReason"
                     rows="3"
                   ></textarea>
                 </div>
-                <button type="submit" [disabled]="rejectForm.invalid || actionBusy()">
+                <button class="btn btn--sm" type="submit" [disabled]="rejectForm.invalid || actionBusy()">
                   Rechazar
                 </button>
               </form>
@@ -332,6 +354,57 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
         }
       }
     </section>
+  `,
+  styles: `
+    .section { padding: var(--at-s6); }
+    .section__back { margin-bottom: var(--at-s3); font-size: var(--at-fs-sm); }
+    .section__title {
+      font-size: var(--at-fs-xl);
+      font-weight: 800;
+      letter-spacing: var(--at-tracking-tight);
+      margin-bottom: var(--at-s3);
+    }
+    .section__loading { color: var(--at-text-muted); font-family: var(--at-font-mono); }
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: var(--at-s4);
+      margin-bottom: var(--at-s4);
+    }
+    .card {
+      background: var(--at-surface);
+      border: 1px solid var(--at-border);
+      padding: var(--at-s4);
+      margin-bottom: var(--at-s3);
+    }
+    .card--detail {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: var(--at-s1) var(--at-s3);
+    }
+    .card--detail dt {
+      font-size: var(--at-fs-sm);
+      color: var(--at-text-muted);
+      font-family: var(--at-font-mono);
+    }
+    .card__title {
+      font-size: var(--at-fs-base);
+      font-weight: 800;
+      margin-bottom: var(--at-s2);
+      color: var(--at-mercury);
+    }
+    .card__hint { font-size: var(--at-fs-sm); color: var(--at-text-muted); margin-bottom: var(--at-s2); }
+    .card__value { margin: var(--at-s2) 0; }
+    .card__list { padding-left: var(--at-s3); font-size: var(--at-fs-sm); color: var(--at-text-muted); }
+    .note-form { margin-top: var(--at-s3); display: flex; flex-direction: column; gap: var(--at-s2); }
+    .action-form { border-top: 1px solid var(--at-border); padding-top: var(--at-s3); margin-top: var(--at-s3); display: flex; flex-direction: column; gap: var(--at-s2); }
+    .action-form__title { font-size: var(--at-fs-sm); font-weight: 800; color: var(--at-text-muted); margin-bottom: var(--at-s1); }
+    .field { display: flex; flex-direction: column; gap: var(--at-s1); }
+    .field__label { font-size: var(--at-fs-sm); color: var(--at-text-muted); font-family: var(--at-font-mono); }
+    .field__error { font-size: var(--at-fs-sm); color: var(--at-danger); padding: var(--at-s1) var(--at-s2); background: var(--at-err-bg); margin-bottom: var(--at-s2); }
+    @media (max-width: 768px) {
+      .split { grid-template-columns: 1fr; }
+    }
   `,
 })
 export class RequestDetailPage {
@@ -361,6 +434,7 @@ export class RequestDetailPage {
   protected readonly aiSummaryError = signal<string | null>(null);
   protected readonly aiSummary = signal<AiSummaryResponse | null>(null);
 
+  protected readonly catalogWarning = signal<string | null>(null);
   protected readonly noteSubmitting = signal(false);
 
   protected readonly priorityOptions: PriorityEnum[] = ['HIGH', 'MEDIUM', 'LOW'];
@@ -470,13 +544,23 @@ export class RequestDetailPage {
     return r === 'STAFF' || r === 'ADMIN';
   });
 
+  protected readonly requestTypesWithId = computed(() =>
+    this.requestTypes().filter(
+      (t): t is RequestTypeResponse & { id: number } => typeof t.id === 'number',
+    ),
+  );
+
   constructor() {
-    this.catalogApi.listRequestTypes().subscribe({
-      next: (t) => this.requestTypes.set(t),
-      error: () => {
-        /* catálogo opcional para formularios de acción */
-      },
-    });
+    this.catalogApi
+      .listRequestTypes()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (t) => this.requestTypes.set(t),
+        error: () =>
+          this.catalogWarning.set(
+            'No pudimos cargar el catálogo de tipos para los formularios de acción.',
+          ),
+      });
 
     this.route.paramMap
       .pipe(
@@ -507,6 +591,7 @@ export class RequestDetailPage {
           return EMPTY;
         }),
         finalize(() => this.suggestionLoading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((s) => this.suggestion.set(s));
   }
@@ -519,16 +604,18 @@ export class RequestDetailPage {
       .summarizeRequest(this.requestId)
       .pipe(
         catchError((err: HttpErrorResponse) => {
-          this.aiSummaryError.set(
-            err.status === 503
-              ? AI_UNAVAILABLE_MSG
-              : (this.problemMapper.fromHttpError(err)?.detail ??
-                  this.problemMapper.fromHttpError(err)?.title ??
-                  'No pudimos generar el resumen en este momento.'),
-          );
+          if (err.status === 503) {
+            this.aiSummaryError.set(AI_UNAVAILABLE_MSG);
+          } else {
+            const p = this.problemMapper.fromHttpError(err);
+            this.aiSummaryError.set(
+              p?.detail ?? p?.title ?? 'No pudimos generar el resumen en este momento.',
+            );
+          }
           return EMPTY;
         }),
         finalize(() => this.aiSummaryLoading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((summary) => this.aiSummary.set(summary));
   }
@@ -547,6 +634,7 @@ export class RequestDetailPage {
           return EMPTY;
         }),
         finalize(() => this.noteSubmitting.set(false)),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => {
         this.noteForm.reset({ observations: '' });
@@ -624,6 +712,7 @@ export class RequestDetailPage {
           return EMPTY;
         }),
         finalize(() => this.actionBusy.set(false)),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => this.reload());
   }
@@ -642,6 +731,7 @@ export class RequestDetailPage {
           return EMPTY;
         }),
         finalize(() => this.loading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((detail) => {
         this.detail.set(adaptRequestDetail(detail));
@@ -650,11 +740,14 @@ export class RequestDetailPage {
   }
 
   private reloadHistoryOnly(): void {
-    this.api.getRequestHistory(this.requestId).subscribe({
-      next: (h) => this.history.set(h.map(adaptHistoryEntry)),
-      error: (err: HttpErrorResponse) => {
-        this.actionError.set(this.mapErr(err));
-      },
-    });
+    this.api
+      .getRequestHistory(this.requestId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (h) => this.history.set(h.map(adaptHistoryEntry)),
+        error: (err: HttpErrorResponse) => {
+          this.actionError.set(this.mapErr(err));
+        },
+      });
   }
 }

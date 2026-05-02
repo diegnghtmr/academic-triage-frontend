@@ -1,8 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
 import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
@@ -41,121 +41,140 @@ import { CONDITION_TYPE_OPTIONS, PRIORITY_OPTIONS } from '../models/business-rul
   imports: [ReactiveFormsModule, RouterLink, DisplayLabelPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section>
-      <h2>{{ isEdit() ? 'Editar regla de negocio' : 'Nueva regla de negocio' }}</h2>
-      <p><a routerLink="/app/business-rules">Volver al listado</a></p>
+    <section class="section">
+      <h2 class="section__title">{{ isEdit() ? 'Editar regla de negocio' : 'Nueva regla de negocio' }}</h2>
+      <p class="section__back"><a routerLink="/app/business-rules">← Volver al listado</a></p>
 
       @if (loadError()) {
-        <p role="alert">{{ loadError() }}</p>
+        <p class="field__error" role="alert">{{ loadError() }}</p>
       } @else {
-        <form [formGroup]="form" (ngSubmit)="submit()">
-          <!-- Nombre -->
-          <div>
-            <label for="br-name">Nombre <span aria-hidden="true">*</span></label>
-            <input
-              id="br-name"
-              type="text"
-              formControlName="name"
-              maxlength="150"
-              autocomplete="off"
-            />
-            @if (form.controls.name.invalid && form.controls.name.touched) {
-              <span role="alert">El nombre es requerido (máx. 150 caracteres).</span>
-            }
-          </div>
-
-          <!-- Descripción -->
-          <div>
-            <label for="br-desc">Descripción</label>
-            <textarea
-              id="br-desc"
-              rows="3"
-              formControlName="description"
-              maxlength="500"
-            ></textarea>
-            @if (form.controls.description.invalid && form.controls.description.touched) {
-              <span role="alert">Máximo 500 caracteres.</span>
-            }
-          </div>
-
-          <!-- Tipo de condición -->
-          <div>
-            <label for="br-ctype">Tipo de condición <span aria-hidden="true">*</span></label>
-            <select id="br-ctype" formControlName="conditionType">
-              @for (opt of conditionTypeOptions; track opt) {
-                <option [value]="opt">{{ conditionTypeLabel(opt) }}</option>
-              }
-            </select>
-          </div>
-
-          <!-- Días límite: DEADLINE y REQUEST_TYPE_AND_DEADLINE -->
-          @if (showDeadlineDays()) {
-            <div>
-              <label for="br-days">
-                Días límite <span aria-hidden="true">*</span>
-                <small>(número entero no negativo)</small>
-              </label>
-              <input id="br-days" type="number" min="0" step="1" formControlName="deadlineDays" />
-              @if (form.controls.deadlineDays.invalid && form.controls.deadlineDays.touched) {
-                <span role="alert">Ingrese un número entero mayor o igual a 0.</span>
+        <div class="card">
+          <form class="edit-form" [formGroup]="form" (ngSubmit)="submit()">
+            <!-- Nombre -->
+            <div class="field">
+              <label class="field__label" for="br-name">Nombre <span aria-hidden="true">*</span></label>
+              <input
+                class="input"
+                id="br-name"
+                type="text"
+                formControlName="name"
+                maxlength="150"
+                autocomplete="off"
+              />
+              @if (form.controls.name.invalid && form.controls.name.touched) {
+                <span class="field__error" role="alert">El nombre es requerido (máx. 150 caracteres).</span>
               }
             </div>
-          }
 
-          <!-- Tipo de solicitud: REQUEST_TYPE y REQUEST_TYPE_AND_DEADLINE -->
-          @if (showRequestTypeSelector()) {
-            <div>
-              <label for="br-rtype"> Tipo de solicitud <span aria-hidden="true">*</span> </label>
-              @if (catalogLoading()) {
-                <p>Cargando tipos…</p>
+            <!-- Descripción -->
+            <div class="field">
+              <label class="field__label" for="br-desc">Descripción</label>
+              <textarea
+                class="input"
+                id="br-desc"
+                rows="3"
+                formControlName="description"
+                maxlength="500"
+              ></textarea>
+              @if (form.controls.description.invalid && form.controls.description.touched) {
+                <span class="field__error" role="alert">Máximo 500 caracteres.</span>
+              }
+            </div>
+
+            <!-- Tipo de condición -->
+            <div class="field">
+              <label class="field__label" for="br-ctype">Tipo de condición <span aria-hidden="true">*</span></label>
+              <select class="input" id="br-ctype" formControlName="conditionType">
+                @for (opt of conditionTypeOptions; track opt) {
+                  <option [value]="opt">{{ conditionTypeLabel(opt) }}</option>
+                }
+              </select>
+            </div>
+
+            <!-- Días límite: DEADLINE y REQUEST_TYPE_AND_DEADLINE -->
+            @if (showDeadlineDays()) {
+              <div class="field">
+                <label class="field__label" for="br-days">
+                  Días límite <span aria-hidden="true">*</span>
+                  <small>(número entero no negativo)</small>
+                </label>
+                <input class="input" id="br-days" type="number" min="0" step="1" formControlName="deadlineDays" />
+                @if (form.controls.deadlineDays.invalid && form.controls.deadlineDays.touched) {
+                  <span class="field__error" role="alert">Ingrese un número entero mayor o igual a 0.</span>
+                }
+              </div>
+            }
+
+            <!-- Tipo de solicitud: REQUEST_TYPE y REQUEST_TYPE_AND_DEADLINE -->
+            @if (showRequestTypeSelector()) {
+              <div class="field">
+                <label class="field__label" for="br-rtype"> Tipo de solicitud <span aria-hidden="true">*</span> </label>
+                @if (catalogLoading()) {
+                  <p class="field__hint">Cargando tipos…</p>
+                } @else {
+                  <select class="input" id="br-rtype" formControlName="requestTypeId">
+                    <option [ngValue]="null">Seleccionar…</option>
+                    @for (rt of requestTypes(); track rt.id) {
+                      <option [ngValue]="rt.id">{{ rt.name }}</option>
+                    }
+                  </select>
+                }
+                @if (catalogError() !== null) {
+                  <p class="field__error" role="alert">{{ catalogError() }}</p>
+                }
+                @if (form.controls.requestTypeId.invalid && form.controls.requestTypeId.touched) {
+                  <span class="field__error" role="alert">Seleccione un tipo de solicitud.</span>
+                }
+              </div>
+            }
+
+            <!-- Prioridad resultante -->
+            <div class="field">
+              <label class="field__label" for="br-priority">Prioridad resultante <span aria-hidden="true">*</span></label>
+              <select class="input" id="br-priority" formControlName="resultingPriority">
+                @for (p of priorityOptions; track p) {
+                  <option [value]="p">{{ p | displayLabel: 'priority' }}</option>
+                }
+              </select>
+            </div>
+
+            <!-- Estado activo: solo en edición (UpdateBusinessRuleBody lo requiere) -->
+            @if (isEdit()) {
+              <div class="field field--checkbox">
+                <label class="field__checkbox-label">
+                  <input type="checkbox" formControlName="active" />
+                  <span>Activa</span>
+                </label>
+              </div>
+            }
+
+            @if (submitError()) {
+              <p class="field__error" role="alert">{{ submitError() }}</p>
+            }
+
+            <button class="btn btn--primary" type="submit" [disabled]="form.invalid || submitting() || loadingItem()">
+              @if (submitting()) {
+                Guardando…
               } @else {
-                <select id="br-rtype" formControlName="requestTypeId">
-                  <option [ngValue]="null">Seleccionar…</option>
-                  @for (rt of requestTypes(); track rt.id) {
-                    <option [ngValue]="rt.id">{{ rt.name }}</option>
-                  }
-                </select>
+                {{ isEdit() ? 'Guardar cambios' : 'Crear' }}
               }
-              @if (form.controls.requestTypeId.invalid && form.controls.requestTypeId.touched) {
-                <span role="alert">Seleccione un tipo de solicitud.</span>
-              }
-            </div>
-          }
-
-          <!-- Prioridad resultante -->
-          <div>
-            <label for="br-priority">Prioridad resultante <span aria-hidden="true">*</span></label>
-            <select id="br-priority" formControlName="resultingPriority">
-              @for (p of priorityOptions; track p) {
-                <option [value]="p">{{ p | displayLabel: 'priority' }}</option>
-              }
-            </select>
-          </div>
-
-          <!-- Estado activo: solo en edición (UpdateBusinessRuleBody lo requiere) -->
-          @if (isEdit()) {
-            <div>
-              <label>
-                <input type="checkbox" formControlName="active" />
-                Activa
-              </label>
-            </div>
-          }
-
-          @if (submitError()) {
-            <p role="alert">{{ submitError() }}</p>
-          }
-
-          <button type="submit" [disabled]="form.invalid || submitting() || loadingItem()">
-            @if (submitting()) {
-              Guardando…
-            } @else {
-              {{ isEdit() ? 'Guardar cambios' : 'Crear' }}
-            }
-          </button>
-        </form>
+            </button>
+          </form>
+        </div>
       }
     </section>
+  `,
+  styles: `
+    .section { padding: var(--at-s6); max-width: 600px; }
+    .section__title { font-size: var(--at-fs-xl); font-weight: 800; letter-spacing: var(--at-tracking-tight); margin-bottom: var(--at-s2); }
+    .section__back { margin-bottom: var(--at-s4); font-size: var(--at-fs-sm); }
+    .card { background: var(--at-surface); border: 1px solid var(--at-border); padding: var(--at-s5); }
+    .edit-form { display: flex; flex-direction: column; gap: var(--at-s3); }
+    .field { display: flex; flex-direction: column; gap: var(--at-s1); }
+    .field__label { font-size: var(--at-fs-sm); color: var(--at-text-muted); font-family: var(--at-font-mono); }
+    .field__hint { font-size: var(--at-fs-sm); color: var(--at-text-muted); }
+    .field__error { font-size: var(--at-fs-sm); color: var(--at-danger); padding: var(--at-s1) var(--at-s2); background: var(--at-err-bg); }
+    .field--checkbox .field__checkbox-label { display: flex; align-items: center; gap: var(--at-s2); font-size: var(--at-fs-sm); color: var(--at-text-muted); cursor: pointer; }
   `,
 })
 export class BusinessRuleFormPage {
@@ -165,6 +184,7 @@ export class BusinessRuleFormPage {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly conditionTypeOptions = CONDITION_TYPE_OPTIONS;
   protected readonly priorityOptions = PRIORITY_OPTIONS;
@@ -174,6 +194,7 @@ export class BusinessRuleFormPage {
   protected readonly submitting = signal(false);
   protected readonly loadError = signal<string | null>(null);
   protected readonly submitError = signal<string | null>(null);
+  protected readonly catalogError = signal<string | null>(null);
   protected readonly requestTypes = signal<RequestTypeResponse[]>([]);
 
   private readonly ruleId = signal<number | null>(null);
@@ -230,9 +251,20 @@ export class BusinessRuleFormPage {
 
   private loadCatalog(): void {
     this.catalogLoading.set(true);
+    this.catalogError.set(null);
     this.catalogApi
       .listRequestTypes(true)
-      .pipe(finalize(() => this.catalogLoading.set(false)))
+      .pipe(
+        catchError((err: HttpErrorResponse) => {
+          const p = this.problemMapper.fromHttpError(err);
+          this.catalogError.set(
+            p?.detail ?? p?.title ?? 'No pudimos cargar los tipos de solicitud.',
+          );
+          return EMPTY;
+        }),
+        finalize(() => this.catalogLoading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({ next: (data) => this.requestTypes.set(data) });
   }
 
@@ -247,6 +279,7 @@ export class BusinessRuleFormPage {
           return EMPTY;
         }),
         finalize(() => this.loadingItem.set(false)),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((rule) => {
         const ct: ConditionTypeEnum = rule.conditionType ?? 'REQUEST_TYPE';
@@ -349,6 +382,7 @@ export class BusinessRuleFormPage {
             return EMPTY;
           }),
           finalize(() => this.submitting.set(false)),
+          takeUntilDestroyed(this.destroyRef),
         )
         .subscribe(() => {
           void this.router.navigate(['/app/business-rules']);
@@ -373,6 +407,7 @@ export class BusinessRuleFormPage {
             return EMPTY;
           }),
           finalize(() => this.submitting.set(false)),
+          takeUntilDestroyed(this.destroyRef),
         )
         .subscribe(() => {
           void this.router.navigate(['/app/business-rules']);

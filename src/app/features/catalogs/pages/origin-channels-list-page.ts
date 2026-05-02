@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
@@ -29,8 +30,8 @@ import type { OriginChannelResponse } from '../models/catalog-admin.types';
   template: `
     <at-page-section title="Canales de origen">
       <at-action-bar>
-        <a routerLink="new">Nuevo canal</a>
-        <button type="button" (click)="toggleFilter()">
+        <a class="btn btn--sm" routerLink="new">+ Nuevo canal</a>
+        <button class="btn btn--sm btn--ghost" type="button" (click)="toggleFilter()">
           {{ showInactive() ? 'Ver solo activos' : 'Ver todos' }}
         </button>
       </at-action-bar>
@@ -42,13 +43,13 @@ import type { OriginChannelResponse } from '../models/catalog-admin.types';
       } @else if (items().length === 0) {
         <at-empty-state message="No hay canales de origen registrados." />
       } @else {
-        <table>
+        <table class="tbl">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>Activo</th>
-              <th></th>
+              <th scope="col">ID</th>
+              <th scope="col">Nombre</th>
+              <th scope="col">Activo</th>
+              <th scope="col"></th>
             </tr>
           </thead>
           <tbody>
@@ -59,7 +60,7 @@ import type { OriginChannelResponse } from '../models/catalog-admin.types';
                 <td>{{ item.active | activeBadge }}</td>
                 <td>
                   @if (item.id !== undefined) {
-                    <a [routerLink]="[item.id, 'edit']">Editar</a>
+                    <a class="btn btn--sm btn--ghost" [routerLink]="[item.id, 'edit']">Editar</a>
                   }
                 </td>
               </tr>
@@ -73,6 +74,7 @@ import type { OriginChannelResponse } from '../models/catalog-admin.types';
 export class OriginChannelsListPage {
   private readonly api = inject(CatalogAdminApiService);
   private readonly problemMapper = inject(ProblemErrorMapper);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly loading = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
@@ -103,6 +105,7 @@ export class OriginChannelsListPage {
           return EMPTY;
         }),
         finalize(() => this.loading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((data) => this.items.set(data));
   }
