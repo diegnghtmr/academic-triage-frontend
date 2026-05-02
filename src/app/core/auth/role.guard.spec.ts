@@ -15,6 +15,11 @@ function createRouteSnapshot(roles?: RoleEnum[]): ActivatedRouteSnapshot {
   } as ActivatedRouteSnapshot;
 }
 
+/** Adversarial helper — accepts any shape so we can pass invalid values. */
+function createRouteSnapshotRaw(roles: unknown): ActivatedRouteSnapshot {
+  return { data: { roles } } as unknown as ActivatedRouteSnapshot;
+}
+
 describe('roleGuard', () => {
   beforeAll(() => {
     if (!('document' in globalThis)) {
@@ -116,5 +121,46 @@ describe('roleGuard', () => {
 
     expect(result).toBe(true);
     expect(createUrlTree).not.toHaveBeenCalled();
+  });
+
+  // Adversarial shape-validation cases — invalid data.roles shapes must redirect to /app (fail closed).
+
+  it('redirects to /app when data.roles is a plain string (not an array)', () => {
+    const redirectTree = {} as UrlTree;
+    role.mockReturnValue('ADMIN');
+    createUrlTree.mockReturnValue(redirectTree);
+
+    const result = TestBed.runInInjectionContext(() =>
+      roleGuard(createRouteSnapshotRaw('ADMIN'), {} as never),
+    );
+
+    expect(result).toBe(redirectTree);
+    expect(createUrlTree).toHaveBeenCalledWith(['/app']);
+  });
+
+  it('redirects to /app when data.roles contains an unknown role value (ROOT)', () => {
+    const redirectTree = {} as UrlTree;
+    role.mockReturnValue('ADMIN');
+    createUrlTree.mockReturnValue(redirectTree);
+
+    const result = TestBed.runInInjectionContext(() =>
+      roleGuard(createRouteSnapshotRaw(['ADMIN', 'ROOT']), {} as never),
+    );
+
+    expect(result).toBe(redirectTree);
+    expect(createUrlTree).toHaveBeenCalledWith(['/app']);
+  });
+
+  it('redirects to /app when data.roles contains a null element', () => {
+    const redirectTree = {} as UrlTree;
+    role.mockReturnValue('ADMIN');
+    createUrlTree.mockReturnValue(redirectTree);
+
+    const result = TestBed.runInInjectionContext(() =>
+      roleGuard(createRouteSnapshotRaw([null]), {} as never),
+    );
+
+    expect(result).toBe(redirectTree);
+    expect(createUrlTree).toHaveBeenCalledWith(['/app']);
   });
 });

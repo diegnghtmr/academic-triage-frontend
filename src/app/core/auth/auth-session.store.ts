@@ -1,15 +1,8 @@
 import { computed, effect, Injectable, signal } from '@angular/core';
 
+import { parseStoredUser } from '@core/http/auth-validation';
 import { AUTH_SESSION_STORAGE_KEY } from './auth-session.storage';
 import type { RoleEnum, UserResponse } from './models/auth-api.types';
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
-}
-
-function pickString(value: unknown): string | undefined {
-  return typeof value === 'string' ? value : undefined;
-}
 
 /**
  * Sesión autenticada (JWT + `UserResponse` del contrato).
@@ -60,22 +53,14 @@ export class AuthSessionStore {
   restoreSession(): void {
     try {
       const raw = localStorage.getItem(AUTH_SESSION_STORAGE_KEY);
-      if (raw === null) {
-        return;
-      }
-      const parsed: unknown = JSON.parse(raw);
-      if (!isRecord(parsed)) {
+      if (raw === null) return;
+      const session = parseStoredUser(JSON.parse(raw));
+      if (session === null) {
         localStorage.removeItem(AUTH_SESSION_STORAGE_KEY);
         return;
       }
-      const token = pickString(parsed['token']);
-      const userRaw = parsed['user'];
-      if (token === undefined || token === '' || !isRecord(userRaw)) {
-        localStorage.removeItem(AUTH_SESSION_STORAGE_KEY);
-        return;
-      }
-      this._token.set(token);
-      this._user.set(userRaw as UserResponse);
+      this._token.set(session.token);
+      this._user.set(session.user);
     } catch {
       localStorage.removeItem(AUTH_SESSION_STORAGE_KEY);
     }

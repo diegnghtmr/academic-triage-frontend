@@ -3,8 +3,15 @@
  * No reutilizar modelos legacy (`shared/schema.ts`).
  */
 
-/** `RoleEnum` en el contrato. */
-export type RoleEnum = 'ADMIN' | 'STAFF' | 'STUDENT';
+/** `ROLE` const-object — source of truth for all role values. */
+export const ROLE = {
+  ADMIN: 'ADMIN',
+  STAFF: 'STAFF',
+  STUDENT: 'STUDENT',
+} as const;
+
+/** `RoleEnum` — extracted union from `ROLE` const-object. */
+export type RoleEnum = (typeof ROLE)[keyof typeof ROLE];
 
 /**
  * `LoginRequest` — contrato canónico de login.

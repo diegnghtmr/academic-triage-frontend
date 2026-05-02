@@ -10,6 +10,8 @@ export const REQUESTS_ROUTES: Routes = [
   },
   {
     path: 'list',
+    canActivate: [roleGuard],
+    data: { roles: ['STUDENT', 'STAFF', 'ADMIN'] },
     loadComponent: () =>
       import('./pages/request-list-page').then((m) => m.RequestListPage),
   },
@@ -22,6 +24,8 @@ export const REQUESTS_ROUTES: Routes = [
   },
   {
     path: ':requestId',
+    canActivate: [roleGuard],
+    data: { roles: ['STUDENT', 'STAFF', 'ADMIN'] },
     loadComponent: () =>
       import('./pages/request-detail-page').then((m) => m.RequestDetailPage),
   },
