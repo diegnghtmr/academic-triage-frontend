@@ -16,7 +16,6 @@ import { ActiveBadgePipe } from '@shared/pipes/active-badge.pipe';
 
 import { adaptBusinessRuleListItem } from '../adapters/business-rule-list.adapter';
 import { BusinessRulesApiService } from '../data-access/business-rules-api.service';
-import type { BusinessRuleResponse } from '../models/business-rule.types';
 import type { BusinessRuleListItemView } from '../models/business-rule-list-view';
 
 @Component({

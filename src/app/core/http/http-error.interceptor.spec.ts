@@ -16,7 +16,7 @@ import {
   platformBrowserTesting,
 } from '@angular/platform-browser/testing';
 import { Router } from '@angular/router';
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { AuthSessionStore } from '@core/auth/auth-session.store';
 import { httpErrorInterceptor } from './http-error.interceptor';
