@@ -4,6 +4,9 @@
  */
 
 import type { UserResponse } from '@core/auth/models/auth-api.types';
+import type { PriorityEnum } from '@shared/models/priority';
+import type { RequestTypeResponse } from '@shared/models/request-type';
+import type { OriginChannelResponse } from '@shared/models/origin-channel';
 
 export type RequestStatusEnum =
   | 'REGISTERED'
@@ -14,20 +17,9 @@ export type RequestStatusEnum =
   | 'CANCELLED'
   | 'REJECTED';
 
-export type PriorityEnum = 'HIGH' | 'MEDIUM' | 'LOW';
-
-export interface RequestTypeResponse {
-  id?: number;
-  name?: string;
-  description?: string;
-  active?: boolean;
-}
-
-export interface OriginChannelResponse {
-  id?: number;
-  name?: string;
-  active?: boolean;
-}
+export type { PriorityEnum } from '@shared/models/priority';
+export type { RequestTypeResponse } from '@shared/models/request-type';
+export type { OriginChannelResponse } from '@shared/models/origin-channel';
 
 export interface CreateRequestBody {
   requestTypeId: number;

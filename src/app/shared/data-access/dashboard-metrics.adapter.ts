@@ -2,7 +2,7 @@ import type {
   DashboardMetrics,
   DashboardMetricsView,
   MetricEntry,
-} from '../models/dashboard-metrics.types';
+} from './dashboard-metrics.types';
 
 /**
  * Convierte un mapa `Record<string, number>` a un array de `MetricEntry`

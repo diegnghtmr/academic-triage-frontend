@@ -17,15 +17,16 @@ export type ConditionTypeEnum =
   | 'DEADLINE'
   | 'REQUEST_TYPE_AND_DEADLINE';
 
-export type PriorityEnum = 'HIGH' | 'MEDIUM' | 'LOW';
+import type { PriorityEnum } from '@shared/models/priority';
+
+export type { PriorityEnum } from '@shared/models/priority';
+export { PRIORITY_OPTIONS } from '@shared/models/priority';
 
 export const CONDITION_TYPE_OPTIONS: ConditionTypeEnum[] = [
   'REQUEST_TYPE',
   'DEADLINE',
   'REQUEST_TYPE_AND_DEADLINE',
 ];
-
-export const PRIORITY_OPTIONS: PriorityEnum[] = ['HIGH', 'MEDIUM', 'LOW'];
 
 export interface BusinessRuleRequestTypeRef {
   id?: number;

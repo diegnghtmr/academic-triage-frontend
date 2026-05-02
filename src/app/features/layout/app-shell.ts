@@ -1,52 +1,72 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { Router, RouterLink, RouterOutlet } from '@angular/router';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { Router, RouterOutlet } from '@angular/router';
 
 import { AuthSessionStore } from '@core/auth/auth-session.store';
+import { Sidebar } from './sidebar';
+import { Topbar } from './topbar';
 
 /**
  * Shell de la zona autenticada: outlet para features lazy bajo `/app/**`.
  */
 @Component({
   selector: 'at-app-shell',
-  imports: [RouterOutlet, RouterLink],
+  imports: [RouterOutlet, Sidebar, Topbar],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  styles: `
+    :host {
+      display: block;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      grid-template-rows: 48px 1fr;
+      min-height: 100dvh;
+    }
+
+    .app.collapsed {
+      grid-template-columns: 64px 1fr;
+    }
+
+    .app__main {
+      grid-column: 2;
+      grid-row: 2;
+      padding: var(--at-s6) var(--at-s8);
+      overflow-y: auto;
+    }
+  `,
   template: `
-    <header role="banner">
-      <h1>Academic Triage</h1>
-      <nav aria-label="Navegación principal">
-        <a routerLink="/app/dashboard">Inicio</a>
-        <span aria-hidden="true"> | </span>
-        <a routerLink="/app/requests/list">Solicitudes</a>
-        @if (canCreateRequest()) {
-          <span aria-hidden="true"> | </span>
-          <a routerLink="/app/requests/new">Nueva solicitud</a>
-        }
-        @if (isAdmin()) {
-          <span aria-hidden="true"> | </span>
-          <a routerLink="/app/reports">Reportes</a>
-          <span aria-hidden="true"> | </span>
-          <a routerLink="/app/users">Usuarios</a>
-          <span aria-hidden="true"> | </span>
-          <a routerLink="/app/catalogs/request-types">Tipos de solicitud</a>
-          <span aria-hidden="true"> | </span>
-          <a routerLink="/app/catalogs/origin-channels">Canales de origen</a>
-        }
-        @if (canViewBusinessRules()) {
-          <span aria-hidden="true"> | </span>
-          <a routerLink="/app/business-rules">Reglas de negocio</a>
-        }
-      </nav>
-      <p>Sesión: {{ sessionLabel() }}</p>
-      <button type="button" (click)="logout()">Cerrar sesión</button>
-    </header>
-    <main>
-      <router-outlet />
-    </main>
+    <div class="app" [class.collapsed]="collapsed()">
+      <at-sidebar
+        [collapsed]="collapsed()"
+        [sessionLabel]="sessionLabel()"
+        [canCreateRequest]="canCreateRequest()"
+        [isAdmin]="isAdmin()"
+        [canViewBusinessRules]="canViewBusinessRules()"
+        (sidebarToggle)="collapsed.set(!collapsed())"
+        (logoutRequest)="logout()"
+      />
+      <at-topbar
+        [sessionLabel]="sessionLabel()"
+        (logoutRequest)="logout()"
+      />
+      <main class="app__main">
+        <router-outlet />
+      </main>
+    </div>
   `,
 })
 export class AppShell {
   private readonly session = inject(AuthSessionStore);
   private readonly router = inject(Router);
+
+  protected readonly collapsed = signal<boolean>(false);
 
   protected readonly sessionLabel = computed(() => {
     const u = this.session.user();

@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import type { DashboardMetrics, DashboardQueryParams } from '../models/dashboard-metrics.types';
+import type { DashboardMetrics, DashboardQueryParams } from './dashboard-metrics.types';
 
 /**
  * Transporte HTTP para `/reports/dashboard`.

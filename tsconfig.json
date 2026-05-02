@@ -16,7 +16,10 @@
     "paths": {
       "@core/*": ["src/app/core/*"],
       "@features/*": ["src/app/features/*"],
-      "@shared/*": ["src/app/features/shared/*"]
+      "@shared/*": ["src/app/features/shared/*"],
+      "@shared/ui/*": ["src/app/shared/ui/*"],
+      "@shared/models/*": ["src/app/shared/models/*"],
+      "@shared/data-access/*": ["src/app/shared/data-access/*"]
     }
   },
   "angularCompilerOptions": {

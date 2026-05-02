@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import type { UserResponse } from '@core/auth/models/auth-api.types';
-import type { PagedResponse } from '@shared/models/page';
+import type { PagedResponse } from '@features/shared/models/page';
 
 import type { ListUsersQueryParams, UpdateUserBody } from '../models/user-admin.types';
 
