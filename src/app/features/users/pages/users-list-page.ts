@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
@@ -33,26 +34,28 @@ import type { ListUsersQueryParams } from '../models/user-admin.types';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <at-page-section title="Usuarios">
-      <form [formGroup]="filterForm" (ngSubmit)="applyFilters()">
-        <label>
-          Rol
-          <select formControlName="role">
-            <option [ngValue]="null">(todos)</option>
-            @for (r of roleOptions; track r) {
-              <option [ngValue]="r">{{ r | displayLabel: 'role' }}</option>
-            }
-          </select>
-        </label>
-        <label>
-          Estado
-          <select formControlName="active">
-            <option [ngValue]="null">(todos)</option>
-            <option [ngValue]="true">Activo</option>
-            <option [ngValue]="false">Inactivo</option>
-          </select>
-        </label>
-        <button type="submit" [disabled]="loading()">Filtrar</button>
-      </form>
+      <div class="toolbar">
+        <form class="toolbar__form" [formGroup]="filterForm" (ngSubmit)="applyFilters()">
+          <label class="toolbar__field">
+            <span>Rol</span>
+            <select class="input input--sm" formControlName="role">
+              <option [ngValue]="null">(todos)</option>
+              @for (r of roleOptions; track r) {
+                <option [ngValue]="r">{{ r | displayLabel: 'role' }}</option>
+              }
+            </select>
+          </label>
+          <label class="toolbar__field">
+            <span>Estado</span>
+            <select class="input input--sm" formControlName="active">
+              <option [ngValue]="null">(todos)</option>
+              <option [ngValue]="true">Activo</option>
+              <option [ngValue]="false">Inactivo</option>
+            </select>
+          </label>
+          <button class="btn btn--sm" type="submit" [disabled]="loading()">Filtrar</button>
+        </form>
+      </div>
 
       <at-error-alert [message]="errorMessage()" />
 
@@ -61,7 +64,7 @@ import type { ListUsersQueryParams } from '../models/user-admin.types';
       } @else if (rows().length === 0) {
         <at-empty-state message="No hay usuarios que coincidan con los filtros." />
       } @else {
-        <table>
+        <table class="tbl">
           <thead>
             <tr>
               <th scope="col">ID</th>
@@ -85,6 +88,7 @@ import type { ListUsersQueryParams } from '../models/user-admin.types';
                 <td>
                   @if (u.id !== undefined) {
                     <a
+                      class="btn btn--sm btn--ghost"
                       [routerLink]="[u.id, 'edit']"
                       [attr.aria-label]="'Editar usuario ' + u.username"
                       >Editar</a
@@ -106,11 +110,29 @@ import type { ListUsersQueryParams } from '../models/user-admin.types';
       }
     </at-page-section>
   `,
+  styles: `
+    .toolbar { margin-bottom: var(--at-s3); }
+    .toolbar__form {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: var(--at-s3);
+    }
+    .toolbar__field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--at-s1);
+      font-size: var(--at-fs-sm);
+      color: var(--at-text-muted);
+      font-family: var(--at-font-mono);
+    }
+  `,
 })
 export class UsersListPage {
   private readonly api = inject(UsersApiService);
   private readonly problemMapper = inject(ProblemErrorMapper);
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly roleOptions: RoleEnum[] = ['ADMIN', 'STAFF', 'STUDENT'];
 
@@ -173,12 +195,14 @@ export class UsersListPage {
           return EMPTY;
         }),
         finalize(() => this.loading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((page) => {
         this.rows.set(page.content ?? []);
-        this.totalPages.set(page.totalPages > 0 ? page.totalPages : 1);
-        this.currentPage.set(page.currentPage);
-        this.pageSize.set(page.pageSize);
+        const tp = page.totalPages ?? 0;
+        this.totalPages.set(tp > 0 ? tp : 1);
+        this.currentPage.set(page.currentPage ?? 0);
+        this.pageSize.set(page.pageSize ?? this.pageSize());
       });
   }
 }
