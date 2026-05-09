@@ -14,9 +14,7 @@ import { PaginationNav } from '@shared/ui/pagination-nav';
 import { SegTabs } from '@shared/ui/seg-tabs';
 import { StateBadge } from '@shared/ui/state-badge';
 import { STATUS_LABEL_MAP } from '@shared/models/request-status';
-import { PriorityBadge } from '@shared/ui/priority-badge';
 import { DateTimeLabelPipe } from '@shared/pipes/date-time-label.pipe';
-import { DisplayLabelPipe } from '@shared/pipes/display-label.pipe';
 
 import { RequestsApiService } from '../data-access/requests-api.service';
 import type {
@@ -35,8 +33,6 @@ import type {
     PaginationNav,
     SegTabs,
     StateBadge,
-    PriorityBadge,
-    DisplayLabelPipe,
     DateTimeLabelPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -7,7 +7,6 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -57,7 +56,6 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
   imports: [
     ReactiveFormsModule,
     RouterLink,
-    DatePipe,
     DisplayLabelPipe,
     DateTimeLabelPipe,
     StateBadge,

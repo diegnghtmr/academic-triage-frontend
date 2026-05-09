@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=22.12.0 <23.0.0"
+  },
   "scripts": {
     "dev": "ng serve academic-triage-spa",
     "build": "ng build academic-triage-spa",
