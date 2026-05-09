@@ -5,11 +5,11 @@ import { RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
 import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
-import { ActionBar } from '@shared/components/action-bar';
-import { EmptyState } from '@shared/components/empty-state';
-import { ErrorAlert } from '@shared/components/error-alert';
-import { LoadingState } from '@shared/components/loading-state';
-import { PageSection } from '@shared/components/page-section';
+import { ActionBar } from '@shared/ui/action-bar';
+import { EmptyState } from '@shared/ui/empty-state';
+import { ErrorAlert } from '@shared/ui/error-alert';
+import { LoadingState } from '@shared/ui/loading-state';
+import { PageSection } from '@shared/ui/page-section';
 import { ActiveBadgePipe } from '@shared/pipes/active-badge.pipe';
 
 import { CatalogAdminApiService } from '../data-access/catalog-admin-api.service';

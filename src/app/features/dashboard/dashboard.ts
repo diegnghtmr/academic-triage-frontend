@@ -6,11 +6,11 @@ import { catchError, EMPTY, finalize, forkJoin } from 'rxjs';
 
 import { AuthSessionStore } from '@core/auth/auth-session.store';
 import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
-import { ErrorAlert } from '@shared/components/error-alert';
-import { LoadingState } from '@shared/components/loading-state';
-import { KpiCard } from '@shared/components/kpi-card';
-import { StateBadge } from '@shared/components/state-badge';
-import { PriorityBadge } from '@shared/components/priority-badge';
+import { ErrorAlert } from '@shared/ui/error-alert';
+import { LoadingState } from '@shared/ui/loading-state';
+import { KpiCard } from '@shared/ui/kpi-card';
+import { StateBadge } from '@shared/ui/state-badge';
+import { PriorityBadge } from '@shared/ui/priority-badge';
 import { DateTimeLabelPipe } from '@shared/pipes/date-time-label.pipe';
 import { DisplayLabelPipe } from '@shared/pipes/display-label.pipe';
 import { DurationHoursLabelPipe } from '@shared/pipes/duration-hours-label.pipe';

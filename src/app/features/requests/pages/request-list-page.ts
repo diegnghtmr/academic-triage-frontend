@@ -7,13 +7,14 @@ import { catchError, EMPTY, finalize } from 'rxjs';
 
 import { AuthSessionStore } from '@core/auth/auth-session.store';
 import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
-import { ErrorAlert } from '@shared/components/error-alert';
-import { LoadingState } from '@shared/components/loading-state';
-import { PageSection } from '@shared/components/page-section';
-import { PaginationNav } from '@shared/components/pagination-nav';
-import { SegTabs } from '@shared/components/seg-tabs';
-import { StateBadge, STATUS_LABEL_MAP } from '@shared/components/state-badge';
-import { PriorityBadge } from '@shared/components/priority-badge';
+import { ErrorAlert } from '@shared/ui/error-alert';
+import { LoadingState } from '@shared/ui/loading-state';
+import { PageSection } from '@shared/ui/page-section';
+import { PaginationNav } from '@shared/ui/pagination-nav';
+import { SegTabs } from '@shared/ui/seg-tabs';
+import { StateBadge } from '@shared/ui/state-badge';
+import { STATUS_LABEL_MAP } from '@shared/models/request-status';
+import { PriorityBadge } from '@shared/ui/priority-badge';
 import { DateTimeLabelPipe } from '@shared/pipes/date-time-label.pipe';
 import { DisplayLabelPipe } from '@shared/pipes/display-label.pipe';
 

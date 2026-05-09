@@ -6,7 +6,6 @@ import {
 } from '@angular/core';
 import { STATUS_LABEL_MAP } from '@shared/models/request-status';
 import type { RequestStatusEnum } from '@shared/models/request-status';
-export { STATUS_LABEL_MAP } from '@shared/models/request-status';
 
 const STATUS_CLASS_MAP: Record<RequestStatusEnum, string> = {
   REGISTERED:  'badge--registered',

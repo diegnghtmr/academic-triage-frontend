@@ -5,10 +5,10 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { catchError, EMPTY, finalize, map } from 'rxjs';
 
 import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
-import { ErrorAlert } from '@shared/components/error-alert';
-import { KpiCard } from '@shared/components/kpi-card';
-import { LoadingState } from '@shared/components/loading-state';
-import { PageSection } from '@shared/components/page-section';
+import { ErrorAlert } from '@shared/ui/error-alert';
+import { KpiCard } from '@shared/ui/kpi-card';
+import { LoadingState } from '@shared/ui/loading-state';
+import { PageSection } from '@shared/ui/page-section';
 import { DisplayLabelPipe } from '@shared/pipes/display-label.pipe';
 import { DurationHoursLabelPipe } from '@shared/pipes/duration-hours-label.pipe';
 import { UsernameLabelPipe } from '@shared/pipes/username-label.pipe';

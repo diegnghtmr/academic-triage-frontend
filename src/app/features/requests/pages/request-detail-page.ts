@@ -18,8 +18,8 @@ import { AuthSessionStore } from '@core/auth/auth-session.store';
 import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
 import { DateTimeLabelPipe } from '@shared/pipes/date-time-label.pipe';
 import { DisplayLabelPipe } from '@shared/pipes/display-label.pipe';
-import { StateBadge } from '@shared/components/state-badge';
-import { PriorityBadge } from '@shared/components/priority-badge';
+import { StateBadge } from '@shared/ui/state-badge';
+import { PriorityBadge } from '@shared/ui/priority-badge';
 
 import { adaptHistoryEntry, adaptRequestDetail } from '../adapters/request-detail.adapter';
 import { AiPanel } from '../components/ai-panel';

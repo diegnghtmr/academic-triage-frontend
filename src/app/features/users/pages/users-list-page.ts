@@ -9,11 +9,11 @@ import type { RoleEnum, UserResponse } from '@core/auth/models/auth-api.types';
 import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
 import { ActiveBadgePipe } from '@shared/pipes/active-badge.pipe';
 import { DisplayLabelPipe } from '@shared/pipes/display-label.pipe';
-import { EmptyState } from '@shared/components/empty-state';
-import { ErrorAlert } from '@shared/components/error-alert';
-import { LoadingState } from '@shared/components/loading-state';
-import { PageSection } from '@shared/components/page-section';
-import { PaginationNav } from '@shared/components/pagination-nav';
+import { EmptyState } from '@shared/ui/empty-state';
+import { ErrorAlert } from '@shared/ui/error-alert';
+import { LoadingState } from '@shared/ui/loading-state';
+import { PageSection } from '@shared/ui/page-section';
+import { PaginationNav } from '@shared/ui/pagination-nav';
 
 import { UsersApiService } from '../data-access/users-api.service';
 import type { ListUsersQueryParams } from '../models/user-admin.types';
