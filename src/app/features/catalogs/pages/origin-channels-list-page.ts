@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
 import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
@@ -77,6 +77,8 @@ export class OriginChannelsListPage {
   private readonly api = inject(CatalogAdminApiService);
   private readonly problemMapper = inject(ProblemErrorMapper);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly loading = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
@@ -84,12 +86,21 @@ export class OriginChannelsListPage {
   protected readonly showInactive = signal(false);
 
   constructor() {
-    this.load();
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        this.showInactive.set(params.get('inactive') === 'true');
+        this.load();
+      });
   }
 
   protected toggleFilter(): void {
-    this.showInactive.update((v) => !v);
-    this.load();
+    const current = this.showInactive();
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { inactive: !current ? 'true' : null },
+      queryParamsHandling: 'merge',
+    });
   }
 
   private load(): void {

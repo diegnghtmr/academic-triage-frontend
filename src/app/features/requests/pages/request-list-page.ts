@@ -1,8 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
 import { AuthSessionStore } from '@core/auth/auth-session.store';
@@ -122,6 +122,8 @@ export class RequestListPage {
   private readonly session = inject(AuthSessionStore);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly canCreateRequest = computed(() => {
     const r = this.session.role();
@@ -154,39 +156,78 @@ export class RequestListPage {
     ...this.statusOptions.map((s) => ({ id: s, label: STATUS_LABEL_MAP[s] })),
   ]);
 
-  /** Bridge reactive form value to a signal so computed() re-runs on changes. */
-  private readonly statusValue$ = toSignal(
-    this.filterForm.controls.status.valueChanges,
-    { initialValue: this.filterForm.controls.status.value },
+  /**
+   * Active tab id driven by the form control value.
+   * The form is always updated (emitEvent: true) from the URL subscription,
+   * so this computed re-runs whenever the URL changes.
+   */
+  protected readonly activeStatusId = computed(
+    () => this.filterForm.controls.status.value ?? '',
   );
 
-  /** Active tab id: '' when filter is null (all), status string otherwise. */
-  protected readonly activeStatusId = computed(() => this.statusValue$() ?? '');
+  constructor() {
+    // URL is the source of truth for status and page.
+    // Any navigation (onStatusChange, prevPage, nextPage, applyFilters, browser back/forward)
+    // goes through router.navigate and the queryParamMap subscription triggers load().
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        const status = this.parseStatus(params.get('status'));
+        const page = this.parsePage(params.get('page'));
+
+        // emitEvent: true (default) so activeStatusId computed re-evaluates.
+        this.filterForm.controls.status.setValue(status);
+        this.currentPage.set(page);
+        this.load();
+      });
+  }
 
   protected onStatusChange(id: string): void {
     const status = id === '' ? null : (id as RequestStatusEnum);
-    this.filterForm.controls.status.setValue(status);
-    this.currentPage.set(0);
-    this.load();
-  }
-
-  constructor() {
-    this.load();
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { status: status ?? null, page: null },
+      queryParamsHandling: 'merge',
+    });
   }
 
   protected applyFilters(): void {
-    this.currentPage.set(0);
-    this.load();
+    const f = this.filterForm.getRawValue();
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { status: f.status ?? null, page: null },
+      queryParamsHandling: 'merge',
+    });
   }
 
   protected prevPage(): void {
-    this.currentPage.update((p) => Math.max(0, p - 1));
-    this.load();
+    const next = Math.max(0, this.currentPage() - 1);
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page: next === 0 ? null : next },
+      queryParamsHandling: 'merge',
+    });
   }
 
   protected nextPage(): void {
-    this.currentPage.update((p) => p + 1);
-    this.load();
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page: this.currentPage() + 1 },
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  private parseStatus(raw: string | null): RequestStatusEnum | null {
+    const valid: RequestStatusEnum[] = [
+      'REGISTERED', 'CLASSIFIED', 'IN_PROGRESS', 'ATTENDED', 'CLOSED', 'CANCELLED', 'REJECTED',
+    ];
+    return valid.includes(raw as RequestStatusEnum) ? (raw as RequestStatusEnum) : null;
+  }
+
+  private parsePage(raw: string | null): number {
+    if (raw === null) return 0;
+    const n = Number(raw);
+    return Number.isInteger(n) && n >= 0 ? n : 0;
   }
 
   private load(): void {

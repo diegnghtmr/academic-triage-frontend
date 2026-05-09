@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
 import { AuthSessionStore } from '@core/auth/auth-session.store';
@@ -136,6 +136,8 @@ export class BusinessRulesListPage {
   private readonly problemMapper = inject(ProblemErrorMapper);
   private readonly session = inject(AuthSessionStore);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly isAdmin = computed(() => this.session.role() === 'ADMIN');
 
@@ -148,12 +150,21 @@ export class BusinessRulesListPage {
   protected readonly showDeleteModal = signal<BusinessRuleListItemView | null>(null);
 
   constructor() {
-    this.load();
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        this.showInactive.set(params.get('inactive') === 'true');
+        this.load();
+      });
   }
 
   protected toggleFilter(): void {
-    this.showInactive.update((v) => !v);
-    this.load();
+    const next = !this.showInactive();
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { inactive: next ? 'true' : null },
+      queryParamsHandling: 'merge',
+    });
   }
 
   protected confirmDelete(item: BusinessRuleListItemView): void {
