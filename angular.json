@@ -67,7 +67,7 @@
             },
             "development": {
               "buildTarget": "academic-triage-spa:build:development",
-              "proxyConfig": "docs/migration/angular-proxy.conf.example.json"
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"
