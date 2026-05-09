@@ -19,6 +19,9 @@ import type {
   RequestTypeResponse,
 } from '../models/request-api.types';
 
+/** Nombre canónico del canal web — usado para auto-asignación de estudiantes. */
+const WEB_CHANNEL_NAME = 'sistema web' as const;
+
 /** Mensaje estándar cuando la IA devuelve 503. */
 const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este entorno.';
 
@@ -293,19 +296,13 @@ export class RequestCreatePage {
     if (!this.isStudent()) {
       return;
     }
-
     const webChannelId = channels.find(
-      (channel) => (channel.name?.trim().toLowerCase() ?? '') === 'sistema web',
+      (channel) => (channel.name?.trim().toLowerCase() ?? '') === WEB_CHANNEL_NAME,
     )?.id;
     if (typeof webChannelId === 'number') {
       this.form.controls.originChannelId.setValue(webChannelId);
-      return;
     }
-
-    const firstAvailableChannelId = channels.find((channel) => typeof channel.id === 'number')?.id;
-    if (typeof firstAvailableChannelId === 'number') {
-      this.form.controls.originChannelId.setValue(firstAvailableChannelId);
-    }
+    // No fallback. If no match, control stays null; Validators.required surfaces the error.
   }
 
   protected suggestClassification(): void {
