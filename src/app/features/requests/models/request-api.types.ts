@@ -10,6 +10,7 @@ import type { RequestTypeResponse } from '@shared/models/request-type';
 import type { OriginChannelResponse } from '@shared/models/origin-channel';
 
 export type { RequestStatusEnum } from '@shared/models/request-status';
+export { STATUS_LABEL_MAP } from '@shared/models/request-status';
 
 export type { PriorityEnum } from '@shared/models/priority';
 export type { RequestTypeResponse } from '@shared/models/request-type';

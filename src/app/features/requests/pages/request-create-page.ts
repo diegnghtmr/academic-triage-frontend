@@ -18,9 +18,7 @@ import type {
   OriginChannelResponse,
   RequestTypeResponse,
 } from '../models/request-api.types';
-
-/** Nombre canónico del canal web — usado para auto-asignación de estudiantes. */
-const WEB_CHANNEL_NAME = 'sistema web' as const;
+import { WEB_CHANNEL_NAME } from '@shared/models/origin-channel';
 
 /** Mensaje estándar cuando la IA devuelve 503. */
 const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este entorno.';
