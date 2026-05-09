@@ -24,12 +24,12 @@ import { adaptRequestsSummary } from './adapters/dashboard-requests.adapter';
 import type { RequestsSummaryView } from './models/dashboard-view';
 
 /**
- * Dashboard operativo diferenciado por rol.
+ * Operational dashboard, differentiated by role.
  *
- * | Rol     | Fuente de datos                        |
+ * | Role    | Data source                            |
  * |---------|----------------------------------------|
- * | STUDENT | GET /requests (propias del backend)    |
- * | STAFF   | GET /requests (todas las visibles)     |
+ * | STUDENT | GET /requests (own requests)           |
+ * | STAFF   | GET /requests (all visible)            |
  * | ADMIN   | GET /reports/dashboard + GET /requests |
  */
 @Component({

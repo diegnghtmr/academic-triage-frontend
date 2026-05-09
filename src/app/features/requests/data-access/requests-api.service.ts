@@ -21,7 +21,7 @@ import type {
 } from '../models/request-api.types';
 
 /**
- * API de solicitudes académicas — transporte HTTP alineado al OpenAPI.
+ * Academic requests API — HTTP transport aligned to the OpenAPI spec.
  */
 @Injectable({ providedIn: 'root' })
 export class RequestsApiService {

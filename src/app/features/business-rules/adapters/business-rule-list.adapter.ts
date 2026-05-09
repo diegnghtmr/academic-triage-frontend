@@ -6,12 +6,12 @@ import {
 } from '../models/business-rule-list-view';
 
 /**
- * Construye el campo `conditionDetail` según el tipo de condición.
+ * Builds the `conditionDetail` field based on the condition type.
  *
- * La semántica de `conditionValue` varía por `conditionType`:
- * - REQUEST_TYPE            → `conditionValue` es el id string; mostramos el nombre del tipo.
- * - DEADLINE                → `conditionValue` es el número de días.
- * - REQUEST_TYPE_AND_DEADLINE → `conditionValue` es días; tipo viene en `requestType`.
+ * The semantics of `conditionValue` vary by `conditionType`:
+ * - REQUEST_TYPE            → `conditionValue` is the id string; we display the type name.
+ * - DEADLINE                → `conditionValue` is the number of days.
+ * - REQUEST_TYPE_AND_DEADLINE → `conditionValue` is days; type comes from `requestType`.
  */
 function buildConditionDetail(raw: BusinessRuleResponse): string {
   const ct: ConditionTypeEnum = raw.conditionType ?? 'REQUEST_TYPE';
@@ -39,12 +39,12 @@ function buildConditionDetail(raw: BusinessRuleResponse): string {
 }
 
 /**
- * Convierte `BusinessRuleResponse` (DTO HTTP) a `BusinessRuleListItemView`.
+ * Converts `BusinessRuleResponse` (HTTP DTO) to `BusinessRuleListItemView`.
  *
- * Responsabilidades:
- * - Resuelve enums técnicos ingleses a etiquetas en español.
- * - Construye `conditionDetail` semántico en lugar del opaco `conditionValue`.
- * - Aplana `requestType?.name` con fallback.
+ * Responsibilities:
+ * - Resolves technical English enums to display labels.
+ * - Builds a semantic `conditionDetail` instead of the opaque `conditionValue`.
+ * - Flattens `requestType?.name` with a fallback.
  */
 export function adaptBusinessRuleListItem(
   raw: BusinessRuleResponse,

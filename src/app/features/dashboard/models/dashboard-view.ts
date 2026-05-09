@@ -1,9 +1,9 @@
 import type { RequestResponse } from '@features/requests/models/request-api.types';
 
 /**
- * Vista operativa para STUDENT y STAFF.
- * Derivada de `GET /requests` (primera página).
- * `total` refleja `totalElements` del backend — dato real, no calculado.
+ * Operational view for STUDENT and STAFF.
+ * Derived from `GET /requests` (first page).
+ * `total` reflects `totalElements` from the backend — a real count, not computed.
  */
 export interface RequestsSummaryView {
   total: number;

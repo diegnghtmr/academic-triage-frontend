@@ -1,6 +1,6 @@
 /**
- * Forma común de respuestas paginadas (`PagedRequestResponse`, `PagedUserResponse`, …).
- * Los features mapean DTOs del OpenAPI a estos tipos vía adapters.
+ * Common shape for paginated responses (`PagedRequestResponse`, `PagedUserResponse`, …).
+ * Features map OpenAPI DTOs to these types via adapters.
  */
 export interface PagedResponse<T> {
   content: T[];

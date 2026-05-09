@@ -48,7 +48,7 @@ import {
   isTerminalStatus,
 } from '../utils/request-action-visibility';
 
-/** Mensaje estándar cuando la IA devuelve 503. */
+/** Standard message when the AI returns 503. */
 const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este entorno.';
 
 @Component({
@@ -249,7 +249,7 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
               </section>
             }
 
-            <!-- Resumen IA: solo STAFF y ADMIN (contrato: GET /ai/summarize → STAFF, ADMIN) -->
+            <!-- AI summary: STAFF and ADMIN only (contract: GET /ai/summarize → STAFF, ADMIN) -->
             @if (canSummarizeAiRole()) {
               <section class="card" aria-labelledby="ai-summary-heading">
                 <h3 id="ai-summary-heading" class="card__title">
@@ -847,7 +847,7 @@ export class RequestDetailPage {
   protected readonly suggestionError = signal<string | null>(null);
   protected readonly requestTypes = signal<RequestTypeResponse[]>([]);
 
-  /** Genera 2 letras a partir del username (primera letra del prefijo + primera letra después del punto, si hay). */
+  /** Derives 2 initials from a username (first letter of the prefix + first letter after the dot, if any). */
   protected initialsOf(name: string | null | undefined): string {
     if (!name) return '··';
     const trimmed = name.trim();
@@ -972,7 +972,7 @@ export class RequestDetailPage {
     return !isTerminalStatus(d.status) && d.priority === null;
   });
 
-  /** GET /ai/summarize/{requestId} → STAFF, ADMIN (contrato OpenAPI). */
+  /** GET /ai/summarize/{requestId} → STAFF, ADMIN (OpenAPI contract). */
   protected readonly canSummarizeAiRole = computed(() => {
     const r = this.session.role();
     return r === 'STAFF' || r === 'ADMIN';

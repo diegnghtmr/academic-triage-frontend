@@ -3,8 +3,8 @@ import type { RoleEnum } from '@core/auth/models/auth-api.types';
 import type { PriorityEnum, RequestStatusEnum } from '../models/request-api.types';
 
 /**
- * Habilitación de acciones basada **solo** en descripciones del OpenAPI (estado + rol).
- * El backend sigue siendo la validación definitiva; esto evita UI obvia y no sustituye reglas.
+ * Action enablement based **only** on OpenAPI descriptions (status + role).
+ * The backend remains the definitive validator; this prevents obvious UI mistakes and does not replace business rules.
  */
 
 export function isTerminalStatus(status: RequestStatusEnum | undefined): boolean {
@@ -15,7 +15,7 @@ export function isTerminalStatus(status: RequestStatusEnum | undefined): boolean
   );
 }
 
-/** PATCH .../classify — STAFF, precondición REGISTERED */
+/** PATCH .../classify — STAFF, precondition REGISTERED */
 export function canShowClassify(
   role: RoleEnum | null,
   status: RequestStatusEnum | undefined,
@@ -24,8 +24,8 @@ export function canShowClassify(
 }
 
 /**
- * PATCH .../prioritize — STAFF, precondición CLASSIFIED.
- * Si `priority` ya viene en la respuesta, se asume priorización aplicada (no mostrar de nuevo).
+ * PATCH .../prioritize — STAFF, precondition CLASSIFIED.
+ * If `priority` is already present in the response, prioritization is assumed applied (do not show again).
  */
 export function canShowPrioritize(
   role: RoleEnum | null,
@@ -40,8 +40,8 @@ export function canShowPrioritize(
 }
 
 /**
- * PATCH .../assign — STAFF, precondición CLASSIFIED ya priorizada.
- * Usamos la presencia de `priority` en el DTO como señal alineada al flujo del contrato.
+ * PATCH .../assign — STAFF, precondition CLASSIFIED already prioritised.
+ * The presence of `priority` in the DTO is used as a signal aligned to the contract flow.
  */
 export function canShowAssign(
   role: RoleEnum | null,
@@ -56,7 +56,7 @@ export function canShowAssign(
   );
 }
 
-/** PATCH .../attend — STAFF, precondición IN_PROGRESS */
+/** PATCH .../attend — STAFF, precondition IN_PROGRESS */
 export function canShowAttend(
   role: RoleEnum | null,
   status: RequestStatusEnum | undefined,
@@ -64,7 +64,7 @@ export function canShowAttend(
   return role === 'STAFF' && status === 'IN_PROGRESS';
 }
 
-/** PATCH .../close — STAFF, precondición ATTENDED */
+/** PATCH .../close — STAFF, precondition ATTENDED */
 export function canShowClose(
   role: RoleEnum | null,
   status: RequestStatusEnum | undefined,
@@ -73,7 +73,7 @@ export function canShowClose(
 }
 
 /**
- * PATCH .../cancel — STUDENT (dueño), STAFF, ADMIN; precondición REGISTERED o CLASSIFIED.
+ * PATCH .../cancel — STUDENT (owner), STAFF, ADMIN; precondition REGISTERED or CLASSIFIED.
  */
 export function canShowCancel(
   role: RoleEnum | null,
@@ -97,7 +97,7 @@ export function canShowCancel(
   return false;
 }
 
-/** PATCH .../reject — ADMIN, precondición REGISTERED */
+/** PATCH .../reject — ADMIN, precondition REGISTERED */
 export function canShowReject(
   role: RoleEnum | null,
   status: RequestStatusEnum | undefined,

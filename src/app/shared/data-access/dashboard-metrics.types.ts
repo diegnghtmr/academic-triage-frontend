@@ -1,39 +1,39 @@
 /**
- * DTOs crudos de `GET /reports/dashboard` — alineados a `docs/openapi-academic-triage.yaml`.
+ * Raw DTOs from `GET /reports/dashboard` — aligned to `docs/openapi-academic-triage.yaml`.
  *
- * Los campos `requestsByStatus`, `requestsByType` y `requestsByPriority` son mapas
- * (`Record<string, number>`), no arrays. El adapter los transforma a `MetricEntry[]`
- * para facilitar la iteración en templates.
+ * The `requestsByStatus`, `requestsByType`, and `requestsByPriority` fields are maps
+ * (`Record<string, number>`), not arrays. The adapter transforms them into `MetricEntry[]`
+ * to facilitate template iteration.
  */
 
 import type { UserResponse } from '@core/auth/models/auth-api.types';
 
-/** Entrada adaptada de un mapa `Record<string, number>` para uso en templates. */
+/** Adapted entry from a `Record<string, number>` map for use in templates. */
 export interface MetricEntry {
   key: string;
   value: number;
 }
 
-/** Entrada cruda de `topResponsibles`. */
+/** Raw entry from `topResponsibles`. */
 export interface TopResponsibleEntry {
   user?: UserResponse;
   resolvedCount?: number;
 }
 
-/** Respuesta cruda de `GET /reports/dashboard`. */
+/** Raw response from `GET /reports/dashboard`. */
 export interface DashboardMetrics {
   totalRequests?: number;
-  /** Mapa status → conteo */
+  /** Map of status → count */
   requestsByStatus?: Record<string, number>;
-  /** Mapa nombre de tipo → conteo */
+  /** Map of type name → count */
   requestsByType?: Record<string, number>;
-  /** Mapa prioridad → conteo */
+  /** Map of priority → count */
   requestsByPriority?: Record<string, number>;
   averageResolutionTimeHours?: number | null;
   topResponsibles?: TopResponsibleEntry[];
 }
 
-/** View model listo para la plantilla: mapas ya convertidos a arrays ordenados. */
+/** View model ready for the template: maps already converted to sorted arrays. */
 export interface DashboardMetricsView {
   totalRequests: number;
   byStatus: MetricEntry[];
@@ -43,7 +43,7 @@ export interface DashboardMetricsView {
   topResponsibles: TopResponsibleEntry[];
 }
 
-/** Parámetros opcionales del endpoint. */
+/** Optional query parameters for the endpoint. */
 export interface DashboardQueryParams {
   dateFrom?: string;
   dateTo?: string;

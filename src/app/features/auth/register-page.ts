@@ -17,9 +17,9 @@ import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
 import { AuthApiService } from './auth-api.service';
 
 /**
- * Registro público (`POST /auth/register`).
- * Política conservadora: el contrato devuelve `UserResponse` (201), no garantiza JWT;
- * no se hace auto-login; tras éxito se redirige al login.
+ * Public registration (`POST /auth/register`).
+ * Conservative policy: the contract returns `UserResponse` (201) and does not guarantee a JWT;
+ * no auto-login is performed; on success the user is redirected to the login page.
  */
 @Component({
   selector: 'at-register-page',

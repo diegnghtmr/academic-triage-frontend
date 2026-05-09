@@ -34,8 +34,8 @@ function normalizeFieldErrors(value: unknown): ProblemDetailFieldError[] | null 
 }
 
 /**
- * Convierte cuerpos `application/problem+json` (y errores HTTP genéricos) a {@link ProblemDetail}.
- * La UI debe consumir este tipo, no el payload crudo.
+ * Converts `application/problem+json` bodies (and generic HTTP errors) to {@link ProblemDetail}.
+ * The UI must consume this type, not the raw payload.
  */
 @Injectable({ providedIn: 'root' })
 export class ProblemErrorMapper {

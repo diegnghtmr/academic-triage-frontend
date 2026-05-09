@@ -1,16 +1,16 @@
 /**
- * DTOs de la feature users — alineados a `docs/openapi-academic-triage.yaml`.
+ * DTOs for the users feature — aligned to `docs/openapi-academic-triage.yaml`.
  *
- * `UserResponse` se reutiliza de `@core/auth/models/auth-api.types` (mismo contrato).
- * `PagedResponse<T>` se reutiliza de `@shared/models/page`.
+ * `UserResponse` is reused from `@core/auth/models/auth-api.types` (same contract).
+ * `PagedResponse<T>` is reused from `@shared/models/page`.
  */
 
 import type { RoleEnum } from '@core/auth/models/auth-api.types';
 
 /**
  * PUT /users/{userId}
- * Todos los campos son requeridos según el contrato.
- * `username` no aparece aquí: no es editable por el ADMIN vía este endpoint.
+ * All fields are required per the contract.
+ * `username` is not included here: it is not editable by ADMIN via this endpoint.
  */
 export interface UpdateUserBody {
   firstName: string;
@@ -21,7 +21,7 @@ export interface UpdateUserBody {
   active: boolean;
 }
 
-/** Parámetros opcionales de GET /users */
+/** Optional query parameters for GET /users */
 export interface ListUsersQueryParams {
   role?: RoleEnum;
   active?: boolean;

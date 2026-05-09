@@ -10,8 +10,8 @@ import type {
 } from '@core/auth/models/auth-api.types';
 
 /**
- * Cliente HTTP de autenticación contra el backend oficial (`/auth/*`).
- * Sin lógica de sesión: solo transporte.
+ * HTTP client for authentication against the official backend (`/auth/*`).
+ * No session logic: transport only.
  */
 @Injectable({ providedIn: 'root' })
 export class AuthApiService {

@@ -9,11 +9,11 @@ import type {
 } from '../models/ai-api.types';
 
 /**
- * Transporte HTTP para los endpoints `/ai/*`.
+ * HTTP transport for the `/ai/*` endpoints.
  *
- * El backend retorna `503 Service Unavailable` cuando el servicio de IA no está
- * habilitado. Los componentes consumidores deben tratar este código como caso
- * funcional esperado y NO como crash de la aplicación.
+ * The backend returns `503 Service Unavailable` when the AI service is not
+ * enabled. Consumers must treat this status code as an expected functional
+ * state and NOT as an application crash.
  */
 @Injectable({ providedIn: 'root' })
 export class AiApiService {
@@ -21,7 +21,7 @@ export class AiApiService {
 
   /**
    * `POST /ai/suggest-classification`
-   * Envía el texto descriptivo y recibe una sugerencia de tipo y prioridad.
+   * Sends the descriptive text and receives a suggested type and priority.
    */
   suggestClassification(
     body: AiClassificationRequest,
@@ -34,7 +34,7 @@ export class AiApiService {
 
   /**
    * `GET /ai/summarize/{requestId}`
-   * Genera un resumen textual del estado e historial de la solicitud.
+   * Generates a textual summary of the request's status and history.
    */
   summarizeRequest(requestId: number): Observable<AiSummaryResponse> {
     return this.http.get<AiSummaryResponse>(`ai/summarize/${requestId}`);

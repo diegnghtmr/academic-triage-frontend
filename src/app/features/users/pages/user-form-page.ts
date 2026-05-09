@@ -148,7 +148,7 @@ export class UserFormPage {
   protected readonly submitting = signal(false);
   protected readonly loadError = signal<string | null>(null);
   protected readonly submitError = signal<string | null>(null);
-  /** `username` no editable — se muestra fuera del form como referencia. */
+  /** `username` is read-only — displayed outside the form as a reference. */
   protected readonly username = signal<string | null>(null);
 
   private userId: number | null = null;

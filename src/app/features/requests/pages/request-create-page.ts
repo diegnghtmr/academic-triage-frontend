@@ -20,7 +20,7 @@ import type {
 } from '../models/request-api.types';
 import { WEB_CHANNEL_NAME } from '@shared/models/origin-channel';
 
-/** Mensaje estándar cuando la IA devuelve 503. */
+/** Standard message when the AI returns 503. */
 const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este entorno.';
 
 @Component({
@@ -84,7 +84,7 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
             <textarea class="input" id="crt-desc" rows="6" formControlName="description"></textarea>
           </div>
 
-          <!-- Asistente de IA: solo STAFF (contrato: POST /ai/suggest-classification → STAFF only) -->
+          <!-- AI assistant: STAFF only (contract: POST /ai/suggest-classification → STAFF only) -->
           @if (canSuggestAiRole()) {
             <section class="ai-section" aria-labelledby="ai-suggest-heading">
               <h3 id="ai-suggest-heading" class="ai-section__title">Ayuda de IA (opcional)</h3>
@@ -138,7 +138,6 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
               }
             </section>
           }
-          <!-- fin @if (canSuggestAiRole()) -->
           <div class="field">
             <label class="field__label" for="crt-deadline">
               Fecha límite <small>(opcional)</small>
@@ -363,20 +362,20 @@ export class RequestCreatePage {
     return this.originChannels().find((channel) => channel.id === channelId) ?? null;
   });
 
-  /** Longitud reactiva del campo descripción — determina si habilitar "Sugerir con IA". */
+  /** Reactive length of the description field — determines whether to enable "Suggest with AI". */
   private readonly descriptionLength = toSignal(
     this.form.controls.description.valueChanges.pipe(map((v) => v.length)),
     { initialValue: 0 },
   );
 
-  /** El botón de IA se habilita cuando hay >= 10 chars y no hay una consulta en curso. */
+  /** The AI button is enabled when there are >= 10 chars and no request is in flight. */
   protected readonly canSuggestAi = computed(
     () => this.descriptionLength() >= 10 && !this.aiLoading(),
   );
 
   /**
-   * Se puede aplicar la sugerencia si el `suggestedRequestTypeId` existe en el catálogo.
-   * Protege contra IDs que el backend devuelve pero ya no están en el catálogo activo.
+   * The suggestion can be applied if `suggestedRequestTypeId` exists in the catalogue.
+   * Guards against IDs returned by the backend that are no longer in the active catalogue.
    */
   protected readonly canApplyAiSuggestion = computed(() => {
     const s = this.aiSuggestion();
@@ -453,7 +452,7 @@ export class RequestCreatePage {
       });
   }
 
-  /** Aplica el `suggestedRequestTypeId` al formulario si es válido y existe en el catálogo. */
+  /** Applies the `suggestedRequestTypeId` to the form if it is valid and exists in the catalogue. */
   protected applyAiSuggestion(): void {
     const id = this.aiSuggestion()?.suggestedRequestTypeId;
     if (id === null || id === undefined) {

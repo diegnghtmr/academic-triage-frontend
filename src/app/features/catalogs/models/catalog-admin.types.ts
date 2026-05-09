@@ -1,6 +1,6 @@
 /**
- * DTOs de la feature catalogs — alineados a `docs/openapi-academic-triage.yaml`.
- * Los tipos de lectura (Response) se re-exportan desde @shared/models (fuente canónica).
+ * DTOs for the catalogs feature — aligned to `docs/openapi-academic-triage.yaml`.
+ * Read types (Response) are re-exported from @shared/models (canonical source).
  */
 
 export type { RequestTypeResponse } from '@shared/models/request-type';

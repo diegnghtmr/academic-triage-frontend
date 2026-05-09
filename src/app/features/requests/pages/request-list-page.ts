@@ -150,7 +150,7 @@ export class RequestListPage {
     status: this.fb.control<RequestStatusEnum | null>(null),
   });
 
-  /** Tabs para SegTabs: null → '' (todos) + one per status. */
+  /** Tabs for SegTabs: null → '' (all) + one per status. */
   protected readonly statusTabs = computed(() => [
     { id: '', label: 'Todos' },
     ...this.statusOptions.map((s) => ({ id: s, label: STATUS_LABEL_MAP[s] })),

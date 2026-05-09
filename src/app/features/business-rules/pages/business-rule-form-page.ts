@@ -21,17 +21,17 @@ import type {
 import { CONDITION_TYPE_OPTIONS, PRIORITY_OPTIONS } from '../models/business-rule.types';
 
 /**
- * Formulario de creación y edición de reglas de negocio.
+ * Create and edit form for business rules.
  *
- * La visibilidad de campos depende de `conditionType`:
+ * Field visibility depends on `conditionType`:
  *
  * | conditionType              | deadlineDays | requestTypeId |
  * |----------------------------|--------------|---------------|
- * | REQUEST_TYPE               | oculto       | requerido     |
- * | DEADLINE                   | requerido    | oculto        |
- * | REQUEST_TYPE_AND_DEADLINE  | requerido    | requerido     |
+ * | REQUEST_TYPE               | hidden       | required      |
+ * | DEADLINE                   | required     | hidden        |
+ * | REQUEST_TYPE_AND_DEADLINE  | required     | required      |
  *
- * Al enviar, `conditionValue` se deriva del estado del formulario:
+ * On submit, `conditionValue` is derived from the form state:
  * - REQUEST_TYPE:            String(requestTypeId)
  * - DEADLINE:                String(deadlineDays)
  * - REQUEST_TYPE_AND_DEADLINE: String(deadlineDays)
@@ -324,7 +324,7 @@ export class BusinessRuleFormPage {
     active: this.fb.nonNullable.control(true),
   });
 
-  /** Señal reactiva sobre el valor actual de conditionType en el formulario. */
+  /** Reactive signal tracking the current conditionType value in the form. */
   private readonly selectedConditionType = toSignal(this.form.controls.conditionType.valueChanges, {
     initialValue: this.form.controls.conditionType.value,
   });

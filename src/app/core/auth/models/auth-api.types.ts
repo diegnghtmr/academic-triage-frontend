@@ -1,6 +1,6 @@
 /**
- * DTOs alineados a `components/schemas` del OpenAPI (`docs/openapi-academic-triage.yaml`).
- * No reutilizar modelos legacy (`shared/schema.ts`).
+ * DTOs aligned to `components/schemas` in the OpenAPI spec (`docs/openapi-academic-triage.yaml`).
+ * Do not reuse legacy models (`shared/schema.ts`).
  */
 
 /** `ROLE` const-object — source of truth for all role values. */
@@ -14,20 +14,20 @@ export const ROLE = {
 export type RoleEnum = (typeof ROLE)[keyof typeof ROLE];
 
 /**
- * `LoginRequest` — contrato canónico de login.
+ * `LoginRequest` — canonical login contract.
  *
- * **Campo canónico**: `identifier` (acepta nombre de usuario o correo electrónico).
- * **Alias deprecado**: `username` se mantiene solo para compatibilidad hacia atrás durante
- * la ventana de transición. Será eliminado en una versión futura.
+ * **Canonical field**: `identifier` (accepts username or email address).
+ * **Deprecated alias**: `username` is kept for backward compatibility only during
+ * the transition window. It will be removed in a future version.
  *
- * Reglas de precedencia (alineadas con el backend):
- * - Solo `identifier` → ruta canónica.
- * - Solo `username` → ruta alias (deprecada).
- * - Ambos con el **mismo** valor → se acepta como canónico.
- * - Ambos con **valores distintos** → 400 Bad Request (backend rechaza sin token).
+ * Precedence rules (aligned with the backend):
+ * - Only `identifier` → canonical path.
+ * - Only `username` → alias path (deprecated).
+ * - Both with the **same** value → accepted as canonical.
+ * - Both with **different values** → 400 Bad Request (backend rejects without token).
  *
- * El frontend debe enviar únicamente `identifier` en flujos nuevos.
- * El campo `username` se expone aquí solo para tooling/tests de compatibilidad.
+ * The frontend must send only `identifier` in new flows.
+ * The `username` field is exposed here solely for compatibility tooling and tests.
  */
 export interface LoginRequest {
   identifier: string;
@@ -36,7 +36,7 @@ export interface LoginRequest {
   username?: string;
 }
 
-/** `RegisterRequest` — `role` solo asignable por ADMIN con token (no aplica al registro público). */
+/** `RegisterRequest` — `role` is only assignable by ADMIN with a token (not applicable to public registration). */
 export interface RegisterRequest {
   username: string;
   email: string;

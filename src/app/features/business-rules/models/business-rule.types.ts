@@ -1,15 +1,15 @@
 /**
- * DTOs alineados a `docs/openapi-academic-triage.yaml` — sección Business Rules.
+ * DTOs aligned to `docs/openapi-academic-triage.yaml` — Business Rules section.
  *
- * Semántica de `conditionValue` por `conditionType`:
- *   REQUEST_TYPE            → decimal id string del requestType (igual a String(requestTypeId))
- *   DEADLINE                → días como string (entero no-negativo)
- *   REQUEST_TYPE_AND_DEADLINE → días como string; requestType vía requestTypeId
+ * Semantics of `conditionValue` per `conditionType`:
+ *   REQUEST_TYPE            → decimal id string of the requestType (equals String(requestTypeId))
+ *   DEADLINE                → days as a string (non-negative integer)
+ *   REQUEST_TYPE_AND_DEADLINE → days as a string; requestType via requestTypeId
  *
  * `requestTypeId`:
- *   REQUEST_TYPE            → requerido
- *   DEADLINE                → debe ser null
- *   REQUEST_TYPE_AND_DEADLINE → requerido
+ *   REQUEST_TYPE            → required
+ *   DEADLINE                → must be null
+ *   REQUEST_TYPE_AND_DEADLINE → required
  */
 
 export type ConditionTypeEnum =
@@ -46,8 +46,8 @@ export interface BusinessRuleResponse {
 
 /**
  * POST /business-rules
- * `requestTypeId` es requerido para REQUEST_TYPE y REQUEST_TYPE_AND_DEADLINE;
- * debe ser null (o ausente) para DEADLINE.
+ * `requestTypeId` is required for REQUEST_TYPE and REQUEST_TYPE_AND_DEADLINE;
+ * must be null (or absent) for DEADLINE.
  */
 export interface CreateBusinessRuleBody {
   name: string;
@@ -60,7 +60,7 @@ export interface CreateBusinessRuleBody {
 
 /**
  * PUT /business-rules/{ruleId}
- * Idéntico a Create pero agrega `active` (campo requerido en el contrato).
+ * Identical to Create but adds `active` (required field in the contract).
  */
 export interface UpdateBusinessRuleBody {
   name: string;
@@ -72,16 +72,16 @@ export interface UpdateBusinessRuleBody {
   active: boolean;
 }
 
-/** Vista del formulario: estado interno antes de derivar `conditionValue`. */
+/** Form view model: internal state before deriving `conditionValue`. */
 export interface BusinessRuleFormValue {
   name: string;
   description: string;
   conditionType: ConditionTypeEnum;
-  /** Días: aplica para DEADLINE y REQUEST_TYPE_AND_DEADLINE. */
+  /** Days: applies for DEADLINE and REQUEST_TYPE_AND_DEADLINE. */
   deadlineDays: number | null;
-  /** Id del tipo: aplica para REQUEST_TYPE y REQUEST_TYPE_AND_DEADLINE. */
+  /** Type id: applies for REQUEST_TYPE and REQUEST_TYPE_AND_DEADLINE. */
   requestTypeId: number | null;
   resultingPriority: PriorityEnum;
-  /** Solo edición — requerido en UpdateBusinessRuleBody. */
+  /** Edit mode only — required in UpdateBusinessRuleBody. */
   active: boolean;
 }

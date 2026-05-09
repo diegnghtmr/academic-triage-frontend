@@ -3,9 +3,9 @@ import type { PagedRequestResponse } from '@features/requests/models/request-api
 import type { RequestsSummaryView } from '../models/dashboard-view';
 
 /**
- * Convierte la respuesta paginada de `GET /requests` al view model del dashboard.
- * `total` se toma de `totalElements` — dato real del backend.
- * `recent` son los primeros N ítems de la página (máx. 5 en la query del dashboard).
+ * Converts the paginated `GET /requests` response to the dashboard view model.
+ * `total` comes from `totalElements` — the real count from the backend.
+ * `recent` holds the first N items from the page (max 5 in the dashboard query).
  */
 export function adaptRequestsSummary(page: PagedRequestResponse): RequestsSummaryView {
   return {

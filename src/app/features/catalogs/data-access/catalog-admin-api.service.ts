@@ -10,9 +10,9 @@ import type {
 } from '../models/catalog-admin.types';
 
 /**
- * Operaciones ADMIN sobre catálogos: lectura completa (activos + inactivos),
- * creación y edición. Alineado a `/catalogs/*` del OpenAPI oficial.
- * Solo debe inyectarse en componentes con rol ADMIN.
+ * ADMIN operations on catalogues: full read (active + inactive),
+ * create, and edit. Aligned to `/catalogs/*` of the official OpenAPI spec.
+ * Must only be injected in components with the ADMIN role.
  */
 @Injectable({ providedIn: 'root' })
 export class CatalogAdminApiService {

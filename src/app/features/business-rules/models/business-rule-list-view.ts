@@ -1,13 +1,13 @@
 /**
- * View model para la fila de la lista de reglas de negocio.
+ * View model for a row in the business rules list.
  *
- * El DTO `BusinessRuleResponse` expone:
- * - `conditionType`: enum técnico inglés ('REQUEST_TYPE', 'DEADLINE', …)
- * - `conditionValue`: string opaco (puede ser un ID o un número de días)
- * - `requestType`: objeto anidado opcional (`{ id?, name? }`)
- * - `resultingPriority`: enum inglés ('HIGH', 'MEDIUM', 'LOW')
+ * The `BusinessRuleResponse` DTO exposes:
+ * - `conditionType`: technical English enum ('REQUEST_TYPE', 'DEADLINE', …)
+ * - `conditionValue`: opaque string (may be an ID or a number of days)
+ * - `requestType`: optional nested object (`{ id?, name? }`)
+ * - `resultingPriority`: English enum ('HIGH', 'MEDIUM', 'LOW')
  *
- * El view model resuelve todo esto en campos de display directos.
+ * The view model resolves all of this into direct display fields.
  */
 
 import type { ConditionTypeEnum, PriorityEnum } from './business-rule.types';
@@ -24,27 +24,27 @@ export const PRIORITY_LABELS: Record<PriorityEnum, string> = {
   LOW: 'Baja',
 };
 
-/** View model de una fila en el listado de reglas de negocio. */
+/** View model for a row in the business rules list. */
 export interface BusinessRuleListItemView {
   id: number;
   name: string;
 
-  /** Enums crudos — necesarios para filtros y lógica de acciones. */
+  /** Raw enums — needed for filters and action logic. */
   conditionType: ConditionTypeEnum;
   resultingPriority: PriorityEnum;
   active: boolean;
 
-  /** Etiqueta legible del tipo de condición. */
+  /** Human-readable label for the condition type. */
   conditionLabel: string;
   /**
-   * Detalle de la condición resuelto según el tipo:
-   * - REQUEST_TYPE → nombre del tipo de solicitud
+   * Condition detail resolved by type:
+   * - REQUEST_TYPE → name of the request type
    * - DEADLINE → "N días"
-   * - REQUEST_TYPE_AND_DEADLINE → "Nombre tipo + N días"
+   * - REQUEST_TYPE_AND_DEADLINE → "Type name + N días"
    */
   conditionDetail: string;
-  /** requestType.name aplanado con fallback. */
+  /** requestType.name flattened with fallback. */
   typeName: string;
-  /** Etiqueta en español de la prioridad resultante. */
+  /** Display label for the resulting priority. */
   priorityLabel: string;
 }

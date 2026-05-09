@@ -5,8 +5,8 @@ import type {
 } from './dashboard-metrics.types';
 
 /**
- * Convierte un mapa `Record<string, number>` a un array de `MetricEntry`
- * ordenado de mayor a menor valor para su uso en `@for`.
+ * Converts a `Record<string, number>` map to a `MetricEntry` array
+ * sorted from highest to lowest value for use in `@for`.
  */
 function mapToEntries(map: Record<string, number> | undefined): MetricEntry[] {
   if (map === undefined) {
@@ -18,8 +18,8 @@ function mapToEntries(map: Record<string, number> | undefined): MetricEntry[] {
 }
 
 /**
- * Transforma el DTO crudo de `GET /reports/dashboard` al view model de la plantilla.
- * Los mapas se convierten en arrays ordenados; los valores ausentes se normalizan.
+ * Transforms the raw `GET /reports/dashboard` DTO into the template view model.
+ * Maps are converted to sorted arrays; missing values are normalised.
  */
 export function adaptDashboardMetrics(raw: DashboardMetrics): DashboardMetricsView {
   return {

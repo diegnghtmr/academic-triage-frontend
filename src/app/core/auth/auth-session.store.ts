@@ -5,8 +5,8 @@ import { AUTH_SESSION_STORAGE_KEY } from './auth-session.storage';
 import type { RoleEnum, UserResponse } from './models/auth-api.types';
 
 /**
- * Sesión autenticada (JWT + `UserResponse` del contrato).
- * Persistencia mínima en `localStorage`; sin llamadas HTTP.
+ * Authenticated session (JWT + `UserResponse` from the contract).
+ * Minimal persistence in `localStorage`; no HTTP calls.
  */
 @Injectable({ providedIn: 'root' })
 export class AuthSessionStore {

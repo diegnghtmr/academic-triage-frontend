@@ -10,8 +10,8 @@ import type {
 } from '../models/business-rule.types';
 
 /**
- * Transporte HTTP para `/business-rules`.
- * Escritura restringida a ADMIN por el backend; la UI añade `roleGuard` como segunda capa.
+ * HTTP transport for `/business-rules`.
+ * Write access is restricted to ADMIN by the backend; the UI adds `roleGuard` as a second layer.
  */
 @Injectable({ providedIn: 'root' })
 export class BusinessRulesApiService {
@@ -51,7 +51,7 @@ export class BusinessRulesApiService {
 
   /**
    * DELETE /business-rules/{ruleId} → 204 No Content.
-   * El backend realiza soft-delete internamente; la UI usa el verbo HTTP del contrato.
+   * The backend performs a soft-delete internally; the UI uses the HTTP verb from the contract.
    */
   delete(ruleId: number): Observable<void> {
     return this.http.delete<void>(`business-rules/${ruleId}`);

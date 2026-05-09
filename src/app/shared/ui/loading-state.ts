@@ -9,12 +9,12 @@ import {
 } from '@angular/core';
 
 /**
- * Indicador de carga con dos modos:
- * - `skeleton` (default): filas pulsantes que aproximan la forma de una tabla.
- * - `text`: línea de texto (`message`).
+ * Loading indicator with two modes:
+ * - `skeleton` (default): pulsing rows that approximate the shape of a table.
+ * - `text`: a single text line (`message`).
  *
- * Implementa "delayed show": si la operación termina antes de `delayMs`
- * el componente no llega a pintarse y el usuario no ve un flash.
+ * Implements "delayed show": if the operation completes before `delayMs`,
+ * the component never renders and the user sees no flash.
  */
 @Component({
   selector: 'at-loading-state',

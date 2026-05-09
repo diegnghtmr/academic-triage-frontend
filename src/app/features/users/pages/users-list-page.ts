@@ -247,7 +247,7 @@ export class UsersListPage {
     active: this.fb.control<boolean | null>(null),
   });
 
-  /** Filtros aplicados en la última carga exitosa. Vacío si no hay filtro. */
+  /** Filters applied on the last successful load. Empty when no filter is active. */
   private readonly appliedFilters = signal<{ role: RoleEnum | null; active: boolean | null }>({
     role: null,
     active: null,
@@ -267,9 +267,9 @@ export class UsersListPage {
   });
 
   constructor() {
-    // Sincroniza UI ↔ URL: la URL es la fuente de verdad para page/role/active.
-    // Cualquier cambio (filtrar, paginar, clearFilter, back/forward del browser)
-    // pasa por router.navigate y el subscribe de queryParams dispara load().
+    // Syncs UI ↔ URL: the URL is the source of truth for page/role/active.
+    // Any change (filter, paginate, clearFilter, browser back/forward)
+    // goes through router.navigate and the queryParams subscription triggers load().
     this.route.queryParamMap
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((params) => {

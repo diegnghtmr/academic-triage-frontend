@@ -8,8 +8,8 @@ import type {
 } from '../models/request-api.types';
 
 /**
- * Lectura de catálogos para formularios (`GET /catalogs/*`).
- * Sin `active` en la query: el backend aplica el default documentado (solo activos).
+ * Catalog reads for forms (`GET /catalogs/*`).
+ * Without `active` in the query: the backend applies the documented default (active items only).
  */
 @Injectable({ providedIn: 'root' })
 export class CatalogApiService {

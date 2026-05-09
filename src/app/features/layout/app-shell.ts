@@ -12,7 +12,7 @@ import { Sidebar } from './sidebar';
 import { Topbar } from './topbar';
 
 /**
- * Shell de la zona autenticada: outlet para features lazy bajo `/app/**`.
+ * Shell for the authenticated zone: lazy feature outlet under `/app/**`.
  */
 @Component({
   selector: 'at-app-shell',
@@ -92,16 +92,16 @@ export class AppShell {
     return 'autenticado';
   });
 
-  /** Crear solicitud: solo STUDENT / STAFF. */
+  /** Create request: STUDENT and STAFF only. */
   protected readonly canCreateRequest = computed(() => {
     const r = this.session.role();
     return r === 'STUDENT' || r === 'STAFF';
   });
 
-  /** Acceso a administración de catálogos: solo ADMIN. */
+  /** Catalogue administration access: ADMIN only. */
   protected readonly isAdmin = computed(() => this.session.role() === 'ADMIN');
 
-  /** Ver reglas de negocio: ADMIN y STAFF (contrato + PRD). */
+  /** View business rules: ADMIN and STAFF (contract + PRD). */
   protected readonly canViewBusinessRules = computed(() => {
     const r = this.session.role();
     return r === 'ADMIN' || r === 'STAFF';

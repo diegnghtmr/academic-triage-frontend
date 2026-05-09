@@ -758,7 +758,7 @@ export class ReportsDashboardPage {
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly metrics = signal<DashboardMetricsView | null>(null);
 
-  /** Rango aplicado en la última carga exitosa. Vacío si no hay filtro. */
+  /** Date range applied on the last successful load. Empty when no filter is active. */
   private readonly appliedRange = signal<{ from: string; to: string }>({ from: '', to: '' });
 
   protected readonly hasActiveFilter = computed(() => {
@@ -774,13 +774,13 @@ export class ReportsDashboardPage {
     return '';
   });
 
-  /** Vista activa por sección — chart por defecto, persistente entre reloads de filtros. */
+  /** Active view per section — chart by default, persistent across filter reloads. */
   protected readonly statusView = signal<'chart' | 'table'>('chart');
   protected readonly priorityView = signal<'chart' | 'table'>('chart');
   protected readonly typeView = signal<'chart' | 'table'>('chart');
   protected readonly topView = signal<'chart' | 'table'>('chart');
 
-  /** Top 3 del leaderboard organizado para el podio (gold/silver/bronze). */
+  /** Top 3 of the leaderboard organised for the podium (gold/silver/bronze). */
   protected readonly topPodium = computed(() => {
     const list = this.metrics()?.topResponsibles ?? [];
     return {
@@ -810,7 +810,7 @@ export class ReportsDashboardPage {
     return trimmed.slice(0, 2).toUpperCase();
   }
 
-  /** Máximos para escalar las barras de cada chart. Mínimo 1 para evitar divisiones por 0. */
+  /** Maximums used to scale each chart's bars. Minimum 1 to avoid division by zero. */
   protected readonly statusMax = computed(() => {
     const items = this.metrics()?.byStatus ?? [];
     return Math.max(1, ...items.map((e) => e.value));

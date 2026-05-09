@@ -5,8 +5,8 @@ import { Observable } from 'rxjs';
 import type { DashboardMetrics, DashboardQueryParams } from './dashboard-metrics.types';
 
 /**
- * Transporte HTTP para `/reports/dashboard`.
- * Acceso restringido a ADMIN por el backend; la UI añade `roleGuard(['ADMIN'])`.
+ * HTTP transport for `/reports/dashboard`.
+ * Access is restricted to ADMIN by the backend; the UI adds `roleGuard(['ADMIN'])`.
  */
 @Injectable({ providedIn: 'root' })
 export class ReportsApiService {

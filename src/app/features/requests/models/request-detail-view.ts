@@ -1,15 +1,15 @@
 /**
- * View models para la página de detalle de solicitud.
+ * View models for the request detail page.
  *
- * Separa el shape de transporte HTTP (`RequestDetailResponse`) del shape
- * que la plantilla necesita:
- * - campos requeridos (sin `| undefined`)
- * - nullables explícitos donde realmente aplica (`null`, no `undefined`)
- * - etiquetas en español para enums de transporte
- * - referencias anidadas aplanadas (requester.username → requesterName)
+ * Separates the HTTP transport shape (`RequestDetailResponse`) from the shape
+ * the template needs:
+ * - required fields (no `| undefined`)
+ * - explicit nullables where they truly apply (`null`, not `undefined`)
+ * - display labels for transport enums
+ * - flattened nested references (requester.username → requesterName)
  *
- * Los campos `status` y `priority` se preservan como enums crudos porque
- * los utilizan las funciones de visibilidad de acciones.
+ * The `status` and `priority` fields are preserved as raw enums because
+ * action visibility functions consume them.
  */
 
 import type { PriorityEnum, RequestStatusEnum } from './request-api.types';
@@ -18,39 +18,39 @@ import type { PriorityEnum, RequestStatusEnum } from './request-api.types';
 export interface RequestDetailView {
   id: number;
 
-  /** Enum crudo — necesario para funciones de visibilidad de acciones. */
+  /** Raw enum — needed by action visibility functions. */
   status: RequestStatusEnum;
-  /** Enum crudo — necesario para funciones de visibilidad de acciones. */
+  /** Raw enum — needed by action visibility functions. */
   priority: PriorityEnum | null;
 
-  /** Etiqueta en español del estado. */
+  /** Display label for the status. */
   statusLabel: string;
-  /** Etiqueta en español de la prioridad; null si aún no fue priorizada. */
+  /** Display label for the priority; null if not yet prioritized. */
   priorityLabel: string | null;
 
   description: string;
   registrationDateTime: string;
   deadline: string | null;
 
-  /** requestType.name aplanado con fallback. */
+  /** requestType.name flattened with fallback. */
   typeName: string;
-  /** originChannel.name aplanado con fallback. */
+  /** originChannel.name flattened with fallback. */
   channelName: string;
-  /** requester.username aplanado con fallback. */
+  /** requester.username flattened with fallback. */
   requesterName: string;
-  /** assignedTo.username aplanado; null si no está asignada. */
+  /** assignedTo.username flattened; null if not assigned. */
   assignedToName: string | null;
-  /** requester.id aplanado — necesario para validar cancelación propia. */
+  /** requester.id flattened — needed to validate own-request cancellation. */
   requesterId: number | undefined;
 }
 
 /** View model de una entrada de historial. */
 export interface HistoryEntryView {
   id: number;
-  /** Acción tal como viene del backend (p.ej. "CLASSIFIED"). */
+  /** Action as received from the backend (e.g. "CLASSIFIED"). */
   action: string;
   observations: string | null;
   timestamp: string;
-  /** performedBy.username aplanado con fallback. */
+  /** performedBy.username flattened with fallback. */
   performedByName: string;
 }

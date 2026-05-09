@@ -8,9 +8,9 @@ import type { PagedResponse } from '@shared/models/page';
 import type { ListUsersQueryParams, UpdateUserBody } from '../models/user-admin.types';
 
 /**
- * Transporte HTTP para `/users`.
- * Acceso de lectura y escritura restringido a ADMIN por el backend.
- * La UI añade `roleGuard(['ADMIN'])` como segunda capa.
+ * HTTP transport for `/users`.
+ * Read and write access is restricted to ADMIN by the backend.
+ * The UI adds `roleGuard(['ADMIN'])` as a second layer.
  */
 @Injectable({ providedIn: 'root' })
 export class UsersApiService {

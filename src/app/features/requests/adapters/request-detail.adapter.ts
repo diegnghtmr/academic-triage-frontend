@@ -29,13 +29,13 @@ function formatPersonName(
 }
 
 /**
- * Convierte `RequestDetailResponse` (DTO HTTP) a `RequestDetailView`.
+ * Converts `RequestDetailResponse` (HTTP DTO) to `RequestDetailView`.
  *
- * Responsabilidades:
- * - Elimina todos los `undefined` opcionales del transporte.
- * - Aplana referencias anidadas (`requester.username` → `requesterName`).
- * - Genera etiquetas en español para los enums `status` y `priority`.
- * - Normaliza nulos explícitos donde la UI distingue ausencia de dato.
+ * Responsibilities:
+ * - Strips all optional `undefined` values from the transport shape.
+ * - Flattens nested references (`requester.username` → `requesterName`).
+ * - Builds display labels for the `status` and `priority` enums.
+ * - Normalises explicit nulls where the UI distinguishes absence of data.
  */
 export function adaptRequestDetail(raw: RequestDetailResponse): RequestDetailView {
   const status = raw.status ?? 'REGISTERED';
@@ -59,9 +59,9 @@ export function adaptRequestDetail(raw: RequestDetailResponse): RequestDetailVie
 }
 
 /**
- * Convierte `HistoryEntryResponse` a `HistoryEntryView`.
+ * Converts `HistoryEntryResponse` to `HistoryEntryView`.
  *
- * Aplana `performedBy.username` y normaliza valores ausentes.
+ * Flattens `performedBy.username` and normalises missing values.
  */
 export function adaptHistoryEntry(raw: HistoryEntryResponse): HistoryEntryView {
   return {

@@ -5,8 +5,8 @@ import { AuthSessionStore } from '@core/auth/auth-session.store';
 import { API_BASE_URL } from '@core/http/api-base-url.token';
 
 /**
- * Adjunta `Authorization: Bearer` cuando exista token y la petición apunte al API oficial.
- * URLs absolutas a otros orígenes no reciben el encabezado.
+ * Attaches `Authorization: Bearer` when a token exists and the request targets the official API.
+ * Absolute URLs pointing to other origins do not receive the header.
  */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const session = inject(AuthSessionStore);
