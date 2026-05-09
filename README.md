@@ -2,7 +2,7 @@
 
 Angular 20 SPA that acts as the web client for the academic triage system at Universidad del Quindío. It consumes **exclusively** the official [`academic-triage-system`](../academic-triage-system) backend through `/api/v1`.
 
-This project is intentionally built as a **contract-disciplined frontend**. The UI never duplicates business rules: it honors the OpenAPI versioned in this repo, uses explicit per-feature adapters, and leaves all domain authority on the backend.
+This project is intentionally built as a **contract-disciplined frontend**. The UI never duplicates business rules: it honors the official backend contract, uses explicit per-feature adapters, and leaves all domain authority on the backend.
 
 ---
 
@@ -36,7 +36,7 @@ The SPA provides:
 
 - a standalone, lazy-loaded SPA surface
 - a role-aware UI driven by `ADMIN`, `STAFF`, `STUDENT` and request state
-- strict consumption of the OpenAPI contract, with no parallel rules
+- strict consumption of the official backend contract, with no parallel rules
 - explicit support for idempotency and optimistic locking (ETag / If-Match)
 - optional consumption of the backend AI endpoints when available
 
@@ -78,7 +78,7 @@ Every domain rule (transitions, validations, permissions) lives in the official 
 
 ### 2. Contract first
 
-The OpenAPI (canonical source: backend repository; mirrored locally under `docs/openapi-academic-triage.yaml`) is the authoritative contract. Any change is propagated to the agreed YAML first and to the client second.
+The official backend defines the authoritative contract. Any change is propagated to the agreed contract first and to the client second.
 
 ### 3. Adapters per feature
 
@@ -151,7 +151,6 @@ REGISTERED → CLASSIFIED → IN_PROGRESS → ATTENDED → CLOSED
 | Unit testing          | Vitest 3 with V8 coverage                               |
 | E2E testing           | Playwright 1.56 (Chromium)                              |
 | Lint / format         | ESLint 9 + `angular-eslint` + Prettier 3                |
-| API contract          | OpenAPI 3.0 (`docs/openapi-academic-triage.yaml`)       |
 | Target backend        | `academic-triage-system` via `/api/v1`                  |
 
 > Note: this SPA does **not** use Tailwind CSS. The whole visual system is built on SCSS and design tokens defined in `src/styles.scss`.
@@ -167,18 +166,18 @@ academic-triage-frontend/
 │   │   ├── core/
 │   │   │   ├── auth/        # session store, guards (auth, guest, role)
 │   │   │   ├── config/      # env.ts, apiBaseUrl resolver
-│   │   │   ├── http/        # interceptors, problem+json mappers, return-url
-│   │   │   └── layout/      # app-shell, sidebar, topbar
+│   │   │   └── http/        # interceptors, problem+json mappers, return-url
 │   │   ├── features/
 │   │   │   ├── auth/        # login, register, auth-api service
 │   │   │   ├── business-rules/
 │   │   │   ├── catalogs/
 │   │   │   ├── dashboard/
+│   │   │   ├── layout/      # app-shell, sidebar, topbar
 │   │   │   ├── public-home/
 │   │   │   ├── reports/
 │   │   │   ├── requests/    # pages, components, adapters, data-access
-│   │   │   ├── shared/      # cross-feature components, models, and utilities
 │   │   │   └── users/
+│   │   ├── shared/          # cross-feature ui, pipes, models, utils, data-access
 │   │   ├── app.config.ts    # bootstrap providers (router, http, interceptors)
 │   │   ├── app.ts           # root `at-root` component
 │   │   └── routes.ts        # top-level routes and guards
@@ -187,23 +186,20 @@ academic-triage-frontend/
 │   ├── main.ts
 │   └── styles.scss          # design tokens + base styles
 ├── e2e/                     # Playwright specs (public-home, role-access, helpers)
-├── docs/                    # local integration docs and API contract
 ├── public/                  # static assets (favicon, etc.)
-├── openspec/                # specs and change proposals (frontend-*)
 ├── angular.json
 ├── eslint.config.js
 ├── playwright.config.ts
+├── proxy.conf.json          # dev proxy: /api → http://localhost:8080
 ├── vitest.config.ts
 ├── tsconfig.json / tsconfig.app.json / tsconfig.spec.json
+├── .nvmrc                   # Node 22 LTS pin
 └── package.json
 ```
 
-Useful documents (kept locally; `docs/` and `GGA-AGENTS.md` are gitignored — see [Documentation availability](#documentation-availability)):
+External references kept outside this repo:
 
-- `docs/openapi-academic-triage.yaml` — canonical client contract
-- `docs/archive/react-reference/` — historical React reference (non-operational)
-- `GGA-AGENTS.md` — business, architecture, and technology rules for the project
-- `openspec/specs/` — active specs (`frontend-api-topology`, `frontend-lint-hygiene`, `frontend-test-coverage`)
+- Backend Swagger UI — `http://localhost:8080/swagger-ui.html` (with the backend `dev` profile)
 
 ---
 
@@ -213,7 +209,7 @@ Useful documents (kept locally; `docs/` and `GGA-AGENTS.md` are gitignored — s
 
 Install the following before running the project:
 
-- Node.js 20.19+ (current LTS recommended; the repo is exercised on Node 20)
+- Node.js **22 LTS** (pinned via `.nvmrc` and `package.json#engines`; run `nvm use` from the repo root)
 - npm 10+
 - The official [`academic-triage-system`](../academic-triage-system) backend running at `http://localhost:8080`
 
@@ -248,7 +244,7 @@ npm run dev
 npm run start
 ```
 
-The Angular dev server becomes available at `http://localhost:4200`. By default, `ng serve` uses the `proxyConfig` declared in `angular.json`, which forwards `/api/v1` to `http://localhost:8080`.
+The Angular dev server becomes available at `http://localhost:4200`. The vendored `proxy.conf.json` (declared in `angular.json`) forwards every request matching `/api` to `http://localhost:8080`, so `npm run dev` is enough — no flags or extra config required.
 
 4. **Build for production**
 
@@ -264,8 +260,7 @@ The build applies the `fileReplacements` defined in `angular.json` and swaps `en
 
 1. Start the official backend (`academic-triage-system`) on port `8080` following its own README.
 2. Verify the API responds at `http://localhost:8080/api/v1` (Swagger UI available at `http://localhost:8080/swagger-ui.html` with `APP_DOCS_ENABLED=true` or the `dev` profile).
-3. Confirm that the exposed contract matches [`docs/openapi-academic-triage.yaml`](docs/openapi-academic-triage.yaml).
-4. Start the SPA with `npm run dev` and open `http://localhost:4200`.
+3. Start the SPA with `npm run dev` and open `http://localhost:4200`.
 
 #### CORS
 
@@ -298,7 +293,7 @@ The SPA is driven by two environment files and a development proxy.
 
 ### Production topology
 
-The `frontend-api-topology` spec pins the confirmed topology as **same-origin reverse proxy** over `/api/v1`. Any move to a separate origin must be addressed in a new OpenSpec change proposal; do not rewrite `environment.prod.ts` ad-hoc.
+The confirmed topology is **same-origin reverse proxy** over `/api/v1`. Any move to a separate origin must be addressed as a deliberate change; do not rewrite `environment.prod.ts` ad-hoc.
 
 > **Important:** this repository does **not** ship an embedded backend and does **not** maintain a mock that duplicates the contract. The only valid source for the API is the official backend.
 
@@ -306,7 +301,7 @@ The `frontend-api-topology` spec pins the confirmed topology as **same-origin re
 
 ## Idempotency & concurrency contract
 
-The backend enforces strict idempotency and optimistic-locking controls. The SPA must converge to these controls; binding details live in `docs/openapi-academic-triage.yaml` and the local integration docs (kept locally — see [Documentation availability](#documentation-availability)).
+The backend enforces strict idempotency and optimistic-locking controls. The SPA must converge to these controls; the binding details live in the backend repository.
 
 Backend contract (what the SPA must produce):
 
@@ -349,7 +344,7 @@ Common errors the UI must handle as functional cases:
 
 ### Unit coverage (Vitest)
 
-`vitest.config.ts` uses the `v8` provider and emits the `text` and `html` reporters. The `coverage/` folder is generated when running Vitest with `--coverage`. The `frontend-test-coverage` spec documents the expected provider and reporters.
+`vitest.config.ts` uses the `v8` provider and emits the `text` and `html` reporters. The `coverage/` folder is generated when running Vitest with `--coverage`.
 
 ### E2E (Playwright)
 
@@ -375,14 +370,9 @@ Active specs:
 
 ## API documentation
 
-- **Canonical contract:** `docs/openapi-academic-triage.yaml` (kept locally — see note below)
 - **Backend Swagger UI:** `http://localhost:8080/swagger-ui.html` (with `APP_DOCS_ENABLED=true` or the backend `dev` profile)
 
-The OpenAPI YAML is the source of truth for the SPA: when the official backend changes, the contract is updated first and the client second.
-
-### Documentation availability
-
-This repository's `.gitignore` excludes `docs/`, `GGA-AGENTS.md`, and other planning artifacts to keep them out of version control. They are expected to be present locally — typically synced from the global workspace or the backend repo (`academic-triage-system/docs/`). If they are missing in your checkout, copy them from those sources before relying on the integration rules.
+The backend is the source of truth for the SPA: when it changes, the contract is updated first and the client second.
 
 ---
 
@@ -420,8 +410,8 @@ The SPA has been validated across the following layers:
 
 - strict typecheck (`npm run check`)
 - ESLint Angular + TS with zero warnings (`npm run lint`)
-- Vitest unit tests over `core/auth`, `core/http`, and feature services
-- Playwright E2E over `public-home` and `role-access`
+- Vitest unit tests — **337 tests** across `core/auth`, `core/http`, every feature page (auth, requests, users, business-rules, catalogs, reports), and shared UI primitives (`loading-state`, `state-badge`)
+- Playwright E2E — `public-home`, full `role-access` matrix for ADMIN/STAFF/STUDENT
 - local startup against the official `academic-triage-system` at `http://localhost:8080/api/v1`
 
 Manually validated flows:
@@ -441,16 +431,18 @@ This repository is currently in a **fully runnable and manually validated fronte
 
 What is already working:
 
-- Angular 20 standalone SPA, lazy-loaded per feature
+- Angular 20 standalone SPA, lazy-loaded per feature, with `withPreloading(PreloadAllModules)` and view transitions scoped to the main outlet
 - strict consumption of the official backend via `/api/v1`
 - per-role guards and routing
 - full request management lifecycle
 - catalogs, business rules, users, and reports
 - centralized 401 handling and `application/problem+json` normalization
 - optional AI consumption with deterministic `503` handling
+- consistent UX patterns across the app: panel-style filter bars with active-filter chip and disabled "Sin filtro", URL-driven list state (filters and pagination), stale-while-revalidate on table reloads, delayed-show skeletons for first loads, view-toggle (chart / table) on report sections plus podium for top responsibles
+- sticky sidebar layout (`height: 100dvh`) with main scroll, mercury-bordered primary buttons, monogram avatars, and a Cyber-Classicism dark theme driven by SCSS tokens
 - mandatory lint, typecheck, unit, and E2E gates
 
-Pending / planned (tracked via OpenSpec changes):
+Pending / planned:
 
 - `Idempotency-Key` injection on `POST` / `PATCH` mutations
 - `If-Match` propagation on administrative `PUT` / `DELETE` (Optimistic Locking)
@@ -460,8 +452,8 @@ Pending / planned (tracked via OpenSpec changes):
 
 If you are reviewing or extending this project, start with:
 
-1. `docs/openapi-academic-triage.yaml` (synced locally from the backend repo)
-2. `src/app/routes.ts` and `src/app/app.config.ts`
-3. `README.md` (this document)
+1. `src/app/routes.ts` and `src/app/app.config.ts`
+2. `README.md` (this document)
+3. The companion backend repository for the live API.
 
-That path gives you the contract, the integration rules, the runtime model, and the developer workflow in the right order.
+That path gives you the runtime model, the developer workflow, and the integration rules in the right order.
