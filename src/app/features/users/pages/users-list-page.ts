@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
 import type { RoleEnum, UserResponse } from '@core/auth/models/auth-api.types';
@@ -230,6 +230,8 @@ export class UsersListPage {
   private readonly problemMapper = inject(ProblemErrorMapper);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly roleOptions: RoleEnum[] = ['ADMIN', 'STAFF', 'STUDENT'];
 
@@ -265,28 +267,84 @@ export class UsersListPage {
   });
 
   constructor() {
-    this.load();
+    // Sincroniza UI ↔ URL: la URL es la fuente de verdad para page/role/active.
+    // Cualquier cambio (filtrar, paginar, clearFilter, back/forward del browser)
+    // pasa por router.navigate y el subscribe de queryParams dispara load().
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        const role = this.parseRole(params.get('role'));
+        const active = this.parseActive(params.get('active'));
+        const page = this.parsePage(params.get('page'));
+
+        this.filterForm.setValue({ role, active }, { emitEvent: false });
+        this.currentPage.set(page);
+        this.load();
+      });
   }
 
   protected applyFilters(): void {
-    this.currentPage.set(0);
-    this.load();
+    const f = this.filterForm.getRawValue();
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: this.toQueryParams(f.role, f.active, 0),
+      queryParamsHandling: 'merge',
+    });
   }
 
   protected clearFilter(): void {
     this.filterForm.reset({ role: null, active: null });
-    this.currentPage.set(0);
-    this.load();
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { role: null, active: null, page: null },
+      queryParamsHandling: 'merge',
+    });
   }
 
   protected prevPage(): void {
-    this.currentPage.update((p) => Math.max(0, p - 1));
-    this.load();
+    const next = Math.max(0, this.currentPage() - 1);
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page: next === 0 ? null : next },
+      queryParamsHandling: 'merge',
+    });
   }
 
   protected nextPage(): void {
-    this.currentPage.update((p) => p + 1);
-    this.load();
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page: this.currentPage() + 1 },
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  private toQueryParams(
+    role: RoleEnum | null,
+    active: boolean | null,
+    page: number,
+  ): Record<string, string | null> {
+    return {
+      role: role ?? null,
+      active: active === null ? null : String(active),
+      page: page === 0 ? null : String(page),
+    };
+  }
+
+  private parseRole(raw: string | null): RoleEnum | null {
+    if (raw === 'ADMIN' || raw === 'STAFF' || raw === 'STUDENT') return raw;
+    return null;
+  }
+
+  private parseActive(raw: string | null): boolean | null {
+    if (raw === 'true') return true;
+    if (raw === 'false') return false;
+    return null;
+  }
+
+  private parsePage(raw: string | null): number {
+    if (raw === null) return 0;
+    const n = Number(raw);
+    return Number.isInteger(n) && n >= 0 ? n : 0;
   }
 
   private load(): void {

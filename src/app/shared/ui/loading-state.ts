@@ -26,6 +26,11 @@ import {
       display: flex;
       flex-direction: column;
       gap: var(--at-s2);
+      background: transparent;
+      border: 0;
+      color: inherit;
+      padding: 0;
+      margin: 0;
     }
 
     .skel__row {
