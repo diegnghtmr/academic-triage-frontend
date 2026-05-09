@@ -40,3 +40,5 @@ GGA-AGENTS.md
 .gga
 playwright-report/
 test-results/
+coverage/
+openspec/

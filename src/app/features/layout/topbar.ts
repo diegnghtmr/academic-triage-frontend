@@ -7,6 +7,7 @@ import {
 
 @Component({
   selector: 'at-topbar',
+  host: { role: 'banner' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: `
     :host {

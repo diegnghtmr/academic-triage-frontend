@@ -4,7 +4,7 @@ test.describe('public home critical path', () => {
   test('allows navigating to login from public home', async ({ page }) => {
     await page.goto('/');
 
-    await expect(page.getByRole('heading', { name: 'Inicio público' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Academic Triage' })).toBeVisible();
 
     await page.getByRole('link', { name: 'Iniciar sesión' }).click();
 
