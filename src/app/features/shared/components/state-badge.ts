@@ -4,7 +4,9 @@ import {
   computed,
   input,
 } from '@angular/core';
-import type { RequestStatusEnum } from '@features/requests/models/request-api.types';
+import { STATUS_LABEL_MAP } from '@shared/models/request-status';
+import type { RequestStatusEnum } from '@shared/models/request-status';
+export { STATUS_LABEL_MAP } from '@shared/models/request-status';
 
 const STATUS_CLASS_MAP: Record<RequestStatusEnum, string> = {
   REGISTERED:  'badge--registered',
@@ -14,16 +16,6 @@ const STATUS_CLASS_MAP: Record<RequestStatusEnum, string> = {
   CLOSED:      'badge--closed',
   CANCELLED:   'badge--cancelled',
   REJECTED:    'badge--rejected',
-};
-
-export const STATUS_LABEL_MAP: Record<RequestStatusEnum, string> = {
-  REGISTERED:  'Registrada',
-  CLASSIFIED:  'Clasificada',
-  IN_PROGRESS: 'En progreso',
-  ATTENDED:    'Atendida',
-  CLOSED:      'Cerrada',
-  CANCELLED:   'Cancelada',
-  REJECTED:    'Rechazada',
 };
 
 @Component({

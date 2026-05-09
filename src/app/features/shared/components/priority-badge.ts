@@ -4,7 +4,7 @@ import {
   computed,
   input,
 } from '@angular/core';
-import type { PriorityEnum } from '@features/requests/models/request-api.types';
+import type { PriorityEnum } from '@shared/models/priority';
 
 const PRI_CLASS_MAP: Record<PriorityEnum, string> = {
   HIGH:   'pri--h',
