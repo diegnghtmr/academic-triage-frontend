@@ -5,17 +5,11 @@
 
 import type { UserResponse } from '@core/auth/models/auth-api.types';
 import type { PriorityEnum } from '@shared/models/priority';
+import type { RequestStatusEnum } from '@shared/models/request-status';
 import type { RequestTypeResponse } from '@shared/models/request-type';
 import type { OriginChannelResponse } from '@shared/models/origin-channel';
 
-export type RequestStatusEnum =
-  | 'REGISTERED'
-  | 'CLASSIFIED'
-  | 'IN_PROGRESS'
-  | 'ATTENDED'
-  | 'CLOSED'
-  | 'CANCELLED'
-  | 'REJECTED';
+export type { RequestStatusEnum } from '@shared/models/request-status';
 
 export type { PriorityEnum } from '@shared/models/priority';
 export type { RequestTypeResponse } from '@shared/models/request-type';
