@@ -67,7 +67,9 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="section">
-      <p class="section__back"><a routerLink="/app/requests/list">← Listado</a></p>
+      <a class="section__back" routerLink="/app/requests/list" aria-label="Volver a solicitudes">
+        <span aria-hidden="true">←</span> Volver a solicitudes
+      </a>
 
       @if (loadError()) {
         <p role="alert" class="field__error">{{ loadError() }}</p>
@@ -76,49 +78,144 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
       } @else if (detail()) {
         @let d = detail()!;
 
+        <header class="page-head">
+          <div class="page-head__title-block">
+            <h2 class="page-head__title">
+              Solicitud <span class="page-head__id">#{{ d.id }}</span>
+            </h2>
+            <ul class="page-head__meta" aria-label="Detalles de la solicitud">
+              <li class="page-head__chip">
+                <span class="page-head__chip-label">Tipo</span>
+                <span class="page-head__chip-value" [title]="d.typeName">{{ d.typeName }}</span>
+              </li>
+              <li class="page-head__chip">
+                <span class="page-head__chip-label">Canal</span>
+                <span class="page-head__chip-value" [title]="d.channelName">{{ d.channelName }}</span>
+              </li>
+              <li class="page-head__chip">
+                <span class="page-head__chip-label">Registrado</span>
+                <span class="page-head__chip-value">{{ d.registrationDateTime | dateTimeLabel }}</span>
+              </li>
+            </ul>
+          </div>
+
+          <aside class="status-chip" aria-label="Estado actual">
+            <span class="status-chip__label">Estado actual</span>
+            <span class="status-chip__value">
+              <at-state-badge [state]="d.status" />
+            </span>
+          </aside>
+        </header>
+
+        @if (!terminalStatus(d.status)) {
+          <at-pipeline [currentStatus]="d.status" />
+        }
+
         <div class="split">
           <div class="split__main">
-            <h2 class="section__title">Solicitud #{{ d.id }}</h2>
+            <section class="card" aria-labelledby="description-heading">
+              <h3 id="description-heading" class="card__title">Descripción</h3>
+              <p class="description">{{ d.description }}</p>
 
-            @if (!terminalStatus(d.status)) {
-              <at-pipeline [currentStatus]="d.status" />
-            }
+              <dl class="meta-grid">
+                <div class="meta-grid__cell">
+                  <dt>Fecha límite</dt>
+                  <dd>
+                    @if (d.deadline) {
+                      {{ d.deadline | dateTimeLabel }}
+                    } @else {
+                      <span class="meta-grid__empty">—</span>
+                    }
+                  </dd>
+                </div>
+                <div class="meta-grid__cell">
+                  <dt>Prioridad</dt>
+                  <dd>
+                    @if (d.priority) {
+                      <at-priority-badge [priority]="d.priority" />
+                    } @else {
+                      <span class="meta-grid__empty">—</span>
+                    }
+                  </dd>
+                </div>
+                <div class="meta-grid__cell">
+                  <dt>ID interno</dt>
+                  <dd class="meta-grid__id">req_{{ d.id }}</dd>
+                </div>
+              </dl>
+            </section>
 
-            <dl class="card card--detail">
-              <dt>Estado</dt>
-              <dd><at-state-badge [state]="d.status" /></dd>
-              <dt>Prioridad</dt>
-              <dd>
-                @if (d.priority) {
-                  <at-priority-badge [priority]="d.priority" />
-                } @else {
-                  <span>—</span>
-                }
-              </dd>
-              <dt>Descripción</dt>
-              <dd>{{ d.description }}</dd>
-              <dt>Registro</dt>
-              <dd>{{ d.registrationDateTime | dateTimeLabel }}</dd>
-              <dt>Tipo</dt>
-              <dd>{{ d.typeName }}</dd>
-              <dt>Canal</dt>
-              <dd>{{ d.channelName }}</dd>
-              <dt>Solicitante</dt>
-              <dd>{{ d.requesterName }}</dd>
-              <dt>Asignado</dt>
-              <dd>{{ d.assignedToName ?? '—' }}</dd>
-            </dl>
+            <section class="card" aria-labelledby="history-heading">
+              <header class="card__header">
+                <h3 id="history-heading" class="card__title">
+                  Historial <span class="card__title-meta">// {{ history().length }} eventos</span>
+                </h3>
+                <span class="card__header-tag" aria-hidden="true">log stream ›_</span>
+              </header>
+              <at-terminal-history [entries]="history()" />
+              @if (!terminalStatus(d.status)) {
+                <p class="history__waiting" aria-hidden="true">
+                  <span class="history__cursor"></span>
+                  <em>esperando próximo evento</em>
+                </p>
+              }
+              @if (canNote()) {
+                <form class="note-form" [formGroup]="noteForm" (ngSubmit)="submitNote()">
+                  <div class="field">
+                    <label class="field__label" for="note-observations">Nota interna</label>
+                    <textarea
+                      class="input"
+                      id="note-observations"
+                      formControlName="observations"
+                      rows="3"
+                    ></textarea>
+                  </div>
+                  <div class="note-form__actions">
+                    <button
+                      class="btn note-form__btn"
+                      type="submit"
+                      [disabled]="noteForm.invalid || noteSubmitting()"
+                    >
+                      Añadir nota
+                    </button>
+                  </div>
+                </form>
+              }
+            </section>
           </div>
 
           <div class="split__aside">
+            <section class="party-card" aria-labelledby="requester-heading">
+              <h3 id="requester-heading" class="party-card__title">Solicitante</h3>
+              <div class="party-card__body">
+                <span class="avatar" [attr.data-initials]="initialsOf(d.requesterName)" aria-hidden="true"></span>
+                <div class="party-card__id">
+                  <p class="party-card__name">{{ d.requesterName }}</p>
+                  <p class="party-card__sub">@{{ d.requesterName }}</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="party-card" aria-labelledby="assignee-heading">
+              <h3 id="assignee-heading" class="party-card__title">Responsable asignado</h3>
+              @if (d.assignedToName) {
+                <div class="party-card__body">
+                  <span class="avatar" [attr.data-initials]="initialsOf(d.assignedToName)" aria-hidden="true"></span>
+                  <div class="party-card__id">
+                    <p class="party-card__name">{{ d.assignedToName }}</p>
+                    <p class="party-card__sub">STAFF</p>
+                  </div>
+                </div>
+              } @else {
+                <p class="party-card__empty">Sin asignar</p>
+              }
+            </section>
+
             @if (showPrioritySuggestion()) {
               <section class="card" aria-labelledby="priority-suggestion-heading">
-                <h3 id="priority-suggestion-heading" class="card__title">Orientación de prioridad</h3>
+                <h3 id="priority-suggestion-heading" class="card__title">Reglas aplicadas</h3>
                 <p class="card__hint">
-                  <small>
-                    Esta recomendación se calcula según las reglas vigentes para este tipo de solicitud.
-                    Solo sirve como guía y no cambia la solicitud por sí sola.
-                  </small>
+                  Recomendación según reglas vigentes para este tipo. No cambia la solicitud por sí sola.
                 </p>
                 <button class="btn btn--sm" type="button" (click)="loadSuggestion()" [disabled]="suggestionLoading()">
                   @if (suggestionLoading()) {
@@ -133,17 +230,20 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
                 @if (suggestion()) {
                   @let s = suggestion()!;
                   <p class="card__value">
-                    <strong>Recomendada:</strong>
+                    <strong>Prioridad recomendada:</strong>
                     {{ s.suggestedPriority | displayLabel: 'priority' }}
                   </p>
                   @if (s.matchedRules?.length) {
-                    <ul class="card__list">
+                    <ul class="rules-list">
                       @for (m of s.matchedRules; track (m.ruleId ?? $index)) {
-                        <li>{{ m.name }} → {{ m.resultingPriority | displayLabel: 'priority' }}</li>
+                        <li class="rules-list__item">
+                          <span class="rules-list__name">{{ m.name }}</span>
+                          <span class="rules-list__priority">{{ m.resultingPriority | displayLabel: 'priority' }}</span>
+                        </li>
                       }
                     </ul>
                   } @else {
-                    <p class="card__hint"><small>No hay una regla específica para este caso.</small></p>
+                    <p class="card__hint">No hay una regla específica para este caso.</p>
                   }
                 }
               </section>
@@ -152,12 +252,16 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
             <!-- Resumen IA: solo STAFF y ADMIN (contrato: GET /ai/summarize → STAFF, ADMIN) -->
             @if (canSummarizeAiRole()) {
               <section class="card" aria-labelledby="ai-summary-heading">
-                <h3 id="ai-summary-heading" class="card__title">Resumen con IA</h3>
+                <h3 id="ai-summary-heading" class="card__title">
+                  Asistente IA
+                  @if (aiSummary()) {
+                    <span class="card__title-tag">
+                      <span class="card__title-dot"></span> completo
+                    </span>
+                  }
+                </h3>
                 <p class="card__hint">
-                  <small>
-                    Esta sección usa IA para resumir el estado y el historial de la solicitud. Es una
-                    ayuda de lectura y no reemplaza la información oficial.
-                  </small>
+                  IA para resumir estado e historial. Ayuda de lectura — no reemplaza la información oficial.
                 </p>
                 <button
                   class="btn btn--sm"
@@ -182,21 +286,6 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
           </div>
         </div>
 
-        <section class="card" aria-labelledby="history-heading">
-          <h3 id="history-heading" class="card__title">Historial</h3>
-          <at-terminal-history [entries]="history()" />
-          @if (canNote()) {
-            <form class="note-form" [formGroup]="noteForm" (ngSubmit)="submitNote()">
-              <label class="field__label">
-                Nota interna
-                <textarea class="input" formControlName="observations" rows="3"></textarea>
-              </label>
-              <button class="btn btn--sm" type="submit" [disabled]="noteForm.invalid || noteSubmitting()">
-                Añadir nota
-              </button>
-            </form>
-          }
-        </section>
 
         @if (actionError()) {
           <p role="alert" class="field__error">{{ actionError() }}</p>
@@ -354,54 +443,384 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
     </section>
   `,
   styles: `
-    .section { padding: var(--at-s6); }
-    .section__back { margin-bottom: var(--at-s3); font-size: var(--at-fs-sm); }
-    .section__title {
-      font-size: var(--at-fs-xl);
+    .section { padding: var(--at-s6); max-width: 1200px; margin: 0 auto; }
+    .section__back {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--at-s1);
+      margin-bottom: var(--at-s4);
+      padding: var(--at-s1) var(--at-s2);
+      color: var(--at-text-muted);
+      font-family: var(--at-font-mono);
+      font-size: var(--at-fs-xs);
+      letter-spacing: var(--at-tracking-wide);
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: color var(--at-dur-fast) var(--at-ease);
+    }
+    .section__back:hover { color: var(--at-mercury); }
+
+    .page-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: var(--at-s4);
+      align-items: start;
+      margin-bottom: var(--at-s5);
+    }
+    .page-head__title-block { min-width: 0; }
+    .page-head__title {
+      margin: 0 0 var(--at-s2);
+      font-family: var(--at-font-mono);
+      font-size: var(--at-fs-3xl);
       font-weight: 800;
       letter-spacing: var(--at-tracking-tight);
-      margin-bottom: var(--at-s3);
+      text-transform: uppercase;
+      color: var(--at-text);
+      line-height: 1.05;
     }
+    .page-head__id {
+      color: var(--at-mercury);
+    }
+    .page-head__meta {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: stretch;
+      gap: var(--at-s2);
+    }
+    .page-head__chip {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--at-s2);
+      max-width: 22rem;
+      padding: var(--at-s1) var(--at-s3);
+      background: var(--at-surface);
+      border: 1px solid var(--at-border);
+      font-family: var(--at-font-mono);
+      font-size: var(--at-fs-xs);
+    }
+    .page-head__chip-label {
+      flex-shrink: 0;
+      color: var(--at-text-dim);
+      letter-spacing: var(--at-tracking-wide);
+      text-transform: uppercase;
+    }
+    .page-head__chip-label::after {
+      content: '·';
+      margin-left: var(--at-s2);
+      color: var(--at-border-hi);
+    }
+    .page-head__chip-value {
+      color: var(--at-text);
+      letter-spacing: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--at-s3);
+      padding: var(--at-s3) var(--at-s4);
+      background: var(--at-surface);
+      border: 1px solid var(--at-border-hi);
+    }
+    .status-chip__label {
+      font-family: var(--at-font-mono);
+      font-size: var(--at-fs-xs);
+      letter-spacing: var(--at-tracking-wide);
+      text-transform: uppercase;
+      color: var(--at-text-muted);
+    }
+
     .section__loading { color: var(--at-text-muted); font-family: var(--at-font-mono); }
     .split {
       display: grid;
       grid-template-columns: 1fr 320px;
       gap: var(--at-s4);
       margin-bottom: var(--at-s4);
+      align-items: start;
     }
     .card {
+      background: var(--at-surface);
+      border: 1px solid var(--at-border);
+      padding: var(--at-s5);
+      margin-bottom: var(--at-s4);
+    }
+    .card--detail {
+      display: grid;
+      grid-template-columns: 9rem 1fr;
+      gap: var(--at-s3) var(--at-s4);
+    }
+    .card--detail dt {
+      font-family: var(--at-font-mono);
+      font-size: var(--at-fs-xs);
+      letter-spacing: var(--at-tracking-wide);
+      text-transform: uppercase;
+      color: var(--at-text-muted);
+      align-self: center;
+    }
+    .card--detail dd {
+      margin: 0;
+      color: var(--at-text);
+      align-self: center;
+    }
+    .card__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--at-s2);
+      margin-bottom: var(--at-s3);
+    }
+    .card__header-tag {
+      font-family: var(--at-font-mono);
+      font-size: var(--at-fs-xs);
+      letter-spacing: var(--at-tracking-wide);
+      text-transform: uppercase;
+      color: var(--at-text-dim);
+    }
+    .card__title {
+      margin: 0 0 var(--at-s3);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--at-s2);
+      font-family: var(--at-font-mono);
+      font-size: var(--at-fs-xs);
+      font-weight: 800;
+      letter-spacing: var(--at-tracking-wide);
+      text-transform: uppercase;
+      color: var(--at-mercury);
+    }
+    .card__header .card__title { margin: 0; }
+    .card__title-meta {
+      color: var(--at-text-dim);
+      font-weight: 600;
+    }
+    .card__title-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto;
+      color: var(--at-success);
+      font-weight: 600;
+    }
+    .card__title-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--at-success);
+      border-radius: 50%;
+      box-shadow: 0 0 6px var(--at-success);
+    }
+
+    .description {
+      margin: 0 0 var(--at-s4);
+      padding: var(--at-s3) 0;
+      border-bottom: 1px solid var(--at-border);
+      color: var(--at-text);
+      line-height: 1.6;
+    }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--at-s4);
+      margin: 0;
+    }
+    .meta-grid__cell { display: flex; flex-direction: column; gap: var(--at-s2); }
+    .meta-grid__cell dt {
+      margin: 0;
+      font-family: var(--at-font-mono);
+      font-size: var(--at-fs-xs);
+      letter-spacing: var(--at-tracking-wide);
+      text-transform: uppercase;
+      color: var(--at-text-muted);
+    }
+    .meta-grid__cell dd { margin: 0; color: var(--at-text); }
+    .meta-grid__id {
+      font-family: var(--at-font-mono);
+      color: var(--at-text-muted);
+    }
+    .meta-grid__empty { color: var(--at-text-dim); }
+
+    .party-card {
       background: var(--at-surface);
       border: 1px solid var(--at-border);
       padding: var(--at-s4);
       margin-bottom: var(--at-s3);
     }
-    .card--detail {
-      display: grid;
-      grid-template-columns: 140px 1fr;
-      gap: var(--at-s1) var(--at-s3);
+    .party-card__title {
+      margin: 0 0 var(--at-s3);
+      font-family: var(--at-font-mono);
+      font-size: var(--at-fs-xs);
+      letter-spacing: var(--at-tracking-wide);
+      text-transform: uppercase;
+      color: var(--at-text-muted);
     }
-    .card--detail dt {
+    .party-card__body { display: flex; align-items: center; gap: var(--at-s3); }
+    .party-card__id { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .party-card__name {
+      margin: 0;
+      font-weight: 700;
+      color: var(--at-text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .party-card__sub {
+      margin: 0;
+      font-family: var(--at-font-mono);
+      font-size: var(--at-fs-xs);
+      letter-spacing: var(--at-tracking-wide);
+      color: var(--at-text-dim);
+    }
+    .party-card__empty {
+      margin: 0;
+      color: var(--at-text-dim);
+      font-style: italic;
+    }
+
+    .avatar {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      background:
+        repeating-linear-gradient(
+          45deg,
+          var(--at-surface-2) 0 2px,
+          var(--at-bg) 2px 4px
+        );
+      border: 1px solid var(--at-border-hi);
+      font-family: var(--at-font-mono);
+      font-size: var(--at-fs-xs);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--at-text);
+    }
+    .avatar::before {
+      content: attr(data-initials);
+      background: var(--at-surface);
+      padding: 2px 6px;
+    }
+
+    .rules-list {
+      list-style: none;
+      padding: 0;
+      margin: var(--at-s2) 0 0;
+      display: flex;
+      flex-direction: column;
+      gap: var(--at-s2);
+    }
+    .rules-list__item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--at-s3);
+      padding: var(--at-s2) 0;
+      border-top: 1px dashed var(--at-border);
+      font-size: var(--at-fs-sm);
+    }
+    .rules-list__item:first-child { border-top: 0; padding-top: 0; }
+    .rules-list__name { color: var(--at-text); }
+    .rules-list__priority {
+      font-family: var(--at-font-mono);
+      font-size: var(--at-fs-xs);
+      letter-spacing: var(--at-tracking-wide);
+      text-transform: uppercase;
+      color: var(--at-text-muted);
+    }
+
+    .history__waiting {
+      margin: var(--at-s3) 0 0;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--at-s2);
+      font-family: var(--at-font-mono);
+      font-size: var(--at-fs-xs);
+      letter-spacing: var(--at-tracking-wide);
+      color: var(--at-text-dim);
+    }
+    .history__cursor {
+      display: inline-block;
+      width: 8px;
+      height: 14px;
+      background: var(--at-mercury);
+      animation: blink 1.1s steps(2, end) infinite;
+    }
+    .card__hint {
       font-size: var(--at-fs-sm);
       color: var(--at-text-muted);
+      margin: 0 0 var(--at-s3);
+      line-height: 1.5;
+    }
+    .card__value { margin: var(--at-s3) 0; }
+    .card__list {
+      padding-left: var(--at-s4);
+      margin: var(--at-s2) 0 0;
+      font-size: var(--at-fs-sm);
+      color: var(--at-text-muted);
+    }
+
+    .note-form {
+      margin-top: var(--at-s4);
+      padding-top: var(--at-s4);
+      border-top: 1px solid var(--at-border);
+      display: flex;
+      flex-direction: column;
+      gap: var(--at-s3);
+    }
+    .note-form__actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+    .note-form__btn {
+      min-width: 8rem;
+      justify-content: center;
+    }
+
+    .action-form {
+      border-top: 1px solid var(--at-border);
+      padding-top: var(--at-s4);
+      margin-top: var(--at-s4);
+      display: flex;
+      flex-direction: column;
+      gap: var(--at-s3);
+    }
+    .action-form__title {
+      margin: 0 0 var(--at-s1);
       font-family: var(--at-font-mono);
-    }
-    .card__title {
-      font-size: var(--at-fs-base);
+      font-size: var(--at-fs-xs);
       font-weight: 800;
-      margin-bottom: var(--at-s2);
-      color: var(--at-mercury);
+      letter-spacing: var(--at-tracking-wide);
+      text-transform: uppercase;
+      color: var(--at-text-muted);
     }
-    .card__hint { font-size: var(--at-fs-sm); color: var(--at-text-muted); margin-bottom: var(--at-s2); }
-    .card__value { margin: var(--at-s2) 0; }
-    .card__list { padding-left: var(--at-s3); font-size: var(--at-fs-sm); color: var(--at-text-muted); }
-    .note-form { margin-top: var(--at-s3); display: flex; flex-direction: column; gap: var(--at-s2); }
-    .action-form { border-top: 1px solid var(--at-border); padding-top: var(--at-s3); margin-top: var(--at-s3); display: flex; flex-direction: column; gap: var(--at-s2); }
-    .action-form__title { font-size: var(--at-fs-sm); font-weight: 800; color: var(--at-text-muted); margin-bottom: var(--at-s1); }
-    .field { display: flex; flex-direction: column; gap: var(--at-s1); }
-    .field__label { font-size: var(--at-fs-sm); color: var(--at-text-muted); font-family: var(--at-font-mono); }
-    .field__error { font-size: var(--at-fs-sm); color: var(--at-danger); padding: var(--at-s1) var(--at-s2); background: var(--at-err-bg); margin-bottom: var(--at-s2); }
+
+    .field { display: flex; flex-direction: column; gap: var(--at-s2); }
+    .field__label {
+      font-family: var(--at-font-mono);
+      font-size: var(--at-fs-xs);
+      letter-spacing: var(--at-tracking-wide);
+      text-transform: uppercase;
+      color: var(--at-text-muted);
+    }
+    .field__error {
+      font-size: var(--at-fs-sm);
+      color: var(--at-danger);
+      padding: var(--at-s1) var(--at-s2);
+      background: var(--at-err-bg);
+      margin-bottom: var(--at-s2);
+    }
+
     @media (max-width: 768px) {
       .split { grid-template-columns: 1fr; }
+      .page-head { grid-template-columns: 1fr; }
+      .meta-grid { grid-template-columns: 1fr; }
     }
   `,
 })
@@ -427,6 +846,18 @@ export class RequestDetailPage {
   protected readonly suggestionLoading = signal(false);
   protected readonly suggestionError = signal<string | null>(null);
   protected readonly requestTypes = signal<RequestTypeResponse[]>([]);
+
+  /** Genera 2 letras a partir del username (primera letra del prefijo + primera letra después del punto, si hay). */
+  protected initialsOf(name: string | null | undefined): string {
+    if (!name) return '··';
+    const trimmed = name.trim();
+    if (trimmed === '') return '··';
+    const parts = trimmed.split(/[._\s-]+/).filter((p) => p.length > 0);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return trimmed.slice(0, 2).toUpperCase();
+  }
 
   protected readonly aiSummaryLoading = signal(false);
   protected readonly aiSummaryError = signal<string | null>(null);
@@ -530,6 +961,11 @@ export class RequestDetailPage {
   protected readonly showPrioritySuggestion = computed(() => {
     const d = this.detail();
     if (d === null) {
+      return false;
+    }
+
+    const role = this.session.role();
+    if (role !== 'STAFF' && role !== 'ADMIN') {
       return false;
     }
 

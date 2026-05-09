@@ -41,9 +41,15 @@ import { CONDITION_TYPE_OPTIONS, PRIORITY_OPTIONS } from '../models/business-rul
   imports: [ReactiveFormsModule, RouterLink, DisplayLabelPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="section">
-      <h2 class="section__title">{{ isEdit() ? 'Editar regla de negocio' : 'Nueva regla de negocio' }}</h2>
-      <p class="section__back"><a routerLink="/app/business-rules">← Volver al listado</a></p>
+    <section class="form-page">
+      <header class="form-page__head">
+        <a class="form-page__back" routerLink="/app/business-rules" aria-label="Volver al listado">
+          <span aria-hidden="true">←</span> Listado
+        </a>
+        <h2 class="form-page__title">
+          {{ isEdit() ? 'Editar regla de negocio' : 'Nueva regla de negocio' }}
+        </h2>
+      </header>
 
       @if (loadError()) {
         <p class="field__error" role="alert">{{ loadError() }}</p>
@@ -52,7 +58,9 @@ import { CONDITION_TYPE_OPTIONS, PRIORITY_OPTIONS } from '../models/business-rul
           <form class="edit-form" [formGroup]="form" (ngSubmit)="submit()">
             <!-- Nombre -->
             <div class="field">
-              <label class="field__label" for="br-name">Nombre <span aria-hidden="true">*</span></label>
+              <label class="field__label" for="br-name">
+                Nombre <span class="field__req" aria-hidden="true">*</span>
+              </label>
               <input
                 class="input"
                 id="br-name"
@@ -83,7 +91,9 @@ import { CONDITION_TYPE_OPTIONS, PRIORITY_OPTIONS } from '../models/business-rul
 
             <!-- Tipo de condición -->
             <div class="field">
-              <label class="field__label" for="br-ctype">Tipo de condición <span aria-hidden="true">*</span></label>
+              <label class="field__label" for="br-ctype">
+                Tipo de condición <span class="field__req" aria-hidden="true">*</span>
+              </label>
               <select class="input" id="br-ctype" formControlName="conditionType">
                 @for (opt of conditionTypeOptions; track opt) {
                   <option [value]="opt">{{ conditionTypeLabel(opt) }}</option>
@@ -95,7 +105,7 @@ import { CONDITION_TYPE_OPTIONS, PRIORITY_OPTIONS } from '../models/business-rul
             @if (showDeadlineDays()) {
               <div class="field">
                 <label class="field__label" for="br-days">
-                  Días límite <span aria-hidden="true">*</span>
+                  Días límite <span class="field__req" aria-hidden="true">*</span>
                   <small>(número entero no negativo)</small>
                 </label>
                 <input class="input" id="br-days" type="number" min="0" step="1" formControlName="deadlineDays" />
@@ -108,7 +118,9 @@ import { CONDITION_TYPE_OPTIONS, PRIORITY_OPTIONS } from '../models/business-rul
             <!-- Tipo de solicitud: REQUEST_TYPE y REQUEST_TYPE_AND_DEADLINE -->
             @if (showRequestTypeSelector()) {
               <div class="field">
-                <label class="field__label" for="br-rtype"> Tipo de solicitud <span aria-hidden="true">*</span> </label>
+                <label class="field__label" for="br-rtype">
+                  Tipo de solicitud <span class="field__req" aria-hidden="true">*</span>
+                </label>
                 @if (catalogLoading()) {
                   <p class="field__hint">Cargando tipos…</p>
                 } @else {
@@ -130,7 +142,9 @@ import { CONDITION_TYPE_OPTIONS, PRIORITY_OPTIONS } from '../models/business-rul
 
             <!-- Prioridad resultante -->
             <div class="field">
-              <label class="field__label" for="br-priority">Prioridad resultante <span aria-hidden="true">*</span></label>
+              <label class="field__label" for="br-priority">
+                Prioridad resultante <span class="field__req" aria-hidden="true">*</span>
+              </label>
               <select class="input" id="br-priority" formControlName="resultingPriority">
                 @for (p of priorityOptions; track p) {
                   <option [value]="p">{{ p | displayLabel: 'priority' }}</option>
@@ -152,29 +166,126 @@ import { CONDITION_TYPE_OPTIONS, PRIORITY_OPTIONS } from '../models/business-rul
               <p class="field__error" role="alert">{{ submitError() }}</p>
             }
 
-            <button class="btn btn--primary" type="submit" [disabled]="form.invalid || submitting() || loadingItem()">
-              @if (submitting()) {
-                Guardando…
-              } @else {
-                {{ isEdit() ? 'Guardar cambios' : 'Crear' }}
-              }
-            </button>
+            <div class="form-actions">
+              <a class="btn btn--ghost form-actions__btn" routerLink="/app/business-rules">
+                Cancelar
+              </a>
+              <button
+                class="btn btn--primary form-actions__btn"
+                type="submit"
+                [disabled]="form.invalid || submitting() || loadingItem()"
+              >
+                {{ submitting() ? 'Guardando…' : (isEdit() ? 'Guardar' : 'Crear') }}
+              </button>
+            </div>
           </form>
         </div>
       }
     </section>
   `,
   styles: `
-    .section { padding: var(--at-s6); max-width: 600px; }
-    .section__title { font-size: var(--at-fs-xl); font-weight: 800; letter-spacing: var(--at-tracking-tight); margin-bottom: var(--at-s2); }
-    .section__back { margin-bottom: var(--at-s4); font-size: var(--at-fs-sm); }
-    .card { background: var(--at-surface); border: 1px solid var(--at-border); padding: var(--at-s5); }
-    .edit-form { display: flex; flex-direction: column; gap: var(--at-s3); }
-    .field { display: flex; flex-direction: column; gap: var(--at-s1); }
-    .field__label { font-size: var(--at-fs-sm); color: var(--at-text-muted); font-family: var(--at-font-mono); }
-    .field__hint { font-size: var(--at-fs-sm); color: var(--at-text-muted); }
-    .field__error { font-size: var(--at-fs-sm); color: var(--at-danger); padding: var(--at-s1) var(--at-s2); background: var(--at-err-bg); }
-    .field--checkbox .field__checkbox-label { display: flex; align-items: center; gap: var(--at-s2); font-size: var(--at-fs-sm); color: var(--at-text-muted); cursor: pointer; }
+    .form-page {
+      padding: var(--at-s6);
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    .form-page__head {
+      display: flex;
+      flex-direction: column;
+      gap: var(--at-s2);
+      margin-bottom: var(--at-s5);
+    }
+    .form-page__back {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--at-s1);
+      padding: var(--at-s1) var(--at-s2);
+      color: var(--at-text-muted);
+      font-family: var(--at-font-mono);
+      font-size: var(--at-fs-xs);
+      letter-spacing: var(--at-tracking-wide);
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: color var(--at-dur-fast) var(--at-ease);
+    }
+    .form-page__back:hover {
+      color: var(--at-mercury);
+    }
+    .form-page__title {
+      font-size: var(--at-fs-xl);
+      font-weight: 800;
+      letter-spacing: var(--at-tracking-tight);
+      margin: 0;
+    }
+    .card {
+      background: var(--at-surface);
+      border: 1px solid var(--at-border);
+      padding: var(--at-s6);
+    }
+    .edit-form {
+      display: flex;
+      flex-direction: column;
+      gap: var(--at-s4);
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--at-s2);
+    }
+    .field__label {
+      font-size: var(--at-fs-xs);
+      color: var(--at-text-muted);
+      font-family: var(--at-font-mono);
+      letter-spacing: var(--at-tracking-wide);
+      text-transform: uppercase;
+    }
+    .field__label small {
+      text-transform: none;
+      letter-spacing: 0;
+      margin-left: var(--at-s2);
+      color: var(--at-text-dim);
+    }
+    .field__req {
+      color: var(--at-danger);
+    }
+    .field__hint {
+      font-size: var(--at-fs-sm);
+      color: var(--at-text-muted);
+      margin: 0;
+    }
+    .field__error {
+      font-size: var(--at-fs-sm);
+      color: var(--at-danger);
+      padding: var(--at-s1) var(--at-s2);
+      background: var(--at-err-bg);
+    }
+    .field--checkbox .field__checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: var(--at-s2);
+      font-size: var(--at-fs-sm);
+      color: var(--at-text-muted);
+      cursor: pointer;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--at-s2);
+      margin-top: var(--at-s2);
+      padding-top: var(--at-s4);
+      border-top: 1px solid var(--at-border);
+    }
+    .form-actions__btn {
+      min-width: 8rem;
+      justify-content: center;
+    }
+    @media (max-width: 480px) {
+      .form-actions { flex-direction: column-reverse; }
+      .form-actions__btn { width: 100%; }
+    }
   `,
 })
 export class BusinessRuleFormPage {

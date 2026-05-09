@@ -1,5 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -34,36 +41,57 @@ import type { ListUsersQueryParams } from '../models/user-admin.types';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <at-page-section title="Usuarios">
-      <div class="toolbar">
-        <form class="toolbar__form" [formGroup]="filterForm" (ngSubmit)="applyFilters()">
-          <label class="toolbar__field">
-            <span>Rol</span>
-            <select class="input input--sm" formControlName="role">
-              <option [ngValue]="null">(todos)</option>
-              @for (r of roleOptions; track r) {
-                <option [ngValue]="r">{{ r | displayLabel: 'role' }}</option>
-              }
-            </select>
-          </label>
-          <label class="toolbar__field">
-            <span>Estado</span>
-            <select class="input input--sm" formControlName="active">
-              <option [ngValue]="null">(todos)</option>
-              <option [ngValue]="true">Activo</option>
-              <option [ngValue]="false">Inactivo</option>
-            </select>
-          </label>
-          <button class="btn btn--sm" type="submit" [disabled]="loading()">Filtrar</button>
+      <div class="filter-bar" [class.is-active]="hasActiveFilter()">
+        <form class="filter-bar__form" [formGroup]="filterForm" (ngSubmit)="applyFilters()">
+          <div class="filter-bar__group">
+            <label class="filter-bar__field">
+              <span>Rol</span>
+              <select class="input filter-bar__input" formControlName="role">
+                <option [ngValue]="null">(todos)</option>
+                @for (r of roleOptions; track r) {
+                  <option [ngValue]="r">{{ r | displayLabel: 'role' }}</option>
+                }
+              </select>
+            </label>
+            <label class="filter-bar__field">
+              <span>Estado</span>
+              <select class="input filter-bar__input" formControlName="active">
+                <option [ngValue]="null">(todos)</option>
+                <option [ngValue]="true">Activo</option>
+                <option [ngValue]="false">Inactivo</option>
+              </select>
+            </label>
+          </div>
+          <div class="filter-bar__actions">
+            <button class="btn filter-bar__btn" type="submit" [disabled]="loading()">
+              Filtrar
+            </button>
+            <button
+              class="btn btn--ghost filter-bar__btn"
+              type="button"
+              (click)="clearFilter()"
+              [disabled]="loading() || !hasActiveFilter()"
+            >
+              Sin filtro
+            </button>
+          </div>
         </form>
+        @if (hasActiveFilter()) {
+          <p class="filter-bar__chip" aria-live="polite">
+            <span class="filter-bar__chip-dot" aria-hidden="true"></span>
+            Filtro activo · {{ activeFilterLabel() }}
+          </p>
+        }
       </div>
 
       <at-error-alert [message]="errorMessage()" />
 
-      @if (loading()) {
+      @if (loading() && rows().length === 0) {
         <at-loading-state />
       } @else if (rows().length === 0) {
         <at-empty-state message="No hay usuarios que coincidan con los filtros." />
       } @else {
+        <div class="stale-wrap" [class.is-stale]="loading()" [attr.aria-busy]="loading()">
         <table class="tbl">
           <thead>
             <tr>
@@ -107,24 +135,93 @@ import type { ListUsersQueryParams } from '../models/user-admin.types';
           (prev)="prevPage()"
           (next)="nextPage()"
         />
+        </div>
       }
     </at-page-section>
   `,
   styles: `
-    .toolbar { margin-bottom: var(--at-s3); }
-    .toolbar__form {
+    .filter-bar {
+      margin-bottom: var(--at-s5);
+      padding: var(--at-s4);
+      background: var(--at-surface);
+      border: 1px solid var(--at-border);
+      border-left: 2px solid var(--at-border);
+      transition: border-left-color var(--at-dur-fast) var(--at-ease);
+    }
+    .filter-bar.is-active {
+      border-left-color: var(--at-mercury);
+    }
+    .filter-bar__form {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: var(--at-s5);
+    }
+    .filter-bar__group {
       display: flex;
       flex-wrap: wrap;
       align-items: flex-end;
       gap: var(--at-s3);
     }
-    .toolbar__field {
+    .filter-bar__actions {
+      display: flex;
+      align-items: stretch;
+      gap: var(--at-s2);
+      margin-left: auto;
+    }
+    .filter-bar__field {
       display: flex;
       flex-direction: column;
       gap: var(--at-s1);
-      font-size: var(--at-fs-sm);
+      font-size: var(--at-fs-xs);
       color: var(--at-text-muted);
       font-family: var(--at-font-mono);
+      letter-spacing: var(--at-tracking-wide);
+      text-transform: uppercase;
+    }
+    .filter-bar__input {
+      min-width: 9.5rem;
+      height: 2.25rem;
+      padding-block: 0;
+    }
+    .filter-bar__btn {
+      height: 2.25rem;
+      padding-block: 0;
+      font-size: var(--at-fs-xs);
+      border: 1px solid var(--at-border-hi);
+    }
+    .filter-bar__btn[type='submit'] {
+      border-color: var(--at-mercury);
+      color: var(--at-text);
+    }
+    .filter-bar__btn[type='submit']:hover:not(:disabled) {
+      background: var(--at-surface-2);
+      color: var(--at-mercury);
+    }
+    .filter-bar__chip {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--at-s2);
+      margin: var(--at-s3) 0 0;
+      padding: var(--at-s1) var(--at-s3);
+      background: var(--at-surface-2);
+      border: 1px solid var(--at-border-hi);
+      color: var(--at-text);
+      font-family: var(--at-font-mono);
+      font-size: var(--at-fs-xs);
+      letter-spacing: var(--at-tracking-wide);
+      text-transform: uppercase;
+    }
+    .filter-bar__chip-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--at-mercury);
+      border-radius: 50%;
+      box-shadow: 0 0 6px var(--at-mercury);
+    }
+    @media (max-width: 640px) {
+      .filter-bar__actions { margin-left: 0; width: 100%; }
+      .filter-bar__btn { flex: 1 1 0; }
     }
   `,
 })
@@ -148,11 +245,36 @@ export class UsersListPage {
     active: this.fb.control<boolean | null>(null),
   });
 
+  /** Filtros aplicados en la última carga exitosa. Vacío si no hay filtro. */
+  private readonly appliedFilters = signal<{ role: RoleEnum | null; active: boolean | null }>({
+    role: null,
+    active: null,
+  });
+
+  protected readonly hasActiveFilter = computed(() => {
+    const f = this.appliedFilters();
+    return f.role !== null || f.active !== null;
+  });
+
+  protected readonly activeFilterLabel = computed(() => {
+    const f = this.appliedFilters();
+    const parts: string[] = [];
+    if (f.role !== null) parts.push(`Rol: ${f.role}`);
+    if (f.active !== null) parts.push(f.active ? 'Activo' : 'Inactivo');
+    return parts.join(' · ');
+  });
+
   constructor() {
     this.load();
   }
 
   protected applyFilters(): void {
+    this.currentPage.set(0);
+    this.load();
+  }
+
+  protected clearFilter(): void {
+    this.filterForm.reset({ role: null, active: null });
     this.currentPage.set(0);
     this.load();
   }
@@ -172,6 +294,7 @@ export class UsersListPage {
     this.loading.set(true);
 
     const f = this.filterForm.getRawValue();
+    this.appliedFilters.set({ role: f.role, active: f.active });
     const q: ListUsersQueryParams = {
       page: this.currentPage(),
       size: this.pageSize(),

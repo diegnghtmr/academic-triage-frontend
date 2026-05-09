@@ -1,7 +1,10 @@
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   HostBinding,
+  inject,
   input,
   output,
 } from '@angular/core';
@@ -20,8 +23,11 @@ import { PxIcon } from '@shared/ui/px-icon';
       background: var(--at-surface);
       border-right: 1px solid var(--at-border-hi);
       width: 240px;
-      transition: width var(--at-dur) var(--at-ease);
       overflow: hidden;
+    }
+
+    :host.ready {
+      transition: width var(--at-dur) var(--at-ease);
     }
 
     :host.collapsed {
@@ -107,6 +113,8 @@ import { PxIcon } from '@shared/ui/px-icon';
     .nav-item__label {
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+    :host.ready .nav-item__label {
       transition: opacity var(--at-dur-fast) var(--at-ease),
                   max-width var(--at-dur) var(--at-ease);
     }
@@ -164,6 +172,8 @@ import { PxIcon } from '@shared/ui/px-icon';
     .btn__label {
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+    :host.ready .btn__label {
       transition: opacity var(--at-dur-fast) var(--at-ease),
                   max-width var(--at-dur) var(--at-ease);
     }
@@ -314,4 +324,12 @@ export class Sidebar {
 
   readonly sidebarToggle = output<void>();
   readonly logoutRequest = output<void>();
+
+  private readonly hostRef = inject(ElementRef<HTMLElement>);
+
+  constructor() {
+    afterNextRender(() => {
+      this.hostRef.nativeElement.classList.add('ready');
+    });
+  }
 }

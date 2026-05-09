@@ -4,7 +4,12 @@ import {
   provideBrowserGlobalErrorListeners,
   provideZoneChangeDetection,
 } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import {
+  PreloadAllModules,
+  provideRouter,
+  withPreloading,
+  withViewTransitions,
+} from '@angular/router';
 
 import { API_BASE_URL } from '@core/http/api-base-url.token';
 import { authInterceptor } from '@core/http/auth.interceptor';
@@ -18,7 +23,11 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes),
+    provideRouter(
+      routes,
+      withPreloading(PreloadAllModules),
+      withViewTransitions({ skipInitialTransition: true }),
+    ),
     { provide: API_BASE_URL, useValue: getApiBaseUrl() },
     provideHttpClient(withInterceptors([apiBaseUrlInterceptor, authInterceptor, httpErrorInterceptor])),
   ],

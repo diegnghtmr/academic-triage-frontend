@@ -28,16 +28,24 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
   imports: [ReactiveFormsModule, RouterLink, DecimalPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="section">
-      <h2 class="section__title">Nueva solicitud</h2>
-      <p class="section__back"><a routerLink="/app/requests/list">← Volver al listado</a></p>
+    <section class="form-page">
+      <header class="form-page__head">
+        <a class="form-page__back" routerLink="/app/requests/list" aria-label="Volver al listado">
+          <span aria-hidden="true">←</span> Listado
+        </a>
+        <h2 class="form-page__title">Nueva solicitud</h2>
+      </header>
+
       @if (catalogError()) {
         <p class="field__error" role="alert">{{ catalogError() }}</p>
       }
+
       <div class="card">
         <form class="create-form" [formGroup]="form" (ngSubmit)="submit()">
           <div class="field">
-            <label class="field__label" for="crt-type">Tipo de solicitud</label>
+            <label class="field__label" for="crt-type">
+              Tipo de solicitud <span class="field__req" aria-hidden="true">*</span>
+            </label>
             <select class="input" id="crt-type" formControlName="requestTypeId">
               <option [ngValue]="null">Seleccionar…</option>
               @for (t of requestTypesWithId(); track t.id) {
@@ -46,7 +54,9 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
             </select>
           </div>
           <div class="field">
-            <label class="field__label" for="crt-ch">Canal de origen</label>
+            <label class="field__label" for="crt-ch">
+              Canal de origen <span class="field__req" aria-hidden="true">*</span>
+            </label>
             @if (isStudent()) {
               @let fixedChannel = selectedOriginChannel();
               <input
@@ -68,7 +78,9 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
             }
           </div>
           <div class="field">
-            <label class="field__label" for="crt-desc">Descripción</label>
+            <label class="field__label" for="crt-desc">
+              Descripción <span class="field__req" aria-hidden="true">*</span>
+            </label>
             <textarea class="input" id="crt-desc" rows="6" formControlName="description"></textarea>
           </div>
 
@@ -128,65 +140,172 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
           }
           <!-- fin @if (canSuggestAiRole()) -->
           <div class="field">
-            <label class="field__label" for="crt-deadline">Fecha límite (opcional)</label>
+            <label class="field__label" for="crt-deadline">
+              Fecha límite <small>(opcional)</small>
+            </label>
             <input class="input" id="crt-deadline" type="date" formControlName="deadline" />
           </div>
           @if (errorMessage()) {
             <p class="field__error" role="alert">{{ errorMessage() }}</p>
           }
-          <button class="btn btn--primary" type="submit" [disabled]="form.invalid || submitting()">
-            @if (submitting()) {
-              Enviando…
-            } @else {
-              Crear solicitud
-            }
-          </button>
+          <div class="form-actions">
+            <a class="btn btn--ghost form-actions__btn" routerLink="/app/requests/list">
+              Cancelar
+            </a>
+            <button
+              class="btn btn--primary form-actions__btn"
+              type="submit"
+              [disabled]="form.invalid || submitting()"
+            >
+              {{ submitting() ? 'Enviando…' : 'Crear solicitud' }}
+            </button>
+          </div>
         </form>
       </div>
     </section>
   `,
   styles: `
-    .section { padding: var(--at-s6); max-width: 680px; }
-    .section__title {
+    .form-page {
+      padding: var(--at-s6);
+      max-width: 680px;
+      margin: 0 auto;
+    }
+    .form-page__head {
+      display: flex;
+      flex-direction: column;
+      gap: var(--at-s2);
+      margin-bottom: var(--at-s5);
+    }
+    .form-page__back {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--at-s1);
+      padding: var(--at-s1) var(--at-s2);
+      color: var(--at-text-muted);
+      font-family: var(--at-font-mono);
+      font-size: var(--at-fs-xs);
+      letter-spacing: var(--at-tracking-wide);
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: color var(--at-dur-fast) var(--at-ease);
+    }
+    .form-page__back:hover {
+      color: var(--at-mercury);
+    }
+    .form-page__title {
       font-size: var(--at-fs-xl);
       font-weight: 800;
       letter-spacing: var(--at-tracking-tight);
-      margin-bottom: var(--at-s2);
+      margin: 0;
     }
-    .section__back { margin-bottom: var(--at-s4); font-size: var(--at-fs-sm); }
     .card {
       background: var(--at-surface);
       border: 1px solid var(--at-border);
-      padding: var(--at-s5);
+      padding: var(--at-s6);
     }
-    .create-form { display: flex; flex-direction: column; gap: var(--at-s3); }
-    .field { display: flex; flex-direction: column; gap: var(--at-s1); }
-    .field__label { font-size: var(--at-fs-sm); color: var(--at-text-muted); font-family: var(--at-font-mono); }
-    .field__hint { font-size: var(--at-fs-sm); color: var(--at-text-muted); margin-top: var(--at-s1); }
-    .field__error { font-size: var(--at-fs-sm); color: var(--at-danger); padding: var(--at-s1) var(--at-s2); background: var(--at-err-bg); }
-    .ai-section {
-      background: var(--at-surface-2);
-      border: 1px solid var(--at-border);
-      padding: var(--at-s3);
+    .create-form {
+      display: flex;
+      flex-direction: column;
+      gap: var(--at-s4);
+    }
+    .field {
       display: flex;
       flex-direction: column;
       gap: var(--at-s2);
     }
-    .ai-section__title { font-size: var(--at-fs-sm); font-weight: 800; color: var(--at-mercury); }
-    .ai-section__hint { font-size: var(--at-fs-sm); color: var(--at-text-muted); }
+    .field__label {
+      font-size: var(--at-fs-xs);
+      color: var(--at-text-muted);
+      font-family: var(--at-font-mono);
+      letter-spacing: var(--at-tracking-wide);
+      text-transform: uppercase;
+    }
+    .field__label small {
+      text-transform: none;
+      letter-spacing: 0;
+      margin-left: var(--at-s2);
+      color: var(--at-text-dim);
+    }
+    .field__req {
+      color: var(--at-danger);
+    }
+    .field__hint {
+      font-size: var(--at-fs-xs);
+      color: var(--at-text-muted);
+      margin-top: var(--at-s1);
+    }
+    .field__error {
+      font-size: var(--at-fs-sm);
+      color: var(--at-danger);
+      padding: var(--at-s1) var(--at-s2);
+      background: var(--at-err-bg);
+    }
+
+    .ai-section {
+      background: var(--at-surface-2);
+      border: 1px solid var(--at-border);
+      border-left: 2px solid var(--at-mercury);
+      padding: var(--at-s4);
+      display: flex;
+      flex-direction: column;
+      gap: var(--at-s3);
+    }
+    .ai-section__title {
+      margin: 0;
+      font-family: var(--at-font-mono);
+      font-size: var(--at-fs-xs);
+      font-weight: 800;
+      letter-spacing: var(--at-tracking-wide);
+      text-transform: uppercase;
+      color: var(--at-mercury);
+    }
+    .ai-section__hint {
+      margin: 0;
+      font-size: var(--at-fs-sm);
+      color: var(--at-text-muted);
+      line-height: 1.5;
+    }
     .ai-result {
       background: var(--at-surface);
       border: 1px solid var(--at-border);
-      padding: var(--at-s2) var(--at-s3);
+      padding: var(--at-s3) var(--at-s4);
       font-size: var(--at-fs-sm);
     }
     .ai-result__dl {
       display: grid;
-      grid-template-columns: 140px 1fr;
-      gap: var(--at-s1) var(--at-s2);
-      margin-bottom: var(--at-s2);
+      grid-template-columns: 9rem 1fr;
+      gap: var(--at-s2);
+      margin: 0 0 var(--at-s3);
     }
-    .ai-result__dl dt { color: var(--at-text-muted); font-family: var(--at-font-mono); }
+    .ai-result__dl dt {
+      color: var(--at-text-muted);
+      font-family: var(--at-font-mono);
+      font-size: var(--at-fs-xs);
+      letter-spacing: var(--at-tracking-wide);
+      text-transform: uppercase;
+    }
+    .ai-result__dl dd {
+      margin: 0;
+      color: var(--at-text);
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--at-s2);
+      margin-top: var(--at-s2);
+      padding-top: var(--at-s4);
+      border-top: 1px solid var(--at-border);
+    }
+    .form-actions__btn {
+      min-width: 8rem;
+      justify-content: center;
+    }
+    @media (max-width: 480px) {
+      .form-actions { flex-direction: column-reverse; }
+      .form-actions__btn { width: 100%; }
+    }
   `,
 })
 export class RequestCreatePage {

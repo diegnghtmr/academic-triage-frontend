@@ -31,6 +31,9 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
       color: var(--at-text);
       line-height: 1.7;
       white-space: pre-wrap;
+      max-height: 18rem;
+      overflow-y: auto;
+      padding-right: var(--at-s2);
     }
     .ai__cursor {
       display: inline-block;

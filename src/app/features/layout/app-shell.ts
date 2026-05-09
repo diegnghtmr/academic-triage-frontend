@@ -27,7 +27,7 @@ import { Topbar } from './topbar';
       display: grid;
       grid-template-columns: 240px 1fr;
       grid-template-rows: 48px 1fr;
-      min-height: 100dvh;
+      height: 100dvh;
     }
 
     .app.collapsed {
@@ -39,6 +39,8 @@ import { Topbar } from './topbar';
       grid-row: 2;
       padding: var(--at-s6) var(--at-s8);
       overflow-y: auto;
+      min-height: 0;
+      view-transition-name: app-main;
     }
   `,
   template: `

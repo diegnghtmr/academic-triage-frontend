@@ -71,7 +71,6 @@ import type { RequestsSummaryView } from './models/dashboard-view';
 
             <nav class="dash-nav" aria-label="Acciones rápidas">
               <a routerLink="/app/requests/new">Nueva solicitud</a>
-              <span aria-hidden="true"> | </span>
               <a routerLink="/app/requests/list">Ver todas mis solicitudes</a>
             </nav>
 
@@ -137,7 +136,6 @@ import type { RequestsSummaryView } from './models/dashboard-view';
 
             <nav class="dash-nav" aria-label="Acciones rápidas">
               <a routerLink="/app/requests/list">Ver solicitudes</a>
-              <span aria-hidden="true"> | </span>
               <a routerLink="/app/business-rules">Reglas de negocio</a>
             </nav>
 
@@ -197,17 +195,12 @@ import type { RequestsSummaryView } from './models/dashboard-view';
             @let s = requestsSummary();
 
             <nav class="dash-nav" aria-label="Acciones de administración">
-              <a routerLink="/app/reports">Ver reportes completos</a>
-              <span aria-hidden="true"> | </span>
+              <a routerLink="/app/reports">Reportes</a>
               <a routerLink="/app/requests/list">Solicitudes</a>
-              <span aria-hidden="true"> | </span>
               <a routerLink="/app/users">Usuarios</a>
-              <span aria-hidden="true"> | </span>
               <a routerLink="/app/catalogs/request-types">Tipos</a>
-              <span aria-hidden="true"> | </span>
               <a routerLink="/app/catalogs/origin-channels">Canales</a>
-              <span aria-hidden="true"> | </span>
-              <a routerLink="/app/business-rules">Reglas de negocio</a>
+              <a routerLink="/app/business-rules">Reglas</a>
             </nav>
 
             @if (m) {
@@ -360,10 +353,48 @@ import type { RequestsSummaryView } from './models/dashboard-view';
     .dash-nav {
       display: flex;
       flex-wrap: wrap;
-      gap: var(--at-s2);
-      margin-bottom: var(--at-s4);
-      font-size: var(--at-fs-sm);
+      gap: var(--at-s3);
+      margin-bottom: var(--at-s6);
+    }
+    .dash-nav a {
+      flex: 1 1 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--at-s3);
+      padding: var(--at-s3) var(--at-s5);
+      background: var(--at-surface);
+      border: 1px solid var(--at-border);
+      color: var(--at-text-muted);
       font-family: var(--at-font-mono);
+      font-size: var(--at-fs-sm);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: var(--at-tracking-wide);
+      text-decoration: none;
+      white-space: nowrap;
+      transition:
+        background var(--at-dur-fast) var(--at-ease),
+        border-color var(--at-dur-fast) var(--at-ease),
+        color var(--at-dur-fast) var(--at-ease);
+    }
+    .dash-nav a::before {
+      content: '>';
+      color: var(--at-text-dim);
+      font-weight: 700;
+      transition: color var(--at-dur-fast) var(--at-ease);
+    }
+    .dash-nav a:hover {
+      background: var(--at-surface-2);
+      border-color: var(--at-mercury);
+      color: var(--at-text);
+    }
+    .dash-nav a:hover::before {
+      color: var(--at-mercury);
+    }
+    .dash-nav a:focus-visible {
+      outline: 2px solid var(--at-mercury);
+      outline-offset: 2px;
     }
     .dash-empty {
       color: var(--at-text-muted);

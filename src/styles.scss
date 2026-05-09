@@ -109,6 +109,22 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+// ── View transitions — crossfade SOLO del contenido principal ─
+// El sidebar/topbar quedan estáticos durante la navegación.
+::view-transition-old(root),
+::view-transition-new(root) { animation: none; }
+
+::view-transition-old(app-main),
+::view-transition-new(app-main) {
+  animation-duration: 180ms;
+  animation-timing-function: var(--at-ease, ease-out);
+}
+::view-transition-old(app-main) { animation-name: at-fade-out; }
+::view-transition-new(app-main) { animation-name: at-fade-in; }
+
+@keyframes at-fade-out { to   { opacity: 0; } }
+@keyframes at-fade-in  { from { opacity: 0; } }
+
 // ── Headings ─────────────────────────────────────────────────
 h1, h2, h3, h4, h5 {
   margin: 0 0 var(--at-s4);
@@ -326,6 +342,17 @@ at-app-shell {
 }
 
 // ── Global utility classes ────────────────────────────────────
+
+// .stale-wrap — atenúa contenido durante recargas (stale-while-revalidate).
+// Uso: <div class="stale-wrap" [class.is-stale]="loading()" [attr.aria-busy]="loading()">…</div>
+.stale-wrap {
+  transition: opacity var(--at-dur-fast) var(--at-ease);
+}
+.stale-wrap.is-stale {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 // .btn family — adapted from Cyber-Classicism token system
 // Referenced in 56+ template locations across catalog, admin, and public pages.
 
@@ -339,7 +366,9 @@ at-app-shell {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--at-tracking-wide);
-  border: 1px solid transparent;
+  border: 1px solid var(--at-mercury);
+  background: transparent;
+  color: var(--at-text);
   border-radius: var(--at-radius);
   transition:
     background var(--at-dur-fast) var(--at-ease),
@@ -348,6 +377,11 @@ at-app-shell {
   cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background: var(--at-surface-2);
+    color: var(--at-mercury);
+  }
 }
 
 .btn--primary {

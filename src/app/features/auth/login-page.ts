@@ -65,17 +65,42 @@ import { AuthApiService } from './auth-api.service';
           <a routerLink="/auth/register">Crear cuenta</a>
         </p>
       </div>
-      <div class="login-wrap__deco" aria-hidden="true">
-        <pre class="login-wrap__ascii">
-┌─────────────────────────────┐
-│  ACADEMIC  TRIAGE  SYSTEM   │
-├─────────────────────────────┤
-│  ▸ Registro y clasificación │
-│  ▸ Gestión de solicitudes   │
-│  ▸ Resolución colaborativa  │
-└─────────────────────────────┘
-        </pre>
-      </div>
+      <aside class="login-wrap__deco" aria-hidden="true">
+        <div class="deco__brand">
+          <span class="deco__brand-mark">[ AT ]</span>
+          <span class="deco__brand-name">Academic Triage</span>
+          <span class="deco__brand-sub">Plataforma de gestión académica</span>
+        </div>
+
+        <ul class="deco__list">
+          <li class="deco__item">
+            <span class="deco__bullet">▸</span>
+            <div>
+              <p class="deco__item-title">Registro &amp; clasificación</p>
+              <p class="deco__item-text">Recepción y categorización de solicitudes.</p>
+            </div>
+          </li>
+          <li class="deco__item">
+            <span class="deco__bullet">▸</span>
+            <div>
+              <p class="deco__item-title">Gestión de solicitudes</p>
+              <p class="deco__item-text">Asignación, atención y cierre con trazabilidad.</p>
+            </div>
+          </li>
+          <li class="deco__item">
+            <span class="deco__bullet">▸</span>
+            <div>
+              <p class="deco__item-title">Resolución colaborativa</p>
+              <p class="deco__item-text">Reglas de negocio y priorización asistida.</p>
+            </div>
+          </li>
+        </ul>
+
+        <p class="deco__footer">
+          <span class="deco__dot"></span>
+          Universidad del Quindío · v1.0
+        </p>
+      </aside>
     </div>
   `,
   styles: `
@@ -145,17 +170,91 @@ import { AuthApiService } from './auth-api.service';
     .login-wrap__deco {
       background: var(--at-surface-2);
       display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: var(--at-s6);
+      flex-direction: column;
+      justify-content: space-between;
+      gap: var(--at-s6);
+      padding: var(--at-s8) var(--at-s6);
       border-left: 1px solid var(--at-border);
     }
-    .login-wrap__ascii {
+    .deco__brand {
+      display: flex;
+      flex-direction: column;
+      gap: var(--at-s2);
+    }
+    .deco__brand-mark {
       font-family: var(--at-font-mono);
       font-size: var(--at-fs-sm);
+      letter-spacing: var(--at-tracking-wide);
       color: var(--at-mercury);
-      line-height: 1.6;
-      white-space: pre;
+    }
+    .deco__brand-name {
+      font-size: var(--at-fs-2xl);
+      font-weight: 800;
+      letter-spacing: var(--at-tracking-tight);
+      color: var(--at-text);
+      line-height: 1.1;
+    }
+    .deco__brand-sub {
+      font-family: var(--at-font-mono);
+      font-size: var(--at-fs-xs);
+      letter-spacing: var(--at-tracking-wide);
+      text-transform: uppercase;
+      color: var(--at-text-muted);
+    }
+    .deco__list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: var(--at-s4);
+      border-top: 1px solid var(--at-border);
+      padding-top: var(--at-s5);
+    }
+    .deco__item {
+      display: flex;
+      gap: var(--at-s3);
+      align-items: flex-start;
+    }
+    .deco__bullet {
+      color: var(--at-mercury);
+      font-family: var(--at-font-mono);
+      font-size: var(--at-fs);
+      line-height: 1.2;
+      padding-top: 2px;
+    }
+    .deco__item-title {
+      margin: 0 0 var(--at-s1);
+      font-family: var(--at-font-mono);
+      font-size: var(--at-fs-sm);
+      font-weight: 700;
+      letter-spacing: var(--at-tracking-wide);
+      text-transform: uppercase;
+      color: var(--at-text);
+    }
+    .deco__item-text {
+      margin: 0;
+      font-size: var(--at-fs-sm);
+      color: var(--at-text-muted);
+      line-height: 1.5;
+    }
+    .deco__footer {
+      margin: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--at-s2);
+      font-family: var(--at-font-mono);
+      font-size: var(--at-fs-xs);
+      letter-spacing: var(--at-tracking-wide);
+      text-transform: uppercase;
+      color: var(--at-text-dim);
+    }
+    .deco__dot {
+      width: 6px;
+      height: 6px;
+      background: var(--at-success);
+      border-radius: 50%;
+      box-shadow: 0 0 6px var(--at-success);
     }
     @media (max-width: 640px) {
       .login-wrap {

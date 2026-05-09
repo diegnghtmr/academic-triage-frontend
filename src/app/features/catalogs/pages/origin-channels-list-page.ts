@@ -38,35 +38,37 @@ import type { OriginChannelResponse } from '../models/catalog-admin.types';
 
       <at-error-alert [message]="errorMessage()" />
 
-      @if (loading()) {
+      @if (loading() && items().length === 0) {
         <at-loading-state />
       } @else if (items().length === 0) {
         <at-empty-state message="No hay canales de origen registrados." />
       } @else {
-        <table class="tbl">
-          <thead>
-            <tr>
-              <th scope="col">ID</th>
-              <th scope="col">Nombre</th>
-              <th scope="col">Activo</th>
-              <th scope="col"></th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (item of items(); track item.id) {
+        <div class="stale-wrap" [class.is-stale]="loading()" [attr.aria-busy]="loading()">
+          <table class="tbl">
+            <thead>
               <tr>
-                <td>{{ item.id }}</td>
-                <td>{{ item.name }}</td>
-                <td>{{ item.active | activeBadge }}</td>
-                <td>
-                  @if (item.id !== undefined) {
-                    <a class="btn btn--sm btn--ghost" [routerLink]="[item.id, 'edit']">Editar</a>
-                  }
-                </td>
+                <th scope="col">ID</th>
+                <th scope="col">Nombre</th>
+                <th scope="col">Activo</th>
+                <th scope="col"></th>
               </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @for (item of items(); track item.id) {
+                <tr>
+                  <td>{{ item.id }}</td>
+                  <td>{{ item.name }}</td>
+                  <td>{{ item.active | activeBadge }}</td>
+                  <td>
+                    @if (item.id !== undefined) {
+                      <a class="btn btn--sm btn--ghost" [routerLink]="[item.id, 'edit']">Editar</a>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       }
     </at-page-section>
   `,

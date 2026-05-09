@@ -45,11 +45,12 @@ import type { BusinessRuleListItemView } from '../models/business-rule-list-view
       <at-error-alert [message]="errorMessage()" />
       <at-error-alert [message]="deleteError()" />
 
-      @if (loading()) {
+      @if (loading() && items().length === 0) {
         <at-loading-state />
       } @else if (items().length === 0) {
         <at-empty-state message="No hay reglas de negocio registradas." />
       } @else {
+        <div class="stale-wrap" [class.is-stale]="loading()" [attr.aria-busy]="loading()">
         <table class="tbl">
           <thead>
             <tr>
@@ -76,25 +77,23 @@ import type { BusinessRuleListItemView } from '../models/business-rule-list-view
                 @if (isAdmin()) {
                   <td>
                     @if (item.id !== undefined) {
-                      <a
-                        class="btn btn--sm btn--ghost"
-                        [routerLink]="[item.id, 'edit']"
-                        [attr.aria-label]="'Editar regla ' + (item.name || item.id)"
-                        >Editar</a
-                      >
-                      <button
-                        class="btn btn--sm btn--danger"
-                        type="button"
-                        [disabled]="deletingId() === item.id"
-                        [attr.aria-label]="'Eliminar regla ' + (item.name || item.id)"
-                        (click)="confirmDelete(item)"
-                      >
-                        @if (deletingId() === item.id) {
-                          Eliminando…
-                        } @else {
-                          Eliminar
-                        }
-                      </button>
+                      <div class="row-actions">
+                        <a
+                          class="btn btn--sm btn--ghost row-actions__btn"
+                          [routerLink]="[item.id, 'edit']"
+                          [attr.aria-label]="'Editar regla ' + (item.name || item.id)"
+                          >Editar</a
+                        >
+                        <button
+                          class="btn btn--sm btn--danger row-actions__btn"
+                          type="button"
+                          [disabled]="deletingId() === item.id"
+                          [attr.aria-label]="'Eliminar regla ' + (item.name || item.id)"
+                          (click)="confirmDelete(item)"
+                        >
+                          {{ deletingId() === item.id ? 'Eliminando…' : 'Eliminar' }}
+                        </button>
+                      </div>
                     }
                   </td>
                 }
@@ -102,6 +101,7 @@ import type { BusinessRuleListItemView } from '../models/business-rule-list-view
             }
           </tbody>
         </table>
+        </div>
       }
 
       <at-modal-dialog
@@ -117,6 +117,18 @@ import type { BusinessRuleListItemView } from '../models/business-rule-list-view
         }
       </at-modal-dialog>
     </at-page-section>
+  `,
+  styles: `
+    .row-actions {
+      display: flex;
+      gap: var(--at-s2);
+      flex-wrap: wrap;
+    }
+    .row-actions__btn {
+      flex: 1 1 6rem;
+      min-width: 6rem;
+      justify-content: center;
+    }
   `,
 })
 export class BusinessRulesListPage {

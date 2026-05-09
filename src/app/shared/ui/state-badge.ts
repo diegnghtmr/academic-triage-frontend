@@ -23,10 +23,12 @@ const STATUS_CLASS_MAP: Record<RequestStatusEnum, string> = {
   styles: `
     .badge {
       display: inline-block;
+      min-width: 7.5rem;
       font-family: var(--at-font-mono);
       font-size: var(--at-fs-xs);
       letter-spacing: var(--at-tracking-wide);
       text-transform: uppercase;
+      text-align: center;
       padding: 1px var(--at-s2);
       border: 1px solid currentColor;
     }

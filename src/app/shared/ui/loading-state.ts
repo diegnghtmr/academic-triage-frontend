@@ -1,5 +1,21 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
 
+/**
+ * Indicador de carga con dos modos:
+ * - `skeleton` (default): filas pulsantes que aproximan la forma de una tabla.
+ * - `text`: línea de texto (`message`).
+ *
+ * Implementa "delayed show": si la operación termina antes de `delayMs`
+ * el componente no llega a pintarse y el usuario no ve un flash.
+ */
 @Component({
   selector: 'at-loading-state',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -9,13 +25,29 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
     .skel {
       display: flex;
       flex-direction: column;
-      gap: var(--at-s3);
+      gap: var(--at-s2);
     }
 
     .skel__row {
-      background: var(--at-surface-2);
-      height: 1rem;
-      animation: skelpulse 1.4s ease-in-out infinite;
+      background: linear-gradient(
+        90deg,
+        var(--at-surface) 0%,
+        var(--at-surface-2) 50%,
+        var(--at-surface) 100%
+      );
+      background-size: 200% 100%;
+      height: 1.25rem;
+      animation: skel-shimmer 1.4s ease-in-out infinite;
+    }
+
+    .skel__row:nth-child(1) { width: 100%; }
+    .skel__row:nth-child(2) { width: 92%; }
+    .skel__row:nth-child(3) { width: 96%; }
+    .skel__row:nth-child(4) { width: 88%; }
+
+    @keyframes skel-shimmer {
+      0%   { background-position: 100% 0; }
+      100% { background-position: -100% 0; }
     }
 
     p {
@@ -31,8 +63,32 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
       color: var(--at-mercury);
     }
   `,
-  template: `<p>{{ message() }}</p>`,
+  template: `
+    @if (visible()) {
+      @if (variant() === 'text') {
+        <p>{{ message() }}</p>
+      } @else {
+        <div class="skel" role="status" [attr.aria-label]="message()">
+          <span class="skel__row"></span>
+          <span class="skel__row"></span>
+          <span class="skel__row"></span>
+          <span class="skel__row"></span>
+        </div>
+      }
+    }
+  `,
 })
 export class LoadingState {
+  readonly variant = input<'skeleton' | 'text'>('skeleton');
   readonly message = input('Cargando…');
+  readonly delayMs = input(200);
+
+  private readonly mounted = signal(false);
+  protected readonly visible = computed(() => this.mounted());
+
+  constructor() {
+    const destroyRef = inject(DestroyRef);
+    const handle = setTimeout(() => this.mounted.set(true), this.delayMs());
+    destroyRef.onDestroy(() => clearTimeout(handle));
+  }
 }

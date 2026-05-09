@@ -54,53 +54,55 @@ import type {
 
       <at-error-alert [message]="errorMessage()" />
 
-      @if (loading()) {
+      @if (loading() && rows().length === 0) {
         <at-loading-state />
       } @else {
-        <table class="tbl">
-          <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Estado</th>
-              <th scope="col">Tipo</th>
-              <th scope="col">Registro</th>
-              <th scope="col">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (r of rows(); track r.id) {
+        <div class="stale-wrap" [class.is-stale]="loading()" [attr.aria-busy]="loading()">
+          <table class="tbl">
+            <thead>
               <tr>
-                <td>{{ r.id }}</td>
-                <td>
-                  @if (r.status) {
-                    <at-state-badge [state]="r.status" />
-                  } @else {
-                    <span>—</span>
-                  }
-                </td>
-                <td>{{ r.requestType?.name ?? '—' }}</td>
-                <td>{{ r.registrationDateTime | dateTimeLabel }}</td>
-                <td>
-                  @if (r.id !== undefined) {
-                    <a
-                      [routerLink]="['/app/requests', r.id]"
-                      [attr.aria-label]="'Ver solicitud número ' + r.id"
-                      >Ver</a
-                    >
-                  }
-                </td>
+                <th scope="col">#</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Tipo</th>
+                <th scope="col">Registro</th>
+                <th scope="col">Acciones</th>
               </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @for (r of rows(); track r.id) {
+                <tr>
+                  <td>{{ r.id }}</td>
+                  <td>
+                    @if (r.status) {
+                      <at-state-badge [state]="r.status" />
+                    } @else {
+                      <span>—</span>
+                    }
+                  </td>
+                  <td>{{ r.requestType?.name ?? '—' }}</td>
+                  <td>{{ r.registrationDateTime | dateTimeLabel }}</td>
+                  <td>
+                    @if (r.id !== undefined) {
+                      <a
+                        [routerLink]="['/app/requests', r.id]"
+                        [attr.aria-label]="'Ver solicitud número ' + r.id"
+                        >Ver</a
+                      >
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
 
-        <at-pagination-nav
-          [currentPage]="currentPage()"
-          [totalPages]="totalPages()"
-          [loading]="loading()"
-          (prev)="prevPage()"
-          (next)="nextPage()"
-        />
+          <at-pagination-nav
+            [currentPage]="currentPage()"
+            [totalPages]="totalPages()"
+            [loading]="loading()"
+            (prev)="prevPage()"
+            (next)="nextPage()"
+          />
+        </div>
       }
     </at-page-section>
   `,
