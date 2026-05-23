@@ -15,6 +15,7 @@ import { API_BASE_URL } from '@core/http/api-base-url.token';
 import { authInterceptor } from '@core/http/auth.interceptor';
 import { apiBaseUrlInterceptor } from '@core/http/api-base-url.interceptor';
 import { httpErrorInterceptor } from '@core/http/http-error.interceptor';
+import { idempotencyKeyInterceptor } from '@core/http/idempotency-key.interceptor';
 import { getApiBaseUrl } from '@core/config/env';
 
 import { routes } from './routes';
@@ -30,7 +31,12 @@ export const appConfig: ApplicationConfig = {
     ),
     { provide: API_BASE_URL, useValue: getApiBaseUrl() },
     provideHttpClient(
-      withInterceptors([apiBaseUrlInterceptor, authInterceptor, httpErrorInterceptor]),
+      withInterceptors([
+        apiBaseUrlInterceptor,
+        authInterceptor,
+        idempotencyKeyInterceptor,
+        httpErrorInterceptor,
+      ]),
     ),
   ],
 };
