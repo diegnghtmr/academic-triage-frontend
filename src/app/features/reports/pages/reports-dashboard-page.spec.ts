@@ -21,7 +21,10 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
 import { ReportsApiService } from '@shared/data-access/reports-api.service';
-import type { DashboardMetrics, TopResponsibleEntry } from '@shared/data-access/dashboard-metrics.types';
+import type {
+  DashboardMetrics,
+  TopResponsibleEntry,
+} from '@shared/data-access/dashboard-metrics.types';
 import { ReportsDashboardPage } from './reports-dashboard-page';
 
 // ── internal surface exposed only for testing ────────────────────────────────
@@ -31,15 +34,24 @@ interface PageInternals {
   statusColor(key: string): string;
   priorityColor(key: string): string;
   initialsOf(name: string | null | undefined): string;
-  fullNameOf(entry: { user?: { firstName?: string; lastName?: string; username?: string } }): string;
+  fullNameOf(entry: {
+    user?: { firstName?: string; lastName?: string; username?: string };
+  }): string;
   statusMax(): number;
   priorityMax(): number;
   typeMax(): number;
-  topPodium(): { gold: TopResponsibleEntry | null; silver: TopResponsibleEntry | null; bronze: TopResponsibleEntry | null };
+  topPodium(): {
+    gold: TopResponsibleEntry | null;
+    silver: TopResponsibleEntry | null;
+    bronze: TopResponsibleEntry | null;
+  };
   hasActiveFilter(): boolean;
   activeFilterLabel(): string;
   appliedRange: { set(v: { from: string; to: string }): void };
-  filterForm: { controls: { dateFrom: { setValue(v: string): void }; dateTo: { setValue(v: string): void } }; reset(): void };
+  filterForm: {
+    controls: { dateFrom: { setValue(v: string): void }; dateTo: { setValue(v: string): void } };
+    reset(): void;
+  };
   load(): void;
 }
 
@@ -211,12 +223,12 @@ describe('ReportsDashboardPage', () => {
       expect(c.initialsOf('')).toBe('··');
     });
 
-    it('null → \'··\'', () => {
+    it("null → '··'", () => {
       const c = setup() as unknown as PageInternals;
       expect(c.initialsOf(null)).toBe('··');
     });
 
-    it('undefined → \'··\'', () => {
+    it("undefined → '··'", () => {
       const c = setup() as unknown as PageInternals;
       expect(c.initialsOf(undefined)).toBe('··');
     });
@@ -230,7 +242,9 @@ describe('ReportsDashboardPage', () => {
   describe('fullNameOf(entry)', () => {
     it("{ user: { firstName: 'Mariana', lastName: 'Rojas' } } → 'Mariana Rojas'", () => {
       const c = setup() as unknown as PageInternals;
-      expect(c.fullNameOf({ user: { firstName: 'Mariana', lastName: 'Rojas' } })).toBe('Mariana Rojas');
+      expect(c.fullNameOf({ user: { firstName: 'Mariana', lastName: 'Rojas' } })).toBe(
+        'Mariana Rojas',
+      );
     });
 
     it("{ user: { firstName: 'Ana' } } → 'Ana'", () => {
@@ -258,7 +272,9 @@ describe('ReportsDashboardPage', () => {
     });
 
     it('returns the maximum value from byStatus', () => {
-      const c = setup(buildRawMetrics({ requestsByStatus: { A: 10, B: 50, C: 5 } })) as unknown as PageInternals;
+      const c = setup(
+        buildRawMetrics({ requestsByStatus: { A: 10, B: 50, C: 5 } }),
+      ) as unknown as PageInternals;
       expect(c.statusMax()).toBe(50);
     });
   });
@@ -270,7 +286,9 @@ describe('ReportsDashboardPage', () => {
     });
 
     it('returns the maximum value from byPriority', () => {
-      const c = setup(buildRawMetrics({ requestsByPriority: { HIGH: 3, MEDIUM: 7, LOW: 1 } })) as unknown as PageInternals;
+      const c = setup(
+        buildRawMetrics({ requestsByPriority: { HIGH: 3, MEDIUM: 7, LOW: 1 } }),
+      ) as unknown as PageInternals;
       expect(c.priorityMax()).toBe(7);
     });
   });
@@ -282,7 +300,9 @@ describe('ReportsDashboardPage', () => {
     });
 
     it('returns the maximum value from byType', () => {
-      const c = setup(buildRawMetrics({ requestsByType: { QUERY: 100, COMPLAINT: 30 } })) as unknown as PageInternals;
+      const c = setup(
+        buildRawMetrics({ requestsByType: { QUERY: 100, COMPLAINT: 30 } }),
+      ) as unknown as PageInternals;
       expect(c.typeMax()).toBe(100);
     });
   });

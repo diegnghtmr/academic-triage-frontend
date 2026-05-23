@@ -37,9 +37,7 @@ export const httpErrorInterceptor: HttpInterceptorFn = (req, next) => {
           session.clearSession();
           const here = router.url;
           const safe = parseSafeReturnUrl(here);
-          void router.navigateByUrl(
-            `/auth/login?returnUrl=${encodeURIComponent(safe)}`,
-          );
+          void router.navigateByUrl(`/auth/login?returnUrl=${encodeURIComponent(safe)}`);
         }
       }
       return throwError(() => err);

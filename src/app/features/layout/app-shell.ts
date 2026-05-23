@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 
 import { AuthSessionStore } from '@core/auth/auth-session.store';
@@ -54,10 +48,7 @@ import { Topbar } from './topbar';
         (sidebarToggle)="collapsed.set(!collapsed())"
         (logoutRequest)="logout()"
       />
-      <at-topbar
-        [sessionLabel]="sessionLabel()"
-        (logoutRequest)="logout()"
-      />
+      <at-topbar [sessionLabel]="sessionLabel()" (logoutRequest)="logout()" />
       <main class="app__main">
         <router-outlet />
       </main>

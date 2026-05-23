@@ -1,5 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize, forkJoin } from 'rxjs';
@@ -64,8 +71,8 @@ import type { RequestsSummaryView } from './models/dashboard-view';
             </div>
 
             <p class="dash-greeting">
-              Hola, <strong>{{ userName() }}</strong>.
-              Tienes <strong>{{ s?.total ?? 0 }}</strong>
+              Hola, <strong>{{ userName() }}</strong
+              >. Tienes <strong>{{ s?.total ?? 0 }}</strong>
               {{ (s?.total ?? 0) === 1 ? 'solicitud registrada' : 'solicitudes registradas' }}.
             </p>
 
@@ -129,8 +136,8 @@ import type { RequestsSummaryView } from './models/dashboard-view';
             </div>
 
             <p class="dash-greeting">
-              Hola, <strong>{{ userName() }}</strong>.
-              Hay <strong>{{ s?.total ?? 0 }}</strong>
+              Hola, <strong>{{ userName() }}</strong
+              >. Hay <strong>{{ s?.total ?? 0 }}</strong>
               {{ (s?.total ?? 0) === 1 ? 'solicitud en el sistema' : 'solicitudes en el sistema' }}.
             </p>
 
@@ -263,7 +270,9 @@ import type { RequestsSummaryView } from './models/dashboard-view';
                 </section>
               }
             } @else if (!loading() && !error()) {
-              <p class="dash-empty">Todavía no hay información disponible para mostrar en este resumen.</p>
+              <p class="dash-empty">
+                Todavía no hay información disponible para mostrar en este resumen.
+              </p>
             }
 
             @if (s && s.recent.length > 0) {
@@ -327,7 +336,9 @@ import type { RequestsSummaryView } from './models/dashboard-view';
     </section>
   `,
   styles: `
-    .section { padding: var(--at-s6); }
+    .section {
+      padding: var(--at-s6);
+    }
     .section__title {
       font-size: var(--at-fs-xl);
       font-weight: 800;

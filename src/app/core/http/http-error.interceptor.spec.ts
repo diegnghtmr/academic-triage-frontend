@@ -5,16 +5,10 @@ import {
   HttpClient,
   HttpErrorResponse,
 } from '@angular/common/http';
-import {
-  HttpTestingController,
-  provideHttpClientTesting,
-} from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import {
-  BrowserTestingModule,
-  platformBrowserTesting,
-} from '@angular/platform-browser/testing';
+import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
 import { Router } from '@angular/router';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
@@ -65,10 +59,7 @@ describe('httpErrorInterceptor', () => {
       });
     }
     try {
-      TestBed.initTestEnvironment(
-        BrowserTestingModule,
-        platformBrowserTesting(),
-      );
+      TestBed.initTestEnvironment(BrowserTestingModule, platformBrowserTesting());
     } catch {
       // Already initialized.
     }
@@ -94,7 +85,9 @@ describe('httpErrorInterceptor', () => {
       },
     });
 
-    controller.expectOne('/api/v1/requests').flush(null, { status: 401, statusText: 'Unauthorized' });
+    controller
+      .expectOne('/api/v1/requests')
+      .flush(null, { status: 401, statusText: 'Unauthorized' });
 
     expect(clearSession).toHaveBeenCalledOnce();
     expect(navigateByUrl).toHaveBeenCalledOnce();

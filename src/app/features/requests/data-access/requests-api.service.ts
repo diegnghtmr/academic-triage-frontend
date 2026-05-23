@@ -56,96 +56,42 @@ export class RequestsApiService {
   }
 
   getRequestHistory(requestId: number): Observable<HistoryEntryResponse[]> {
-    return this.http.get<HistoryEntryResponse[]>(
-      `requests/${requestId}/history`,
-    );
+    return this.http.get<HistoryEntryResponse[]>(`requests/${requestId}/history`);
   }
 
-  addHistoryNote(
-    requestId: number,
-    body: AddHistoryNoteBody,
-  ): Observable<HistoryEntryResponse> {
-    return this.http.post<HistoryEntryResponse>(
-      `requests/${requestId}/history`,
-      body,
-    );
+  addHistoryNote(requestId: number, body: AddHistoryNoteBody): Observable<HistoryEntryResponse> {
+    return this.http.post<HistoryEntryResponse>(`requests/${requestId}/history`, body);
   }
 
-  getPrioritySuggestion(
-    requestId: number,
-  ): Observable<PrioritySuggestionResponse> {
-    return this.http.get<PrioritySuggestionResponse>(
-      `requests/${requestId}/priority-suggestion`,
-    );
+  getPrioritySuggestion(requestId: number): Observable<PrioritySuggestionResponse> {
+    return this.http.get<PrioritySuggestionResponse>(`requests/${requestId}/priority-suggestion`);
   }
 
-  classifyRequest(
-    requestId: number,
-    body: ClassifyRequestBody,
-  ): Observable<RequestResponse> {
-    return this.http.patch<RequestResponse>(
-      `requests/${requestId}/classify`,
-      body,
-    );
+  classifyRequest(requestId: number, body: ClassifyRequestBody): Observable<RequestResponse> {
+    return this.http.patch<RequestResponse>(`requests/${requestId}/classify`, body);
   }
 
-  prioritizeRequest(
-    requestId: number,
-    body: PrioritizeRequestBody,
-  ): Observable<RequestResponse> {
-    return this.http.patch<RequestResponse>(
-      `requests/${requestId}/prioritize`,
-      body,
-    );
+  prioritizeRequest(requestId: number, body: PrioritizeRequestBody): Observable<RequestResponse> {
+    return this.http.patch<RequestResponse>(`requests/${requestId}/prioritize`, body);
   }
 
-  assignRequest(
-    requestId: number,
-    body: AssignRequestBody,
-  ): Observable<RequestResponse> {
-    return this.http.patch<RequestResponse>(
-      `requests/${requestId}/assign`,
-      body,
-    );
+  assignRequest(requestId: number, body: AssignRequestBody): Observable<RequestResponse> {
+    return this.http.patch<RequestResponse>(`requests/${requestId}/assign`, body);
   }
 
-  attendRequest(
-    requestId: number,
-    body: AttendRequestBody,
-  ): Observable<RequestResponse> {
-    return this.http.patch<RequestResponse>(
-      `requests/${requestId}/attend`,
-      body,
-    );
+  attendRequest(requestId: number, body: AttendRequestBody): Observable<RequestResponse> {
+    return this.http.patch<RequestResponse>(`requests/${requestId}/attend`, body);
   }
 
-  closeRequest(
-    requestId: number,
-    body: CloseRequestBody,
-  ): Observable<RequestResponse> {
-    return this.http.patch<RequestResponse>(
-      `requests/${requestId}/close`,
-      body,
-    );
+  closeRequest(requestId: number, body: CloseRequestBody): Observable<RequestResponse> {
+    return this.http.patch<RequestResponse>(`requests/${requestId}/close`, body);
   }
 
-  cancelRequest(
-    requestId: number,
-    body: CancelRequestBody,
-  ): Observable<RequestResponse> {
-    return this.http.patch<RequestResponse>(
-      `requests/${requestId}/cancel`,
-      body,
-    );
+  cancelRequest(requestId: number, body: CancelRequestBody): Observable<RequestResponse> {
+    return this.http.patch<RequestResponse>(`requests/${requestId}/cancel`, body);
   }
 
-  rejectRequest(
-    requestId: number,
-    body: RejectRequestBody,
-  ): Observable<RequestResponse> {
-    return this.http.patch<RequestResponse>(
-      `requests/${requestId}/reject`,
-      body,
-    );
+  rejectRequest(requestId: number, body: RejectRequestBody): Observable<RequestResponse> {
+    return this.http.patch<RequestResponse>(`requests/${requestId}/reject`, body);
   }
 }

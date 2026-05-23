@@ -52,10 +52,7 @@ describe('LoginPage — form contract', () => {
 
   function buildLoginForm() {
     return fb.nonNullable.group({
-      identifier: [
-        '',
-        [Validators.required, Validators.minLength(3), Validators.maxLength(255)],
-      ],
+      identifier: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(255)]],
       password: ['', [Validators.required, Validators.minLength(8)]],
     });
   }
@@ -167,10 +164,7 @@ describe('LoginPage — form contract', () => {
 // cover the same behavioral guarantees without a browser runtime.
 // ─────────────────────────────────────────────────────────────────────────────
 describe('LoginPage — UI copy and error behavior wiring', () => {
-  const source = readFileSync(
-    join(import.meta.dirname, 'login-page.ts'),
-    'utf-8',
-  );
+  const source = readFileSync(join(import.meta.dirname, 'login-page.ts'), 'utf-8');
 
   // ── rendered visible copy ──────────────────────────────────────────────────
 
@@ -220,7 +214,8 @@ describe('LoginPage — UI copy and error behavior wiring', () => {
       error: {
         status: 400,
         title: 'Bad Request',
-        detail: "Los campos 'identifier' y 'username' tienen valores distintos; proporcione solo uno",
+        detail:
+          "Los campos 'identifier' y 'username' tienen valores distintos; proporcione solo uno",
       },
       status: 400,
     });
@@ -260,9 +255,7 @@ describe('LoginPage — UI copy and error behavior wiring', () => {
     });
     const problem = mapper.fromHttpError(err);
     const msg = problem?.detail ?? problem?.title ?? 'No se pudo iniciar sesión.';
-    expect(msg).toBe(
-      'El identificador proporcionado es ambiguo y no permite autenticación segura',
-    );
+    expect(msg).toBe('El identificador proporcionado es ambiguo y no permite autenticación segura');
   });
 
   it('409 response without detail must fall back to title', () => {

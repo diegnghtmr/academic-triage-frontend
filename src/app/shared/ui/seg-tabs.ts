@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  input,
-  output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
 export interface SegTab {
   id: string;
@@ -34,8 +29,9 @@ export interface SegTab {
       padding: var(--at-s2) var(--at-s4);
       cursor: pointer;
       white-space: nowrap;
-      transition: color var(--at-dur-fast) var(--at-ease),
-                  border-color var(--at-dur-fast) var(--at-ease);
+      transition:
+        color var(--at-dur-fast) var(--at-ease),
+        border-color var(--at-dur-fast) var(--at-ease);
       display: inline-flex;
       align-items: center;
       gap: var(--at-s2);
@@ -82,8 +78,8 @@ export interface SegTab {
   `,
 })
 export class SegTabs {
-  readonly tabs       = input.required<ReadonlyArray<SegTab>>();
-  readonly activeId   = input.required<string>();
+  readonly tabs = input.required<ReadonlyArray<SegTab>>();
+  readonly activeId = input.required<string>();
   readonly groupLabel = input<string>('Filtros');
 
   readonly activeIdChange = output<string>();

@@ -8,11 +8,7 @@ import type { PriorityEnum, RequestStatusEnum } from '../models/request-api.type
  */
 
 export function isTerminalStatus(status: RequestStatusEnum | undefined): boolean {
-  return (
-    status === 'CLOSED' ||
-    status === 'CANCELLED' ||
-    status === 'REJECTED'
-  );
+  return status === 'CLOSED' || status === 'CANCELLED' || status === 'REJECTED';
 }
 
 /** PATCH .../classify — STAFF, precondition REGISTERED */
@@ -33,9 +29,7 @@ export function canShowPrioritize(
   priority: PriorityEnum | null | undefined,
 ): boolean {
   return (
-    role === 'STAFF' &&
-    status === 'CLASSIFIED' &&
-    (priority === undefined || priority === null)
+    role === 'STAFF' && status === 'CLASSIFIED' && (priority === undefined || priority === null)
   );
 }
 
@@ -48,12 +42,7 @@ export function canShowAssign(
   status: RequestStatusEnum | undefined,
   priority: PriorityEnum | null | undefined,
 ): boolean {
-  return (
-    role === 'STAFF' &&
-    status === 'CLASSIFIED' &&
-    priority !== undefined &&
-    priority !== null
-  );
+  return role === 'STAFF' && status === 'CLASSIFIED' && priority !== undefined && priority !== null;
 }
 
 /** PATCH .../attend — STAFF, precondition IN_PROGRESS */

@@ -92,49 +92,49 @@ import type { ListUsersQueryParams } from '../models/user-admin.types';
         <at-empty-state message="No hay usuarios que coincidan con los filtros." />
       } @else {
         <div class="stale-wrap" [class.is-stale]="loading()" [attr.aria-busy]="loading()">
-        <table class="tbl">
-          <thead>
-            <tr>
-              <th scope="col">ID</th>
-              <th scope="col">Usuario</th>
-              <th scope="col">Nombre</th>
-              <th scope="col">Email</th>
-              <th scope="col">Rol</th>
-              <th scope="col">Activo</th>
-              <th scope="col">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (u of rows(); track u.id) {
+          <table class="tbl">
+            <thead>
               <tr>
-                <td>{{ u.id }}</td>
-                <td>{{ u.username }}</td>
-                <td>{{ u.firstName }} {{ u.lastName }}</td>
-                <td>{{ u.email }}</td>
-                <td>{{ u.role | displayLabel: 'role' }}</td>
-                <td>{{ u.active | activeBadge }}</td>
-                <td>
-                  @if (u.id !== undefined) {
-                    <a
-                      class="btn btn--sm btn--ghost"
-                      [routerLink]="[u.id, 'edit']"
-                      [attr.aria-label]="'Editar usuario ' + u.username"
-                      >Editar</a
-                    >
-                  }
-                </td>
+                <th scope="col">ID</th>
+                <th scope="col">Usuario</th>
+                <th scope="col">Nombre</th>
+                <th scope="col">Email</th>
+                <th scope="col">Rol</th>
+                <th scope="col">Activo</th>
+                <th scope="col">Acciones</th>
               </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @for (u of rows(); track u.id) {
+                <tr>
+                  <td>{{ u.id }}</td>
+                  <td>{{ u.username }}</td>
+                  <td>{{ u.firstName }} {{ u.lastName }}</td>
+                  <td>{{ u.email }}</td>
+                  <td>{{ u.role | displayLabel: 'role' }}</td>
+                  <td>{{ u.active | activeBadge }}</td>
+                  <td>
+                    @if (u.id !== undefined) {
+                      <a
+                        class="btn btn--sm btn--ghost"
+                        [routerLink]="[u.id, 'edit']"
+                        [attr.aria-label]="'Editar usuario ' + u.username"
+                        >Editar</a
+                      >
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
 
-        <at-pagination-nav
-          [currentPage]="currentPage()"
-          [totalPages]="totalPages()"
-          [loading]="loading()"
-          (prev)="prevPage()"
-          (next)="nextPage()"
-        />
+          <at-pagination-nav
+            [currentPage]="currentPage()"
+            [totalPages]="totalPages()"
+            [loading]="loading()"
+            (prev)="prevPage()"
+            (next)="nextPage()"
+          />
         </div>
       }
     </at-page-section>
@@ -220,8 +220,13 @@ import type { ListUsersQueryParams } from '../models/user-admin.types';
       box-shadow: 0 0 6px var(--at-mercury);
     }
     @media (max-width: 640px) {
-      .filter-bar__actions { margin-left: 0; width: 100%; }
-      .filter-bar__btn { flex: 1 1 0; }
+      .filter-bar__actions {
+        margin-left: 0;
+        width: 100%;
+      }
+      .filter-bar__btn {
+        flex: 1 1 0;
+      }
     }
   `,
 })
@@ -270,17 +275,15 @@ export class UsersListPage {
     // Syncs UI ↔ URL: the URL is the source of truth for page/role/active.
     // Any change (filter, paginate, clearFilter, browser back/forward)
     // goes through router.navigate and the queryParams subscription triggers load().
-    this.route.queryParamMap
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((params) => {
-        const role = this.parseRole(params.get('role'));
-        const active = this.parseActive(params.get('active'));
-        const page = this.parsePage(params.get('page'));
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      const role = this.parseRole(params.get('role'));
+      const active = this.parseActive(params.get('active'));
+      const page = this.parsePage(params.get('page'));
 
-        this.filterForm.setValue({ role, active }, { emitEvent: false });
-        this.currentPage.set(page);
-        this.load();
-      });
+      this.filterForm.setValue({ role, active }, { emitEvent: false });
+      this.currentPage.set(page);
+      this.load();
+    });
   }
 
   protected applyFilters(): void {

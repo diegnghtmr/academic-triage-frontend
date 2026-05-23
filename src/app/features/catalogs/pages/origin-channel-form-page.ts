@@ -1,5 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -17,7 +24,11 @@ import type { CreateOriginChannelBody } from '../models/catalog-admin.types';
   template: `
     <section class="form-page">
       <header class="form-page__head">
-        <a class="form-page__back" routerLink="/app/catalogs/origin-channels" aria-label="Volver al listado">
+        <a
+          class="form-page__back"
+          routerLink="/app/catalogs/origin-channels"
+          aria-label="Volver al listado"
+        >
           <span aria-hidden="true">←</span> Listado
         </a>
         <h2 class="form-page__title">
@@ -65,7 +76,7 @@ import type { CreateOriginChannelBody } from '../models/catalog-admin.types';
                 type="submit"
                 [disabled]="form.invalid || submitting() || loadingItem()"
               >
-                {{ submitting() ? 'Guardando…' : (isEdit() ? 'Guardar' : 'Crear') }}
+                {{ submitting() ? 'Guardando…' : isEdit() ? 'Guardar' : 'Crear' }}
               </button>
             </div>
           </form>
@@ -152,8 +163,12 @@ import type { CreateOriginChannelBody } from '../models/catalog-admin.types';
       justify-content: center;
     }
     @media (max-width: 480px) {
-      .form-actions { flex-direction: column-reverse; }
-      .form-actions__btn { width: 100%; }
+      .form-actions {
+        flex-direction: column-reverse;
+      }
+      .form-actions__btn {
+        width: 100%;
+      }
     }
   `,
 })

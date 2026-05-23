@@ -30,10 +30,7 @@ export class AuthSessionStore {
       const t = this._token();
       const u = this._user();
       if (t !== null && t !== '' && u !== null) {
-        localStorage.setItem(
-          AUTH_SESSION_STORAGE_KEY,
-          JSON.stringify({ token: t, user: u }),
-        );
+        localStorage.setItem(AUTH_SESSION_STORAGE_KEY, JSON.stringify({ token: t, user: u }));
       } else {
         localStorage.removeItem(AUTH_SESSION_STORAGE_KEY);
       }

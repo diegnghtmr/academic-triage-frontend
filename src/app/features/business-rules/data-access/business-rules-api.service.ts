@@ -39,14 +39,8 @@ export class BusinessRulesApiService {
     return this.http.post<BusinessRuleResponse>('business-rules', body);
   }
 
-  update(
-    ruleId: number,
-    body: UpdateBusinessRuleBody,
-  ): Observable<BusinessRuleResponse> {
-    return this.http.put<BusinessRuleResponse>(
-      `business-rules/${ruleId}`,
-      body,
-    );
+  update(ruleId: number, body: UpdateBusinessRuleBody): Observable<BusinessRuleResponse> {
+    return this.http.put<BusinessRuleResponse>(`business-rules/${ruleId}`, body);
   }
 
   /**

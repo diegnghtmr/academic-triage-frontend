@@ -12,10 +12,7 @@
  *   REQUEST_TYPE_AND_DEADLINE → required
  */
 
-export type ConditionTypeEnum =
-  | 'REQUEST_TYPE'
-  | 'DEADLINE'
-  | 'REQUEST_TYPE_AND_DEADLINE';
+export type ConditionTypeEnum = 'REQUEST_TYPE' | 'DEADLINE' | 'REQUEST_TYPE_AND_DEADLINE';
 
 import type { PriorityEnum } from '@shared/models/priority';
 

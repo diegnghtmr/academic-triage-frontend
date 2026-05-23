@@ -12,40 +12,40 @@
 // ── Design Tokens ────────────────────────────────────────────
 :root {
   // Palette — Cyber-Classicism (monochrome)
-  --at-bg:             #0A0A0A;
-  --at-surface:        #111111;
-  --at-surface-2:      #1A1A1A;
-  --at-border:         #222222;
-  --at-border-hi:      #333333;
+  --at-bg: #0a0a0a;
+  --at-surface: #111111;
+  --at-surface-2: #1a1a1a;
+  --at-border: #222222;
+  --at-border-hi: #333333;
 
-  --at-text:           #F5F5F5;
-  --at-text-muted:     #8A8A8A;
-  --at-text-dim:       #555555;
+  --at-text: #f5f5f5;
+  --at-text-muted: #8a8a8a;
+  --at-text-dim: #555555;
 
-  --at-mercury:        #C0C0C0;
+  --at-mercury: #c0c0c0;
 
-  --at-success:        #3ecf6e;
-  --at-warning:        #e8c533;
-  --at-danger:         #e06060;
-  --at-info:           #9b8fff;
+  --at-success: #3ecf6e;
+  --at-warning: #e8c533;
+  --at-danger: #e06060;
+  --at-info: #9b8fff;
 
-  --at-err-bg:         #4A2020;
-  --at-ok-bg:          #1A2E1A;
+  --at-err-bg: #4a2020;
+  --at-ok-bg: #1a2e1a;
 
   // Typography
-  --at-font-sans:  'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --at-font-mono:  'JetBrains Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+  --at-font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --at-font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Consolas, monospace;
 
-  --at-fs-xs:     0.7rem;
-  --at-fs-sm:     0.875rem;
-  --at-fs:        1rem;
-  --at-fs-lg:     1.25rem;
-  --at-fs-xl:     1.5rem;
-  --at-fs-2xl:    2rem;
-  --at-fs-3xl:    3rem;
-  --at-lh:        1.5;
+  --at-fs-xs: 0.7rem;
+  --at-fs-sm: 0.875rem;
+  --at-fs: 1rem;
+  --at-fs-lg: 1.25rem;
+  --at-fs-xl: 1.5rem;
+  --at-fs-2xl: 2rem;
+  --at-fs-3xl: 3rem;
+  --at-lh: 1.5;
   --at-tracking-tight: -0.03em;
-  --at-tracking-wide:  0.08em;
+  --at-tracking-wide: 0.08em;
 
   // Spacing scale (8pt grid)
   --at-s1: 0.25rem;
@@ -69,9 +69,9 @@
   --at-backdrop: rgba(0, 0, 0, 0.7);
 
   // Motion
-  --at-ease:      cubic-bezier(0.25, 0.1, 0.25, 1);
-  --at-dur-fast:  120ms;
-  --at-dur:       150ms;
+  --at-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --at-dur-fast: 120ms;
+  --at-dur: 150ms;
 
   // Font-size alias (used by dashboard, reports, public-home, request-detail)
   --at-fs-base: var(--at-fs);
@@ -79,23 +79,44 @@
 
 // ── Keyframes ────────────────────────────────────────────────
 @keyframes blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 0.6; }
-  50%       { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 @keyframes skelpulse {
-  0%, 100% { opacity: 0.15; }
-  50%       { opacity: 0.35; }
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.35;
+  }
 }
 
 @keyframes fade {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 // ── Base reset ───────────────────────────────────────────────
@@ -112,21 +133,39 @@ body {
 // ── View transitions — crossfade SOLO del contenido principal ─
 // El sidebar/topbar quedan estáticos durante la navegación.
 ::view-transition-old(root),
-::view-transition-new(root) { animation: none; }
+::view-transition-new(root) {
+  animation: none;
+}
 
 ::view-transition-old(app-main),
 ::view-transition-new(app-main) {
   animation-duration: 180ms;
   animation-timing-function: var(--at-ease, ease-out);
 }
-::view-transition-old(app-main) { animation-name: at-fade-out; }
-::view-transition-new(app-main) { animation-name: at-fade-in; }
+::view-transition-old(app-main) {
+  animation-name: at-fade-out;
+}
+::view-transition-new(app-main) {
+  animation-name: at-fade-in;
+}
 
-@keyframes at-fade-out { to   { opacity: 0; } }
-@keyframes at-fade-in  { from { opacity: 0; } }
+@keyframes at-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes at-fade-in {
+  from {
+    opacity: 0;
+  }
+}
 
 // ── Headings ─────────────────────────────────────────────────
-h1, h2, h3, h4, h5 {
+h1,
+h2,
+h3,
+h4,
+h5 {
   margin: 0 0 var(--at-s4);
   font-weight: 800;
   letter-spacing: var(--at-tracking-tight);
@@ -134,12 +173,26 @@ h1, h2, h3, h4, h5 {
   color: var(--at-text);
 }
 
-h1 { font-size: var(--at-fs-3xl); }
-h2 { font-size: var(--at-fs-2xl); }
-h3 { font-size: var(--at-fs-xl); color: var(--at-text); }
-h4 { font-size: var(--at-fs-lg); color: var(--at-text-muted); text-transform: uppercase; letter-spacing: var(--at-tracking-wide); }
+h1 {
+  font-size: var(--at-fs-3xl);
+}
+h2 {
+  font-size: var(--at-fs-2xl);
+}
+h3 {
+  font-size: var(--at-fs-xl);
+  color: var(--at-text);
+}
+h4 {
+  font-size: var(--at-fs-lg);
+  color: var(--at-text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--at-tracking-wide);
+}
 
-p { margin: 0 0 var(--at-s3); }
+p {
+  margin: 0 0 var(--at-s3);
+}
 
 // ── Links ────────────────────────────────────────────────────
 a {
@@ -163,8 +216,9 @@ button {
   font-size: var(--at-fs-sm);
   padding: var(--at-s1) var(--at-s3);
   letter-spacing: 0.03em;
-  transition: border-color var(--at-dur-fast) var(--at-ease),
-              color var(--at-dur-fast) var(--at-ease);
+  transition:
+    border-color var(--at-dur-fast) var(--at-ease),
+    color var(--at-dur-fast) var(--at-ease);
 
   &:not([disabled]):hover {
     border-color: var(--at-mercury);

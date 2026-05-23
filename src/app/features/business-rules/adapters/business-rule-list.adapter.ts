@@ -46,9 +46,7 @@ function buildConditionDetail(raw: BusinessRuleResponse): string {
  * - Builds a semantic `conditionDetail` instead of the opaque `conditionValue`.
  * - Flattens `requestType?.name` with a fallback.
  */
-export function adaptBusinessRuleListItem(
-  raw: BusinessRuleResponse,
-): BusinessRuleListItemView {
+export function adaptBusinessRuleListItem(raw: BusinessRuleResponse): BusinessRuleListItemView {
   const conditionType: ConditionTypeEnum = raw.conditionType ?? 'REQUEST_TYPE';
   const resultingPriority = raw.resultingPriority ?? 'LOW';
 

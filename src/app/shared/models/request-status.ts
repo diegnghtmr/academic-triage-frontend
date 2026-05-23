@@ -8,11 +8,11 @@ export type RequestStatusEnum =
   | 'REJECTED';
 
 export const STATUS_LABEL_MAP: Record<RequestStatusEnum, string> = {
-  REGISTERED:  'Registrada',
-  CLASSIFIED:  'Clasificada',
+  REGISTERED: 'Registrada',
+  CLASSIFIED: 'Clasificada',
   IN_PROGRESS: 'En progreso',
-  ATTENDED:    'Atendida',
-  CLOSED:      'Cerrada',
-  CANCELLED:   'Cancelada',
-  REJECTED:    'Rechazada',
+  ATTENDED: 'Atendida',
+  CLOSED: 'Cerrada',
+  CANCELLED: 'Cancelada',
+  REJECTED: 'Rechazada',
 };

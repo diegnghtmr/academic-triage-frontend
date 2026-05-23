@@ -4,7 +4,9 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   selector: 'at-error-alert',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: `
-    :host { display: contents; }
+    :host {
+      display: contents;
+    }
 
     p[role='alert'] {
       background: var(--at-err-bg);

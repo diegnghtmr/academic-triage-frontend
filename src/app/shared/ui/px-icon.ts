@@ -91,7 +91,6 @@ export class PxIcon {
   private readonly sanitizer = inject(DomSanitizer);
 
   protected readonly safeSvg = computed(
-    (): SafeHtml =>
-      this.sanitizer.bypassSecurityTrustHtml(PX_ICON_MAP[this.name()]),
+    (): SafeHtml => this.sanitizer.bypassSecurityTrustHtml(PX_ICON_MAP[this.name()]),
   );
 }

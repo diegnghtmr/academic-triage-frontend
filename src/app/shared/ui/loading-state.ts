@@ -20,7 +20,10 @@ import {
   selector: 'at-loading-state',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: `
-    :host { display: block; padding: var(--at-s4) 0; }
+    :host {
+      display: block;
+      padding: var(--at-s4) 0;
+    }
 
     .skel {
       display: flex;
@@ -45,14 +48,26 @@ import {
       animation: skel-shimmer 1.4s ease-in-out infinite;
     }
 
-    .skel__row:nth-child(1) { width: 100%; }
-    .skel__row:nth-child(2) { width: 92%; }
-    .skel__row:nth-child(3) { width: 96%; }
-    .skel__row:nth-child(4) { width: 88%; }
+    .skel__row:nth-child(1) {
+      width: 100%;
+    }
+    .skel__row:nth-child(2) {
+      width: 92%;
+    }
+    .skel__row:nth-child(3) {
+      width: 96%;
+    }
+    .skel__row:nth-child(4) {
+      width: 88%;
+    }
 
     @keyframes skel-shimmer {
-      0%   { background-position: 100% 0; }
-      100% { background-position: -100% 0; }
+      0% {
+        background-position: 100% 0;
+      }
+      100% {
+        background-position: -100% 0;
+      }
     }
 
     p {

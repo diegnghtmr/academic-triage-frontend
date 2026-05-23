@@ -4,7 +4,9 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   selector: 'at-page-section',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: `
-    :host { display: block; }
+    :host {
+      display: block;
+    }
 
     .header {
       display: flex;
@@ -23,7 +25,8 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
       color: var(--at-text);
     }
 
-    .body { }
+    .body {
+    }
   `,
   template: `
     <section>

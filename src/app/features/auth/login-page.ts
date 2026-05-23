@@ -1,11 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -26,7 +20,9 @@ import { AuthApiService } from './auth-api.service';
       <div class="login-wrap__form">
         <h1 class="login-wrap__title">Iniciar sesión</h1>
         @if (registeredNotice()) {
-          <p class="login-wrap__notice" role="status">Registro completado. Iniciá sesión con tu cuenta.</p>
+          <p class="login-wrap__notice" role="status">
+            Registro completado. Iniciá sesión con tu cuenta.
+          </p>
         }
         <form class="login-form" [formGroup]="form" (ngSubmit)="submit()">
           <div class="field">
@@ -280,14 +276,7 @@ export class LoginPage {
   protected readonly registeredNotice = signal(false);
 
   protected readonly form = this.fb.nonNullable.group({
-    identifier: [
-      '',
-      [
-        Validators.required,
-        Validators.minLength(3),
-        Validators.maxLength(255),
-      ],
-    ],
+    identifier: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(255)]],
     password: ['', [Validators.required, Validators.minLength(8)]],
   });
 
@@ -308,10 +297,7 @@ export class LoginPage {
       .pipe(
         catchError((err: HttpErrorResponse) => {
           const problem = this.problemMapper.fromHttpError(err);
-          const msg =
-            problem?.detail ??
-            problem?.title ??
-            'No se pudo iniciar sesión.';
+          const msg = problem?.detail ?? problem?.title ?? 'No se pudo iniciar sesión.';
           this.errorMessage.set(msg);
           return EMPTY;
         }),

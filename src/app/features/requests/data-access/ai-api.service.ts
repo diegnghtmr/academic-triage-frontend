@@ -23,13 +23,8 @@ export class AiApiService {
    * `POST /ai/suggest-classification`
    * Sends the descriptive text and receives a suggested type and priority.
    */
-  suggestClassification(
-    body: AiClassificationRequest,
-  ): Observable<AiClassificationResponse> {
-    return this.http.post<AiClassificationResponse>(
-      'ai/suggest-classification',
-      body,
-    );
+  suggestClassification(body: AiClassificationRequest): Observable<AiClassificationResponse> {
+    return this.http.post<AiClassificationResponse>('ai/suggest-classification', body);
   }
 
   /**

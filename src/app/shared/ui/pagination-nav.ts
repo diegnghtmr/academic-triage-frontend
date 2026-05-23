@@ -1,15 +1,12 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  input,
-  output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
 @Component({
   selector: 'at-pagination-nav',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: `
-    :host { display: block; }
+    :host {
+      display: block;
+    }
 
     nav {
       display: flex;
@@ -29,8 +26,9 @@ import {
       font-size: var(--at-fs-xs);
       padding: var(--at-s1) var(--at-s3);
       cursor: pointer;
-      transition: border-color var(--at-dur-fast) var(--at-ease),
-                  color var(--at-dur-fast) var(--at-ease);
+      transition:
+        border-color var(--at-dur-fast) var(--at-ease),
+        color var(--at-dur-fast) var(--at-ease);
 
       &:not([disabled]):hover {
         border-color: var(--at-mercury);
@@ -62,7 +60,9 @@ import {
       >
         ← Anterior
       </button>
-      <span aria-live="polite" aria-atomic="true">Página {{ currentPage() + 1 }} / {{ totalPages() || 1 }}</span>
+      <span aria-live="polite" aria-atomic="true"
+        >Página {{ currentPage() + 1 }} / {{ totalPages() || 1 }}</span
+      >
       <button
         type="button"
         (click)="next.emit()"

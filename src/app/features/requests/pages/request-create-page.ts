@@ -1,5 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -67,7 +74,9 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
                 readonly
                 aria-readonly="true"
               />
-              <small class="field__hint">Este canal se asigna automáticamente para estudiantes.</small>
+              <small class="field__hint"
+                >Este canal se asigna automáticamente para estudiantes.</small
+              >
             } @else {
               <select class="input" id="crt-ch" formControlName="originChannelId">
                 <option [ngValue]="null">Seleccionar…</option>
@@ -302,8 +311,12 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
       justify-content: center;
     }
     @media (max-width: 480px) {
-      .form-actions { flex-direction: column-reverse; }
-      .form-actions__btn { width: 100%; }
+      .form-actions {
+        flex-direction: column-reverse;
+      }
+      .form-actions__btn {
+        width: 100%;
+      }
     }
   `,
 })
@@ -392,20 +405,20 @@ export class RequestCreatePage {
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-      next: ({ types, channels }) => {
-        this.requestTypes.set(types);
-        this.originChannels.set(channels);
-        this.assignStudentDefaultChannel(channels);
-      },
-      error: (err: HttpErrorResponse) => {
-        const p = this.problemMapper.fromHttpError(err);
-        this.catalogError.set(
-          p?.detail ??
-            p?.title ??
-            'No pudimos cargar los datos necesarios para crear la solicitud.',
-        );
-      },
-    });
+        next: ({ types, channels }) => {
+          this.requestTypes.set(types);
+          this.originChannels.set(channels);
+          this.assignStudentDefaultChannel(channels);
+        },
+        error: (err: HttpErrorResponse) => {
+          const p = this.problemMapper.fromHttpError(err);
+          this.catalogError.set(
+            p?.detail ??
+              p?.title ??
+              'No pudimos cargar los datos necesarios para crear la solicitud.',
+          );
+        },
+      });
   }
 
   private assignStudentDefaultChannel(channels: OriginChannelResponse[]): void {

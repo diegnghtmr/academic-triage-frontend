@@ -94,15 +94,11 @@ describe('parseStoredUser — adversarial inputs', () => {
   });
 
   it('returns null when token is an empty string', () => {
-    expect(
-      parseStoredUser({ token: '', user: { id: 1, username: 'alice' } }),
-    ).toBeNull();
+    expect(parseStoredUser({ token: '', user: { id: 1, username: 'alice' } })).toBeNull();
   });
 
   it('returns null when token is a number instead of string', () => {
-    expect(
-      parseStoredUser({ token: 99, user: { id: 1, username: 'alice' } }),
-    ).toBeNull();
+    expect(parseStoredUser({ token: 99, user: { id: 1, username: 'alice' } })).toBeNull();
   });
 
   it('returns null when user field is missing', () => {
@@ -110,15 +106,11 @@ describe('parseStoredUser — adversarial inputs', () => {
   });
 
   it('returns null when user.id is not a number', () => {
-    expect(
-      parseStoredUser({ token: 'tok', user: { id: 'nope', username: 'alice' } }),
-    ).toBeNull();
+    expect(parseStoredUser({ token: 'tok', user: { id: 'nope', username: 'alice' } })).toBeNull();
   });
 
   it('returns null when user.id is NaN', () => {
-    expect(
-      parseStoredUser({ token: 'tok', user: { id: NaN, username: 'alice' } }),
-    ).toBeNull();
+    expect(parseStoredUser({ token: 'tok', user: { id: NaN, username: 'alice' } })).toBeNull();
   });
 
   it('returns null when user.username is missing', () => {
@@ -126,9 +118,7 @@ describe('parseStoredUser — adversarial inputs', () => {
   });
 
   it('returns null when user.username is an empty string', () => {
-    expect(
-      parseStoredUser({ token: 'tok', user: { id: 1, username: '' } }),
-    ).toBeNull();
+    expect(parseStoredUser({ token: 'tok', user: { id: 1, username: '' } })).toBeNull();
   });
 
   it('returns null when user.role is present but not in RoleEnum (ROOT)', () => {

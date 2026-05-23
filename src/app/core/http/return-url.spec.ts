@@ -42,9 +42,7 @@ describe('parseSafeReturnUrl — happy path', () => {
   });
 
   it('uses custom fallback when provided', () => {
-    expect(parseSafeReturnUrl(null, { origin: ORIGIN, fallback: '/' })).toBe(
-      '/',
-    );
+    expect(parseSafeReturnUrl(null, { origin: ORIGIN, fallback: '/' })).toBe('/');
   });
 });
 

@@ -1,5 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -161,25 +168,21 @@ export class RequestListPage {
    * The form is always updated (emitEvent: true) from the URL subscription,
    * so this computed re-runs whenever the URL changes.
    */
-  protected readonly activeStatusId = computed(
-    () => this.filterForm.controls.status.value ?? '',
-  );
+  protected readonly activeStatusId = computed(() => this.filterForm.controls.status.value ?? '');
 
   constructor() {
     // URL is the source of truth for status and page.
     // Any navigation (onStatusChange, prevPage, nextPage, applyFilters, browser back/forward)
     // goes through router.navigate and the queryParamMap subscription triggers load().
-    this.route.queryParamMap
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((params) => {
-        const status = this.parseStatus(params.get('status'));
-        const page = this.parsePage(params.get('page'));
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      const status = this.parseStatus(params.get('status'));
+      const page = this.parsePage(params.get('page'));
 
-        // emitEvent: true (default) so activeStatusId computed re-evaluates.
-        this.filterForm.controls.status.setValue(status);
-        this.currentPage.set(page);
-        this.load();
-      });
+      // emitEvent: true (default) so activeStatusId computed re-evaluates.
+      this.filterForm.controls.status.setValue(status);
+      this.currentPage.set(page);
+      this.load();
+    });
   }
 
   protected onStatusChange(id: string): void {
@@ -219,7 +222,13 @@ export class RequestListPage {
 
   private parseStatus(raw: string | null): RequestStatusEnum | null {
     const valid: RequestStatusEnum[] = [
-      'REGISTERED', 'CLASSIFIED', 'IN_PROGRESS', 'ATTENDED', 'CLOSED', 'CANCELLED', 'REJECTED',
+      'REGISTERED',
+      'CLASSIFIED',
+      'IN_PROGRESS',
+      'ATTENDED',
+      'CLOSED',
+      'CANCELLED',
+      'REJECTED',
     ];
     return valid.includes(raw as RequestStatusEnum) ? (raw as RequestStatusEnum) : null;
   }

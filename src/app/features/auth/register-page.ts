@@ -1,11 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -32,11 +26,23 @@ import { AuthApiService } from './auth-api.service';
         <form class="reg-form" [formGroup]="form" (ngSubmit)="submit()">
           <div class="field">
             <label class="field__label" for="reg-username">Usuario</label>
-            <input class="input" id="reg-username" type="text" formControlName="username" autocomplete="username" />
+            <input
+              class="input"
+              id="reg-username"
+              type="text"
+              formControlName="username"
+              autocomplete="username"
+            />
           </div>
           <div class="field">
             <label class="field__label" for="reg-email">Correo</label>
-            <input class="input" id="reg-email" type="email" formControlName="email" autocomplete="email" />
+            <input
+              class="input"
+              id="reg-email"
+              type="email"
+              formControlName="email"
+              autocomplete="email"
+            />
           </div>
           <div class="field">
             <label class="field__label" for="reg-password">Contraseña</label>
@@ -50,11 +56,23 @@ import { AuthApiService } from './auth-api.service';
           </div>
           <div class="field">
             <label class="field__label" for="reg-first">Nombre</label>
-            <input class="input" id="reg-first" type="text" formControlName="firstName" autocomplete="given-name" />
+            <input
+              class="input"
+              id="reg-first"
+              type="text"
+              formControlName="firstName"
+              autocomplete="given-name"
+            />
           </div>
           <div class="field">
             <label class="field__label" for="reg-last">Apellido</label>
-            <input class="input" id="reg-last" type="text" formControlName="lastName" autocomplete="family-name" />
+            <input
+              class="input"
+              id="reg-last"
+              type="text"
+              formControlName="lastName"
+              autocomplete="family-name"
+            />
           </div>
           <div class="field">
             <label class="field__label" for="reg-id">Identificación</label>
@@ -143,14 +161,7 @@ export class RegisterPage {
   protected readonly errorMessage = signal<string | null>(null);
 
   protected readonly form = this.fb.nonNullable.group({
-    username: [
-      '',
-      [
-        Validators.required,
-        Validators.minLength(3),
-        Validators.maxLength(50),
-      ],
-    ],
+    username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     firstName: ['', [Validators.required, Validators.maxLength(75)]],
@@ -178,10 +189,7 @@ export class RegisterPage {
       .pipe(
         catchError((err: HttpErrorResponse) => {
           const problem = this.problemMapper.fromHttpError(err);
-          const msg =
-            problem?.detail ??
-            problem?.title ??
-            'No se pudo completar el registro.';
+          const msg = problem?.detail ?? problem?.title ?? 'No se pudo completar el registro.';
           this.errorMessage.set(msg);
           return EMPTY;
         }),

@@ -21,23 +21,23 @@ import { STATUS_LABEL_MAP } from '@shared/models/request-status';
 // ── inline mirror of STATUS_CLASS_MAP (source-of-truth: state-badge.ts) ─────
 // We mirror the map here so changes in the component cause test failures.
 const STATUS_CLASS_MAP: Record<RequestStatusEnum, string> = {
-  REGISTERED:  'badge--registered',
-  CLASSIFIED:  'badge--classified',
+  REGISTERED: 'badge--registered',
+  CLASSIFIED: 'badge--classified',
   IN_PROGRESS: 'badge--in-progress',
-  ATTENDED:    'badge--attended',
-  CLOSED:      'badge--closed',
-  CANCELLED:   'badge--cancelled',
-  REJECTED:    'badge--rejected',
+  ATTENDED: 'badge--attended',
+  CLOSED: 'badge--closed',
+  CANCELLED: 'badge--cancelled',
+  REJECTED: 'badge--rejected',
 };
 
 const EXPECTED: Array<{ status: RequestStatusEnum; label: string; variantClass: string }> = [
-  { status: 'REGISTERED',  label: 'Registrada',  variantClass: 'badge--registered'  },
-  { status: 'CLASSIFIED',  label: 'Clasificada',  variantClass: 'badge--classified'  },
-  { status: 'IN_PROGRESS', label: 'En progreso',  variantClass: 'badge--in-progress' },
-  { status: 'ATTENDED',    label: 'Atendida',     variantClass: 'badge--attended'    },
-  { status: 'CLOSED',      label: 'Cerrada',      variantClass: 'badge--closed'      },
-  { status: 'CANCELLED',   label: 'Cancelada',    variantClass: 'badge--cancelled'   },
-  { status: 'REJECTED',    label: 'Rechazada',    variantClass: 'badge--rejected'    },
+  { status: 'REGISTERED', label: 'Registrada', variantClass: 'badge--registered' },
+  { status: 'CLASSIFIED', label: 'Clasificada', variantClass: 'badge--classified' },
+  { status: 'IN_PROGRESS', label: 'En progreso', variantClass: 'badge--in-progress' },
+  { status: 'ATTENDED', label: 'Atendida', variantClass: 'badge--attended' },
+  { status: 'CLOSED', label: 'Cerrada', variantClass: 'badge--closed' },
+  { status: 'CANCELLED', label: 'Cancelada', variantClass: 'badge--cancelled' },
+  { status: 'REJECTED', label: 'Rechazada', variantClass: 'badge--rejected' },
 ];
 
 const source = readFileSync(join(import.meta.dirname, 'state-badge.ts'), 'utf-8');

@@ -29,6 +29,8 @@ export const appConfig: ApplicationConfig = {
       withViewTransitions({ skipInitialTransition: true }),
     ),
     { provide: API_BASE_URL, useValue: getApiBaseUrl() },
-    provideHttpClient(withInterceptors([apiBaseUrlInterceptor, authInterceptor, httpErrorInterceptor])),
+    provideHttpClient(
+      withInterceptors([apiBaseUrlInterceptor, authInterceptor, httpErrorInterceptor]),
+    ),
   ],
 };

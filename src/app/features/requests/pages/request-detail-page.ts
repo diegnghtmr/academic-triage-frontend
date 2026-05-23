@@ -90,11 +90,15 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
               </li>
               <li class="page-head__chip">
                 <span class="page-head__chip-label">Canal</span>
-                <span class="page-head__chip-value" [title]="d.channelName">{{ d.channelName }}</span>
+                <span class="page-head__chip-value" [title]="d.channelName">{{
+                  d.channelName
+                }}</span>
               </li>
               <li class="page-head__chip">
                 <span class="page-head__chip-label">Registrado</span>
-                <span class="page-head__chip-value">{{ d.registrationDateTime | dateTimeLabel }}</span>
+                <span class="page-head__chip-value">{{
+                  d.registrationDateTime | dateTimeLabel
+                }}</span>
               </li>
             </ul>
           </div>
@@ -188,7 +192,11 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
             <section class="party-card" aria-labelledby="requester-heading">
               <h3 id="requester-heading" class="party-card__title">Solicitante</h3>
               <div class="party-card__body">
-                <span class="avatar" [attr.data-initials]="initialsOf(d.requesterName)" aria-hidden="true"></span>
+                <span
+                  class="avatar"
+                  [attr.data-initials]="initialsOf(d.requesterName)"
+                  aria-hidden="true"
+                ></span>
                 <div class="party-card__id">
                   <p class="party-card__name">{{ d.requesterName }}</p>
                   <p class="party-card__sub">@{{ d.requesterName }}</p>
@@ -200,7 +208,11 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
               <h3 id="assignee-heading" class="party-card__title">Responsable asignado</h3>
               @if (d.assignedToName) {
                 <div class="party-card__body">
-                  <span class="avatar" [attr.data-initials]="initialsOf(d.assignedToName)" aria-hidden="true"></span>
+                  <span
+                    class="avatar"
+                    [attr.data-initials]="initialsOf(d.assignedToName)"
+                    aria-hidden="true"
+                  ></span>
                   <div class="party-card__id">
                     <p class="party-card__name">{{ d.assignedToName }}</p>
                     <p class="party-card__sub">STAFF</p>
@@ -215,9 +227,15 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
               <section class="card" aria-labelledby="priority-suggestion-heading">
                 <h3 id="priority-suggestion-heading" class="card__title">Reglas aplicadas</h3>
                 <p class="card__hint">
-                  Recomendación según reglas vigentes para este tipo. No cambia la solicitud por sí sola.
+                  Recomendación según reglas vigentes para este tipo. No cambia la solicitud por sí
+                  sola.
                 </p>
-                <button class="btn btn--sm" type="button" (click)="loadSuggestion()" [disabled]="suggestionLoading()">
+                <button
+                  class="btn btn--sm"
+                  type="button"
+                  (click)="loadSuggestion()"
+                  [disabled]="suggestionLoading()"
+                >
                   @if (suggestionLoading()) {
                     Consultando…
                   } @else {
@@ -235,10 +253,12 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
                   </p>
                   @if (s.matchedRules?.length) {
                     <ul class="rules-list">
-                      @for (m of s.matchedRules; track (m.ruleId ?? $index)) {
+                      @for (m of s.matchedRules; track m.ruleId ?? $index) {
                         <li class="rules-list__item">
                           <span class="rules-list__name">{{ m.name }}</span>
-                          <span class="rules-list__priority">{{ m.resultingPriority | displayLabel: 'priority' }}</span>
+                          <span class="rules-list__priority">{{
+                            m.resultingPriority | displayLabel: 'priority'
+                          }}</span>
                         </li>
                       }
                     </ul>
@@ -261,7 +281,8 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
                   }
                 </h3>
                 <p class="card__hint">
-                  IA para resumir estado e historial. Ayuda de lectura — no reemplaza la información oficial.
+                  IA para resumir estado e historial. Ayuda de lectura — no reemplaza la información
+                  oficial.
                 </p>
                 <button
                   class="btn btn--sm"
@@ -286,7 +307,6 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
           </div>
         </div>
 
-
         @if (actionError()) {
           <p role="alert" class="field__error">{{ actionError() }}</p>
         }
@@ -309,7 +329,9 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
                   </select>
                 </div>
                 <div class="field">
-                  <label class="field__label" for="detail-classify-obs">Observaciones (opcional)</label>
+                  <label class="field__label" for="detail-classify-obs"
+                    >Observaciones (opcional)</label
+                  >
                   <textarea
                     class="input"
                     id="detail-classify-obs"
@@ -317,13 +339,21 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
                     rows="2"
                   ></textarea>
                 </div>
-                <button class="btn btn--sm" type="submit" [disabled]="classifyForm.invalid || actionBusy()">
+                <button
+                  class="btn btn--sm"
+                  type="submit"
+                  [disabled]="classifyForm.invalid || actionBusy()"
+                >
                   Clasificar
                 </button>
               </form>
             }
             @if (canPrioritize()(d.status, d.priority)) {
-              <form class="action-form" [formGroup]="prioritizeForm" (ngSubmit)="submitPrioritize()">
+              <form
+                class="action-form"
+                [formGroup]="prioritizeForm"
+                (ngSubmit)="submitPrioritize()"
+              >
                 <h4 class="action-form__title">Priorizar</h4>
                 <div class="field">
                   <label class="field__label" for="detail-priority">Prioridad</label>
@@ -342,7 +372,11 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
                     rows="2"
                   ></textarea>
                 </div>
-                <button class="btn btn--sm" type="submit" [disabled]="prioritizeForm.invalid || actionBusy()">
+                <button
+                  class="btn btn--sm"
+                  type="submit"
+                  [disabled]="prioritizeForm.invalid || actionBusy()"
+                >
                   Priorizar
                 </button>
               </form>
@@ -352,11 +386,18 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
                 <h4 class="action-form__title">Asignar responsable</h4>
                 <div class="field">
                   <label class="field__label" for="detail-assign-user">Usuario responsable</label>
-                  <input class="input" id="detail-assign-user" type="number" formControlName="assignedToUserId" />
+                  <input
+                    class="input"
+                    id="detail-assign-user"
+                    type="number"
+                    formControlName="assignedToUserId"
+                  />
                   <small>Puedes tomar este dato del listado de usuarios.</small>
                 </div>
                 <div class="field">
-                  <label class="field__label" for="detail-assign-obs">Observaciones (opcional)</label>
+                  <label class="field__label" for="detail-assign-obs"
+                    >Observaciones (opcional)</label
+                  >
                   <textarea
                     class="input"
                     id="detail-assign-obs"
@@ -364,7 +405,11 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
                     rows="2"
                   ></textarea>
                 </div>
-                <button class="btn btn--sm" type="submit" [disabled]="assignForm.invalid || actionBusy()">
+                <button
+                  class="btn btn--sm"
+                  type="submit"
+                  [disabled]="assignForm.invalid || actionBusy()"
+                >
                   Asignar
                 </button>
               </form>
@@ -381,7 +426,11 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
                     rows="3"
                   ></textarea>
                 </div>
-                <button class="btn btn--sm" type="submit" [disabled]="attendForm.invalid || actionBusy()">
+                <button
+                  class="btn btn--sm"
+                  type="submit"
+                  [disabled]="attendForm.invalid || actionBusy()"
+                >
                   Marcar como atendida
                 </button>
               </form>
@@ -398,7 +447,11 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
                     rows="3"
                   ></textarea>
                 </div>
-                <button class="btn btn--sm" type="submit" [disabled]="closeForm.invalid || actionBusy()">
+                <button
+                  class="btn btn--sm"
+                  type="submit"
+                  [disabled]="closeForm.invalid || actionBusy()"
+                >
                   Cerrar solicitud
                 </button>
               </form>
@@ -407,7 +460,9 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
               <form class="action-form" [formGroup]="cancelForm" (ngSubmit)="submitCancel()">
                 <h4 class="action-form__title">Cancelar</h4>
                 <div class="field">
-                  <label class="field__label" for="detail-cancel-reason">Motivo de cancelación</label>
+                  <label class="field__label" for="detail-cancel-reason"
+                    >Motivo de cancelación</label
+                  >
                   <textarea
                     class="input"
                     id="detail-cancel-reason"
@@ -415,7 +470,11 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
                     rows="3"
                   ></textarea>
                 </div>
-                <button class="btn btn--sm" type="submit" [disabled]="cancelForm.invalid || actionBusy()">
+                <button
+                  class="btn btn--sm"
+                  type="submit"
+                  [disabled]="cancelForm.invalid || actionBusy()"
+                >
                   Cancelar solicitud
                 </button>
               </form>
@@ -432,7 +491,11 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
                     rows="3"
                   ></textarea>
                 </div>
-                <button class="btn btn--sm" type="submit" [disabled]="rejectForm.invalid || actionBusy()">
+                <button
+                  class="btn btn--sm"
+                  type="submit"
+                  [disabled]="rejectForm.invalid || actionBusy()"
+                >
                   Rechazar
                 </button>
               </form>
@@ -443,7 +506,11 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
     </section>
   `,
   styles: `
-    .section { padding: var(--at-s6); max-width: 1200px; margin: 0 auto; }
+    .section {
+      padding: var(--at-s6);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
     .section__back {
       align-self: flex-start;
       display: inline-flex;
@@ -459,7 +526,9 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
       text-decoration: none;
       transition: color var(--at-dur-fast) var(--at-ease);
     }
-    .section__back:hover { color: var(--at-mercury); }
+    .section__back:hover {
+      color: var(--at-mercury);
+    }
 
     .page-head {
       display: grid;
@@ -468,7 +537,9 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
       align-items: start;
       margin-bottom: var(--at-s5);
     }
-    .page-head__title-block { min-width: 0; }
+    .page-head__title-block {
+      min-width: 0;
+    }
     .page-head__title {
       margin: 0 0 var(--at-s2);
       font-family: var(--at-font-mono);
@@ -537,7 +608,10 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
       color: var(--at-text-muted);
     }
 
-    .section__loading { color: var(--at-text-muted); font-family: var(--at-font-mono); }
+    .section__loading {
+      color: var(--at-text-muted);
+      font-family: var(--at-font-mono);
+    }
     .split {
       display: grid;
       grid-template-columns: 1fr 320px;
@@ -595,7 +669,9 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
       text-transform: uppercase;
       color: var(--at-mercury);
     }
-    .card__header .card__title { margin: 0; }
+    .card__header .card__title {
+      margin: 0;
+    }
     .card__title-meta {
       color: var(--at-text-dim);
       font-weight: 600;
@@ -629,7 +705,11 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
       gap: var(--at-s4);
       margin: 0;
     }
-    .meta-grid__cell { display: flex; flex-direction: column; gap: var(--at-s2); }
+    .meta-grid__cell {
+      display: flex;
+      flex-direction: column;
+      gap: var(--at-s2);
+    }
     .meta-grid__cell dt {
       margin: 0;
       font-family: var(--at-font-mono);
@@ -638,12 +718,17 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
       text-transform: uppercase;
       color: var(--at-text-muted);
     }
-    .meta-grid__cell dd { margin: 0; color: var(--at-text); }
+    .meta-grid__cell dd {
+      margin: 0;
+      color: var(--at-text);
+    }
     .meta-grid__id {
       font-family: var(--at-font-mono);
       color: var(--at-text-muted);
     }
-    .meta-grid__empty { color: var(--at-text-dim); }
+    .meta-grid__empty {
+      color: var(--at-text-dim);
+    }
 
     .party-card {
       background: var(--at-surface);
@@ -659,8 +744,17 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
       text-transform: uppercase;
       color: var(--at-text-muted);
     }
-    .party-card__body { display: flex; align-items: center; gap: var(--at-s3); }
-    .party-card__id { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .party-card__body {
+      display: flex;
+      align-items: center;
+      gap: var(--at-s3);
+    }
+    .party-card__id {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
     .party-card__name {
       margin: 0;
       font-weight: 700;
@@ -689,12 +783,7 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
       justify-content: center;
       width: 40px;
       height: 40px;
-      background:
-        repeating-linear-gradient(
-          45deg,
-          var(--at-surface-2) 0 2px,
-          var(--at-bg) 2px 4px
-        );
+      background: repeating-linear-gradient(45deg, var(--at-surface-2) 0 2px, var(--at-bg) 2px 4px);
       border: 1px solid var(--at-border-hi);
       font-family: var(--at-font-mono);
       font-size: var(--at-fs-xs);
@@ -725,8 +814,13 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
       border-top: 1px dashed var(--at-border);
       font-size: var(--at-fs-sm);
     }
-    .rules-list__item:first-child { border-top: 0; padding-top: 0; }
-    .rules-list__name { color: var(--at-text); }
+    .rules-list__item:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+    .rules-list__name {
+      color: var(--at-text);
+    }
     .rules-list__priority {
       font-family: var(--at-font-mono);
       font-size: var(--at-fs-xs);
@@ -758,7 +852,9 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
       margin: 0 0 var(--at-s3);
       line-height: 1.5;
     }
-    .card__value { margin: var(--at-s3) 0; }
+    .card__value {
+      margin: var(--at-s3) 0;
+    }
     .card__list {
       padding-left: var(--at-s4);
       margin: var(--at-s2) 0 0;
@@ -801,7 +897,11 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
       color: var(--at-text-muted);
     }
 
-    .field { display: flex; flex-direction: column; gap: var(--at-s2); }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--at-s2);
+    }
     .field__label {
       font-family: var(--at-font-mono);
       font-size: var(--at-fs-xs);
@@ -818,9 +918,15 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
     }
 
     @media (max-width: 768px) {
-      .split { grid-template-columns: 1fr; }
-      .page-head { grid-template-columns: 1fr; }
-      .meta-grid { grid-template-columns: 1fr; }
+      .split {
+        grid-template-columns: 1fr;
+      }
+      .page-head {
+        grid-template-columns: 1fr;
+      }
+      .meta-grid {
+        grid-template-columns: 1fr;
+      }
     }
   `,
 })

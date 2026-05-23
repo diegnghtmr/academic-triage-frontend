@@ -86,12 +86,10 @@ export class OriginChannelsListPage {
   protected readonly showInactive = signal(false);
 
   constructor() {
-    this.route.queryParamMap
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((params) => {
-        this.showInactive.set(params.get('inactive') === 'true');
-        this.load();
-      });
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      this.showInactive.set(params.get('inactive') === 'true');
+      this.load();
+    });
   }
 
   protected toggleFilter(): void {

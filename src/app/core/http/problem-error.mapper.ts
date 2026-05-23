@@ -53,11 +53,11 @@ export class ProblemErrorMapper {
 
   normalize(body: Record<string, unknown>): ProblemDetail {
     return {
-      type: body['type'] === null ? null : pickString(body['type']) ?? null,
+      type: body['type'] === null ? null : (pickString(body['type']) ?? null),
       title: pickString(body['title']),
       status: pickNumber(body['status']),
-      detail: body['detail'] === null ? null : pickString(body['detail']) ?? null,
-      instance: body['instance'] === null ? null : pickString(body['instance']) ?? null,
+      detail: body['detail'] === null ? null : (pickString(body['detail']) ?? null),
+      instance: body['instance'] === null ? null : (pickString(body['instance']) ?? null),
       fieldErrors: normalizeFieldErrors(body['fieldErrors']),
     };
   }

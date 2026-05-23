@@ -38,10 +38,7 @@ function isInternalPath(pathname: string): boolean {
  * Parses `raw` and returns a safe same-origin path string.
  * Never throws; always returns a non-empty string.
  */
-export function parseSafeReturnUrl(
-  raw: string | null,
-  opts?: ParseSafeReturnUrlOptions,
-): string {
+export function parseSafeReturnUrl(raw: string | null, opts?: ParseSafeReturnUrlOptions): string {
   const fallback = opts?.fallback ?? '/app';
   const origin = resolveOrigin(opts?.origin);
 

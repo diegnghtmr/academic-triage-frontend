@@ -1,5 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -70,7 +77,9 @@ import { CONDITION_TYPE_OPTIONS, PRIORITY_OPTIONS } from '../models/business-rul
                 autocomplete="off"
               />
               @if (form.controls.name.invalid && form.controls.name.touched) {
-                <span class="field__error" role="alert">El nombre es requerido (máx. 150 caracteres).</span>
+                <span class="field__error" role="alert"
+                  >El nombre es requerido (máx. 150 caracteres).</span
+                >
               }
             </div>
 
@@ -108,9 +117,18 @@ import { CONDITION_TYPE_OPTIONS, PRIORITY_OPTIONS } from '../models/business-rul
                   Días límite <span class="field__req" aria-hidden="true">*</span>
                   <small>(número entero no negativo)</small>
                 </label>
-                <input class="input" id="br-days" type="number" min="0" step="1" formControlName="deadlineDays" />
+                <input
+                  class="input"
+                  id="br-days"
+                  type="number"
+                  min="0"
+                  step="1"
+                  formControlName="deadlineDays"
+                />
                 @if (form.controls.deadlineDays.invalid && form.controls.deadlineDays.touched) {
-                  <span class="field__error" role="alert">Ingrese un número entero mayor o igual a 0.</span>
+                  <span class="field__error" role="alert"
+                    >Ingrese un número entero mayor o igual a 0.</span
+                  >
                 }
               </div>
             }
@@ -175,7 +193,7 @@ import { CONDITION_TYPE_OPTIONS, PRIORITY_OPTIONS } from '../models/business-rul
                 type="submit"
                 [disabled]="form.invalid || submitting() || loadingItem()"
               >
-                {{ submitting() ? 'Guardando…' : (isEdit() ? 'Guardar' : 'Crear') }}
+                {{ submitting() ? 'Guardando…' : isEdit() ? 'Guardar' : 'Crear' }}
               </button>
             </div>
           </form>
@@ -283,8 +301,12 @@ import { CONDITION_TYPE_OPTIONS, PRIORITY_OPTIONS } from '../models/business-rul
       justify-content: center;
     }
     @media (max-width: 480px) {
-      .form-actions { flex-direction: column-reverse; }
-      .form-actions__btn { width: 100%; }
+      .form-actions {
+        flex-direction: column-reverse;
+      }
+      .form-actions__btn {
+        width: 100%;
+      }
     }
   `,
 })

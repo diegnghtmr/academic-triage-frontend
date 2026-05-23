@@ -59,9 +59,11 @@ describe('RequestListPage — query-param parsing, URL writing and API integrati
     navigateSpy = vi.fn().mockResolvedValue(true);
     // Echo the requested page back so that load()'s currentPage.set(response.currentPage)
     // does not overwrite the value parsed from queryParams.
-    listSpy = vi.fn().mockImplementation((q: ListRequestsQueryParams) =>
-      of({ content: [], totalPages: 1, currentPage: q.page ?? 0, pageSize: 20 }),
-    );
+    listSpy = vi
+      .fn()
+      .mockImplementation((q: ListRequestsQueryParams) =>
+        of({ content: [], totalPages: 1, currentPage: q.page ?? 0, pageSize: 20 }),
+      );
 
     TestBed.configureTestingModule({
       providers: [
@@ -69,17 +71,13 @@ describe('RequestListPage — query-param parsing, URL writing and API integrati
         provideHttpClient(withFetch()),
         provideHttpClientTesting(),
         {
-          provide: (
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
-            require('@angular/router') as { ActivatedRoute: unknown }
-          ).ActivatedRoute,
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          provide: (require('@angular/router') as { ActivatedRoute: unknown }).ActivatedRoute,
           useValue: { queryParamMap: queryParams$.asObservable() },
         },
         {
-          provide: (
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
-            require('@angular/router') as { Router: unknown }
-          ).Router,
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          provide: (require('@angular/router') as { Router: unknown }).Router,
           useValue: { navigate: navigateSpy },
         },
         {

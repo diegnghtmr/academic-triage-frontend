@@ -4,8 +4,6 @@ export const REPORTS_ROUTES: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./pages/reports-dashboard-page').then(
-        (m) => m.ReportsDashboardPage,
-      ),
+      import('./pages/reports-dashboard-page').then((m) => m.ReportsDashboardPage),
   },
 ];

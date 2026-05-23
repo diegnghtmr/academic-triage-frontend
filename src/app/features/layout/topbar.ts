@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  input,
-  output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
 @Component({
   selector: 'at-topbar',
@@ -54,8 +49,9 @@ import {
       padding: var(--at-s1) var(--at-s3);
       cursor: pointer;
       white-space: nowrap;
-      transition: border-color var(--at-dur-fast) var(--at-ease),
-                  color var(--at-dur-fast) var(--at-ease);
+      transition:
+        border-color var(--at-dur-fast) var(--at-ease),
+        color var(--at-dur-fast) var(--at-ease);
 
       &:hover {
         border-color: var(--at-danger);
@@ -65,12 +61,10 @@ import {
   `,
   template: `
     <span class="session-chip" [title]="sessionLabel()">{{ sessionLabel() }}</span>
-    <button type="button" class="btn--logout" (click)="logoutRequest.emit()">
-      Cerrar sesión
-    </button>
+    <button type="button" class="btn--logout" (click)="logoutRequest.emit()">Cerrar sesión</button>
   `,
 })
 export class Topbar {
-  readonly sessionLabel  = input.required<string>();
+  readonly sessionLabel = input.required<string>();
   readonly logoutRequest = output<void>();
 }

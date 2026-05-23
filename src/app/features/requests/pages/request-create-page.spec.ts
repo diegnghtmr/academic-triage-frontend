@@ -378,19 +378,27 @@ describe('RequestCreatePage — AI suggestion', () => {
       confidence: 0.9,
     };
     const suggestClassificationMock = vi.fn().mockReturnValue(of(suggestion));
-    const { page } = buildSetup({ role: 'STAFF', suggestClassification: suggestClassificationMock });
+    const { page } = buildSetup({
+      role: 'STAFF',
+      suggestClassification: suggestClassificationMock,
+    });
 
     page['form'].controls.description.setValue('This is a long enough description');
     page['suggestClassification']();
 
-    expect(suggestClassificationMock).toHaveBeenCalledWith({ description: 'This is a long enough description' });
+    expect(suggestClassificationMock).toHaveBeenCalledWith({
+      description: 'This is a long enough description',
+    });
     expect(page['aiSuggestion']()).toEqual(suggestion);
   });
 
   it('suggestClassification(): 503 → aiError set to AI_UNAVAILABLE_MSG', () => {
     const httpErr = new HttpErrorResponse({ status: 503, statusText: 'Service Unavailable' });
     const suggestClassificationMock = vi.fn().mockReturnValue(throwError(() => httpErr));
-    const { page } = buildSetup({ role: 'STAFF', suggestClassification: suggestClassificationMock });
+    const { page } = buildSetup({
+      role: 'STAFF',
+      suggestClassification: suggestClassificationMock,
+    });
 
     page['form'].controls.description.setValue('This is a long enough description');
     page['suggestClassification']();
@@ -406,7 +414,10 @@ describe('RequestCreatePage — AI suggestion', () => {
       error: { title: 'AI Error', detail: 'AI service crashed.' },
     });
     const suggestClassificationMock = vi.fn().mockReturnValue(throwError(() => httpErr));
-    const { page } = buildSetup({ role: 'STAFF', suggestClassification: suggestClassificationMock });
+    const { page } = buildSetup({
+      role: 'STAFF',
+      suggestClassification: suggestClassificationMock,
+    });
 
     page['form'].controls.description.setValue('This is a long enough description');
     page['suggestClassification']();

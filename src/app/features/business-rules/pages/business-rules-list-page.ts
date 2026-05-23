@@ -1,5 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
@@ -51,56 +58,56 @@ import type { BusinessRuleListItemView } from '../models/business-rule-list-view
         <at-empty-state message="No hay reglas de negocio registradas." />
       } @else {
         <div class="stale-wrap" [class.is-stale]="loading()" [attr.aria-busy]="loading()">
-        <table class="tbl">
-          <thead>
-            <tr>
-              <th scope="col">ID</th>
-              <th scope="col">Nombre</th>
-              <th scope="col">Condición</th>
-              <th scope="col">Detalle</th>
-              <th scope="col">Prioridad resultante</th>
-              <th scope="col">Activa</th>
-              @if (isAdmin()) {
-                <th scope="col">Acciones</th>
-              }
-            </tr>
-          </thead>
-          <tbody>
-            @for (item of items(); track item.id) {
+          <table class="tbl">
+            <thead>
               <tr>
-                <td>{{ item.id }}</td>
-                <td>{{ item.name }}</td>
-                <td>{{ item.conditionLabel }}</td>
-                <td>{{ item.conditionDetail }}</td>
-                <td>{{ item.priorityLabel }}</td>
-                <td>{{ item.active | activeBadge }}</td>
+                <th scope="col">ID</th>
+                <th scope="col">Nombre</th>
+                <th scope="col">Condición</th>
+                <th scope="col">Detalle</th>
+                <th scope="col">Prioridad resultante</th>
+                <th scope="col">Activa</th>
                 @if (isAdmin()) {
-                  <td>
-                    @if (item.id !== undefined) {
-                      <div class="row-actions">
-                        <a
-                          class="btn btn--sm btn--ghost row-actions__btn"
-                          [routerLink]="[item.id, 'edit']"
-                          [attr.aria-label]="'Editar regla ' + (item.name || item.id)"
-                          >Editar</a
-                        >
-                        <button
-                          class="btn btn--sm btn--danger row-actions__btn"
-                          type="button"
-                          [disabled]="deletingId() === item.id"
-                          [attr.aria-label]="'Eliminar regla ' + (item.name || item.id)"
-                          (click)="confirmDelete(item)"
-                        >
-                          {{ deletingId() === item.id ? 'Eliminando…' : 'Eliminar' }}
-                        </button>
-                      </div>
-                    }
-                  </td>
+                  <th scope="col">Acciones</th>
                 }
               </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @for (item of items(); track item.id) {
+                <tr>
+                  <td>{{ item.id }}</td>
+                  <td>{{ item.name }}</td>
+                  <td>{{ item.conditionLabel }}</td>
+                  <td>{{ item.conditionDetail }}</td>
+                  <td>{{ item.priorityLabel }}</td>
+                  <td>{{ item.active | activeBadge }}</td>
+                  @if (isAdmin()) {
+                    <td>
+                      @if (item.id !== undefined) {
+                        <div class="row-actions">
+                          <a
+                            class="btn btn--sm btn--ghost row-actions__btn"
+                            [routerLink]="[item.id, 'edit']"
+                            [attr.aria-label]="'Editar regla ' + (item.name || item.id)"
+                            >Editar</a
+                          >
+                          <button
+                            class="btn btn--sm btn--danger row-actions__btn"
+                            type="button"
+                            [disabled]="deletingId() === item.id"
+                            [attr.aria-label]="'Eliminar regla ' + (item.name || item.id)"
+                            (click)="confirmDelete(item)"
+                          >
+                            {{ deletingId() === item.id ? 'Eliminando…' : 'Eliminar' }}
+                          </button>
+                        </div>
+                      }
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
         </div>
       }
 
@@ -113,7 +120,10 @@ import type { BusinessRuleListItemView } from '../models/business-rule-list-view
         (modalCancel)="showDeleteModal.set(null)"
       >
         @if (showDeleteModal()) {
-          <p>¿Eliminar la regla &ldquo;{{ showDeleteModal()!.name || showDeleteModal()!.id }}&rdquo;? Esta acción no se puede deshacer.</p>
+          <p>
+            ¿Eliminar la regla &ldquo;{{ showDeleteModal()!.name || showDeleteModal()!.id }}&rdquo;?
+            Esta acción no se puede deshacer.
+          </p>
         }
       </at-modal-dialog>
     </at-page-section>
@@ -150,12 +160,10 @@ export class BusinessRulesListPage {
   protected readonly showDeleteModal = signal<BusinessRuleListItemView | null>(null);
 
   constructor() {
-    this.route.queryParamMap
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((params) => {
-        this.showInactive.set(params.get('inactive') === 'true');
-        this.load();
-      });
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      this.showInactive.set(params.get('inactive') === 'true');
+      this.load();
+    });
   }
 
   protected toggleFilter(): void {

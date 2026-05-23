@@ -1,15 +1,9 @@
 import '@angular/compiler';
 import { provideHttpClient, withInterceptors, HttpClient } from '@angular/common/http';
-import {
-  HttpTestingController,
-  provideHttpClientTesting,
-} from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideZonelessChangeDetection, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import {
-  BrowserTestingModule,
-  platformBrowserTesting,
-} from '@angular/platform-browser/testing';
+import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { AuthSessionStore } from '@core/auth/auth-session.store';
@@ -26,10 +20,7 @@ describe('authInterceptor (with apiBaseUrlInterceptor)', () => {
       });
     }
     try {
-      TestBed.initTestEnvironment(
-        BrowserTestingModule,
-        platformBrowserTesting(),
-      );
+      TestBed.initTestEnvironment(BrowserTestingModule, platformBrowserTesting());
     } catch {
       // Already initialized.
     }
@@ -71,9 +62,7 @@ describe('authInterceptor (with apiBaseUrlInterceptor)', () => {
     });
 
     const req = controller.expectOne('/api/v1/requests');
-    expect(req.request.headers.get('Authorization')).toBe(
-      'Bearer fixture-jwt-token',
-    );
+    expect(req.request.headers.get('Authorization')).toBe('Bearer fixture-jwt-token');
     req.flush({ ok: true });
 
     controller.verify();
@@ -88,12 +77,8 @@ describe('authInterceptor (with apiBaseUrlInterceptor)', () => {
 
     http.get('reports/summary').subscribe();
 
-    const req = controller.expectOne(
-      'https://api.example.edu/api/v1/reports/summary',
-    );
-    expect(req.request.headers.get('Authorization')).toBe(
-      'Bearer absolute-base-token',
-    );
+    const req = controller.expectOne('https://api.example.edu/api/v1/reports/summary');
+    expect(req.request.headers.get('Authorization')).toBe('Bearer absolute-base-token');
     req.flush({});
 
     controller.verify();
@@ -155,9 +140,7 @@ describe('authInterceptor (with apiBaseUrlInterceptor)', () => {
     http.get('me').subscribe();
 
     const req = controller.expectOne('https://api.example.edu/api/v1/me');
-    expect(req.request.headers.get('Authorization')).toBe(
-      'Bearer token-with-slash-base',
-    );
+    expect(req.request.headers.get('Authorization')).toBe('Bearer token-with-slash-base');
     req.flush({});
     controller.verify();
   });

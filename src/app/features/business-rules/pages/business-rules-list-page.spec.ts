@@ -63,17 +63,13 @@ describe('BusinessRulesListPage — query-param parsing, URL writing and API int
         provideHttpClient(withFetch()),
         provideHttpClientTesting(),
         {
-          provide: (
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
-            require('@angular/router') as { ActivatedRoute: unknown }
-          ).ActivatedRoute,
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          provide: (require('@angular/router') as { ActivatedRoute: unknown }).ActivatedRoute,
           useValue: { queryParamMap: queryParams$.asObservable() },
         },
         {
-          provide: (
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
-            require('@angular/router') as { Router: unknown }
-          ).Router,
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          provide: (require('@angular/router') as { Router: unknown }).Router,
           useValue: { navigate: navigateSpy },
         },
         {
@@ -101,8 +97,7 @@ describe('BusinessRulesListPage — query-param parsing, URL writing and API int
 
   it('A2: ?inactive=true → showInactive=true, API called without active key', () => {
     setup({ inactive: 'true' });
-    const callArg: Parameters<BusinessRulesApiService['list']>[0] =
-      listSpy.mock.calls[0][0];
+    const callArg: Parameters<BusinessRulesApiService['list']>[0] = listSpy.mock.calls[0][0];
     expect(callArg).toBeUndefined();
   });
 

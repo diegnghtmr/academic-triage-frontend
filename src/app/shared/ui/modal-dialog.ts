@@ -12,7 +12,9 @@ import {
   selector: 'at-modal-dialog',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: `
-    :host { display: contents; }
+    :host {
+      display: contents;
+    }
 
     dialog {
       background: var(--at-surface);
@@ -102,13 +104,13 @@ import {
   `,
 })
 export class ModalDialog {
-  readonly open         = input.required<boolean>();
-  readonly title        = input.required<string>();
+  readonly open = input.required<boolean>();
+  readonly title = input.required<string>();
   readonly confirmLabel = input<string>('Confirmar');
-  readonly cancelLabel  = input<string>('Cancelar');
+  readonly cancelLabel = input<string>('Cancelar');
 
-  readonly confirm      = output<void>();
-  readonly modalCancel  = output<void>();
+  readonly confirm = output<void>();
+  readonly modalCancel = output<void>();
 
   protected readonly titleId = `at-modal-title-${
     typeof crypto !== 'undefined' && 'randomUUID' in crypto

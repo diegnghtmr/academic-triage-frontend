@@ -4,7 +4,10 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   selector: 'at-action-bar',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: `
-    :host { display: block; margin-bottom: var(--at-s4); }
+    :host {
+      display: block;
+      margin-bottom: var(--at-s4);
+    }
 
     .bar {
       display: flex;

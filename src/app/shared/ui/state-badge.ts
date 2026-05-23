@@ -1,20 +1,15 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  input,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { STATUS_LABEL_MAP } from '@shared/models/request-status';
 import type { RequestStatusEnum } from '@shared/models/request-status';
 
 const STATUS_CLASS_MAP: Record<RequestStatusEnum, string> = {
-  REGISTERED:  'badge--registered',
-  CLASSIFIED:  'badge--classified',
+  REGISTERED: 'badge--registered',
+  CLASSIFIED: 'badge--classified',
   IN_PROGRESS: 'badge--in-progress',
-  ATTENDED:    'badge--attended',
-  CLOSED:      'badge--closed',
-  CANCELLED:   'badge--cancelled',
-  REJECTED:    'badge--rejected',
+  ATTENDED: 'badge--attended',
+  CLOSED: 'badge--closed',
+  CANCELLED: 'badge--cancelled',
+  REJECTED: 'badge--rejected',
 };
 
 @Component({
@@ -33,23 +28,35 @@ const STATUS_CLASS_MAP: Record<RequestStatusEnum, string> = {
       border: 1px solid currentColor;
     }
 
-    .badge--registered  { color: var(--at-mercury); }
-    .badge--classified  { color: var(--at-info); }
-    .badge--in-progress { color: var(--at-warning); }
-    .badge--attended    { color: var(--at-success); }
-    .badge--closed      { color: var(--at-text-muted); }
-    .badge--cancelled   { color: var(--at-text-muted); }
-    .badge--rejected    { color: var(--at-danger); }
+    .badge--registered {
+      color: var(--at-mercury);
+    }
+    .badge--classified {
+      color: var(--at-info);
+    }
+    .badge--in-progress {
+      color: var(--at-warning);
+    }
+    .badge--attended {
+      color: var(--at-success);
+    }
+    .badge--closed {
+      color: var(--at-text-muted);
+    }
+    .badge--cancelled {
+      color: var(--at-text-muted);
+    }
+    .badge--rejected {
+      color: var(--at-danger);
+    }
   `,
   template: `<span class="badge" [class]="badgeClass()">{{ label() }}</span>`,
 })
 export class StateBadge {
-  readonly state   = input.required<RequestStatusEnum>();
+  readonly state = input.required<RequestStatusEnum>();
   readonly compact = input<boolean>(false);
 
-  protected readonly badgeClass = computed(
-    () => `badge ${STATUS_CLASS_MAP[this.state()]}`,
-  );
+  protected readonly badgeClass = computed(() => `badge ${STATUS_CLASS_MAP[this.state()]}`);
 
   protected readonly label = computed(() => STATUS_LABEL_MAP[this.state()]);
 }

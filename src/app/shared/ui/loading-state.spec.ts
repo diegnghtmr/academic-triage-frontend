@@ -140,7 +140,7 @@ describe('LoadingState — variant behavior (template source)', () => {
   });
 
   it('text variant: template renders a <p> element bound to message()', () => {
-    expect(source).toContain("<p>{{ message() }}</p>");
+    expect(source).toContain('<p>{{ message() }}</p>');
   });
 
   it('text variant: variant() condition guards the <p> element', () => {

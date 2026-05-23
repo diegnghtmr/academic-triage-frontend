@@ -89,12 +89,10 @@ export class RequestTypesListPage {
 
   constructor() {
     // URL is the source of truth: subscribe to queryParamMap and trigger load on every change.
-    this.route.queryParamMap
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((params) => {
-        this.showInactive.set(params.get('inactive') === 'true');
-        this.load();
-      });
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      this.showInactive.set(params.get('inactive') === 'true');
+      this.load();
+    });
   }
 
   protected toggleFilter(): void {

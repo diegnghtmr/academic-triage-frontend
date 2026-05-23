@@ -66,8 +66,9 @@ import { PxIcon } from '@shared/ui/px-icon';
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: border-color var(--at-dur-fast) var(--at-ease),
-                  color var(--at-dur-fast) var(--at-ease);
+      transition:
+        border-color var(--at-dur-fast) var(--at-ease),
+        color var(--at-dur-fast) var(--at-ease);
 
       &:hover {
         border-color: var(--at-mercury);
@@ -95,8 +96,9 @@ import { PxIcon } from '@shared/ui/px-icon';
       text-decoration: none;
       white-space: nowrap;
       overflow: hidden;
-      transition: color var(--at-dur-fast) var(--at-ease),
-                  background var(--at-dur-fast) var(--at-ease);
+      transition:
+        color var(--at-dur-fast) var(--at-ease),
+        background var(--at-dur-fast) var(--at-ease);
 
       &:hover {
         color: var(--at-text);
@@ -115,8 +117,9 @@ import { PxIcon } from '@shared/ui/px-icon';
       text-overflow: ellipsis;
     }
     :host.ready .nav-item__label {
-      transition: opacity var(--at-dur-fast) var(--at-ease),
-                  max-width var(--at-dur) var(--at-ease);
+      transition:
+        opacity var(--at-dur-fast) var(--at-ease),
+        max-width var(--at-dur) var(--at-ease);
     }
 
     :host.collapsed .nav-item__label {
@@ -158,8 +161,9 @@ import { PxIcon } from '@shared/ui/px-icon';
       font-size: var(--at-fs-xs);
       padding: var(--at-s1) var(--at-s3);
       cursor: pointer;
-      transition: border-color var(--at-dur-fast) var(--at-ease),
-                  color var(--at-dur-fast) var(--at-ease);
+      transition:
+        border-color var(--at-dur-fast) var(--at-ease),
+        color var(--at-dur-fast) var(--at-ease);
       white-space: nowrap;
       overflow: hidden;
 
@@ -174,8 +178,9 @@ import { PxIcon } from '@shared/ui/px-icon';
       text-overflow: ellipsis;
     }
     :host.ready .btn__label {
-      transition: opacity var(--at-dur-fast) var(--at-ease),
-                  max-width var(--at-dur) var(--at-ease);
+      transition:
+        opacity var(--at-dur-fast) var(--at-ease),
+        max-width var(--at-dur) var(--at-ease);
     }
 
     :host.collapsed .btn__label {
@@ -316,11 +321,11 @@ export class Sidebar {
     return this.collapsed();
   }
 
-  readonly collapsed             = input.required<boolean>();
-  readonly sessionLabel          = input.required<string>();
-  readonly canCreateRequest      = input.required<boolean>();
-  readonly isAdmin               = input.required<boolean>();
-  readonly canViewBusinessRules  = input.required<boolean>();
+  readonly collapsed = input.required<boolean>();
+  readonly sessionLabel = input.required<string>();
+  readonly canCreateRequest = input.required<boolean>();
+  readonly isAdmin = input.required<boolean>();
+  readonly canViewBusinessRules = input.required<boolean>();
 
   readonly sidebarToggle = output<void>();
   readonly logoutRequest = output<void>();

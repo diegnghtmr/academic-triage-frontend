@@ -12,21 +12,18 @@ export const REQUESTS_ROUTES: Routes = [
     path: 'list',
     canActivate: [roleGuard],
     data: { roles: ['STUDENT', 'STAFF', 'ADMIN'] },
-    loadComponent: () =>
-      import('./pages/request-list-page').then((m) => m.RequestListPage),
+    loadComponent: () => import('./pages/request-list-page').then((m) => m.RequestListPage),
   },
   {
     path: 'new',
     canActivate: [roleGuard],
     data: { roles: ['STUDENT', 'STAFF'] },
-    loadComponent: () =>
-      import('./pages/request-create-page').then((m) => m.RequestCreatePage),
+    loadComponent: () => import('./pages/request-create-page').then((m) => m.RequestCreatePage),
   },
   {
     path: ':requestId',
     canActivate: [roleGuard],
     data: { roles: ['STUDENT', 'STAFF', 'ADMIN'] },
-    loadComponent: () =>
-      import('./pages/request-detail-page').then((m) => m.RequestDetailPage),
+    loadComponent: () => import('./pages/request-detail-page').then((m) => m.RequestDetailPage),
   },
 ];

@@ -82,9 +82,7 @@ describe('RequestTypeFormPage', () => {
   function setup(options: SetupOptions | string | null = null): RequestTypeFormPage {
     // Accept a bare routeId string/null for convenience (existing call sites)
     const opts: SetupOptions =
-      options === null || typeof options === 'string'
-        ? { routeId: options }
-        : options;
+      options === null || typeof options === 'string' ? { routeId: options } : options;
 
     const routeId = opts.routeId ?? null;
     navigateSpy = opts.navigateFn ?? vi.fn().mockResolvedValue(true);
@@ -99,17 +97,13 @@ describe('RequestTypeFormPage', () => {
         provideHttpClientTesting(),
         provideRouter([]),
         {
-          provide: (
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
-            require('@angular/router') as { ActivatedRoute: unknown }
-          ).ActivatedRoute,
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          provide: (require('@angular/router') as { ActivatedRoute: unknown }).ActivatedRoute,
           useValue: makeStubRoute(routeId),
         },
         {
-          provide: (
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
-            require('@angular/router') as { Router: unknown }
-          ).Router,
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          provide: (require('@angular/router') as { Router: unknown }).Router,
           useValue: { navigate: navigateSpy },
         },
         {
@@ -268,7 +262,12 @@ describe('RequestTypeFormPage', () => {
   // ── D. loadItem ───────────────────────────────────────────────────────────
 
   it('D1: loadItem — sets form.name and form.description from response', () => {
-    const mockItem: RequestTypeResponse = { id: 42, name: 'Loaded Name', description: 'Loaded Desc', active: true };
+    const mockItem: RequestTypeResponse = {
+      id: 42,
+      name: 'Loaded Name',
+      description: 'Loaded Desc',
+      active: true,
+    };
     const getById = vi.fn().mockReturnValue(of(mockItem));
     const page = setup({ routeId: '42', getById });
 

@@ -13,9 +13,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 /** Type-guard: narrows `unknown` to `RoleEnum`. */
 export function isRoleEnum(value: unknown): value is RoleEnum {
-  return (
-    value === ROLE.ADMIN || value === ROLE.STAFF || value === ROLE.STUDENT
-  );
+  return value === ROLE.ADMIN || value === ROLE.STAFF || value === ROLE.STUDENT;
 }
 
 /**

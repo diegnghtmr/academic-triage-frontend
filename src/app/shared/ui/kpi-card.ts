@@ -1,8 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  input,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 @Component({
   selector: 'at-kpi-card',
@@ -43,8 +39,12 @@ import {
       color: var(--at-text-muted);
     }
 
-    [data-tone='positive'] .kpi__value { color: var(--at-success); }
-    [data-tone='negative'] .kpi__value { color: var(--at-danger); }
+    [data-tone='positive'] .kpi__value {
+      color: var(--at-success);
+    }
+    [data-tone='negative'] .kpi__value {
+      color: var(--at-danger);
+    }
   `,
   template: `
     <div class="kpi" [attr.data-tone]="tone()">
@@ -60,5 +60,5 @@ export class KpiCard {
   readonly label = input.required<string>();
   readonly value = input.required<string | number>();
   readonly delta = input<string | undefined>(undefined);
-  readonly tone  = input<'neutral' | 'positive' | 'negative'>('neutral');
+  readonly tone = input<'neutral' | 'positive' | 'negative'>('neutral');
 }

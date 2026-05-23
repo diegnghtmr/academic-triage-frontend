@@ -6,18 +6,15 @@ import { roleGuard } from '@core/auth/role.guard';
 export const routes: Routes = [
   {
     path: '',
-    loadComponent: () =>
-      import('@features/public-home/public-home').then((m) => m.PublicHome),
+    loadComponent: () => import('@features/public-home/public-home').then((m) => m.PublicHome),
   },
   {
     path: 'auth',
-    loadChildren: () =>
-      import('@features/auth/auth.routes').then((m) => m.AUTH_ROUTES),
+    loadChildren: () => import('@features/auth/auth.routes').then((m) => m.AUTH_ROUTES),
   },
   {
     path: 'app',
-    loadComponent: () =>
-      import('@features/layout/app-shell').then((m) => m.AppShell),
+    loadComponent: () => import('@features/layout/app-shell').then((m) => m.AppShell),
     canActivate: [authGuard],
     children: [
       {
@@ -27,24 +24,19 @@ export const routes: Routes = [
       },
       {
         path: 'dashboard',
-        loadComponent: () =>
-          import('@features/dashboard/dashboard').then((m) => m.Dashboard),
+        loadComponent: () => import('@features/dashboard/dashboard').then((m) => m.Dashboard),
       },
       {
         path: 'requests',
         loadChildren: () =>
-          import('@features/requests/requests.routes').then(
-            (m) => m.REQUESTS_ROUTES,
-          ),
+          import('@features/requests/requests.routes').then((m) => m.REQUESTS_ROUTES),
       },
       {
         path: 'catalogs',
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] },
         loadChildren: () =>
-          import('@features/catalogs/catalogs.routes').then(
-            (m) => m.CATALOGS_ROUTES,
-          ),
+          import('@features/catalogs/catalogs.routes').then((m) => m.CATALOGS_ROUTES),
       },
       {
         path: 'business-rules',
@@ -59,17 +51,14 @@ export const routes: Routes = [
         path: 'users',
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] },
-        loadChildren: () =>
-          import('@features/users/users.routes').then((m) => m.USERS_ROUTES),
+        loadChildren: () => import('@features/users/users.routes').then((m) => m.USERS_ROUTES),
       },
       {
         path: 'reports',
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] },
         loadChildren: () =>
-          import('@features/reports/reports.routes').then(
-            (m) => m.REPORTS_ROUTES,
-          ),
+          import('@features/reports/reports.routes').then((m) => m.REPORTS_ROUTES),
       },
     ],
   },

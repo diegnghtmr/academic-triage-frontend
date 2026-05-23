@@ -139,19 +139,19 @@ REGISTERED → CLASSIFIED → IN_PROGRESS → ATTENDED → CLOSED
 
 ## Technology stack
 
-| Category              | Technology                                              |
-| --------------------- | ------------------------------------------------------- |
-| Language              | TypeScript 5.9 (strict)                                 |
-| Framework             | Angular 20.3 (standalone, signals, native control flow) |
-| Build / Dev server    | `@angular/build` (esbuild)                              |
-| Styling               | SCSS + custom design tokens (Cyber-Classicism)          |
-| State / reactivity    | Angular Signals + RxJS 7.8                              |
-| HTTP                  | `provideHttpClient` with functional interceptors        |
-| Routing               | Angular Router with `loadChildren` / `loadComponent`    |
-| Unit testing          | Vitest 3 with V8 coverage                               |
-| E2E testing           | Playwright 1.56 (Chromium)                              |
-| Lint / format         | ESLint 9 + `angular-eslint` + Prettier 3                |
-| Target backend        | `academic-triage-system` via `/api/v1`                  |
+| Category           | Technology                                              |
+| ------------------ | ------------------------------------------------------- |
+| Language           | TypeScript 5.9 (strict)                                 |
+| Framework          | Angular 20.3 (standalone, signals, native control flow) |
+| Build / Dev server | `@angular/build` (esbuild)                              |
+| Styling            | SCSS + custom design tokens (Cyber-Classicism)          |
+| State / reactivity | Angular Signals + RxJS 7.8                              |
+| HTTP               | `provideHttpClient` with functional interceptors        |
+| Routing            | Angular Router with `loadChildren` / `loadComponent`    |
+| Unit testing       | Vitest 3 with V8 coverage                               |
+| E2E testing        | Playwright 1.56 (Chromium)                              |
+| Lint / format      | ESLint 9 + `angular-eslint` + Prettier 3                |
+| Target backend     | `academic-triage-system` via `/api/v1`                  |
 
 > Note: this SPA does **not** use Tailwind CSS. The whole visual system is built on SCSS and design tokens defined in `src/styles.scss`.
 
@@ -283,13 +283,13 @@ These credentials only exist in the local backend `dev` profile; do not enable t
 
 The SPA is driven by two environment files and a development proxy.
 
-| File / variable                                     | Purpose                                                                     |
-| --------------------------------------------------- | --------------------------------------------------------------------------- |
-| `src/environments/environment.ts`                   | Development environment. `apiBaseUrl: '/api/v1'` (relative path + proxy).   |
-| `src/environments/environment.prod.ts`              | Production environment. Same `/api/v1` path under same-origin reverse proxy.|
-| `src/app/core/config/env.ts`                        | Resolves `apiBaseUrl` and exposes it through `getApiBaseUrl()`.             |
-| `src/app/core/http/api-base-url.token.ts`           | Angular `API_BASE_URL` token injected in `app.config.ts`.                   |
-| `angular.json`                                      | Declares the CLI proxy used by `ng serve`.                                  |
+| File / variable                           | Purpose                                                                      |
+| ----------------------------------------- | ---------------------------------------------------------------------------- |
+| `src/environments/environment.ts`         | Development environment. `apiBaseUrl: '/api/v1'` (relative path + proxy).    |
+| `src/environments/environment.prod.ts`    | Production environment. Same `/api/v1` path under same-origin reverse proxy. |
+| `src/app/core/config/env.ts`              | Resolves `apiBaseUrl` and exposes it through `getApiBaseUrl()`.              |
+| `src/app/core/http/api-base-url.token.ts` | Angular `API_BASE_URL` token injected in `app.config.ts`.                    |
+| `angular.json`                            | Declares the CLI proxy used by `ng serve`.                                   |
 
 ### Production topology
 
@@ -311,13 +311,13 @@ Backend contract (what the SPA must produce):
 
 Common errors the UI must handle as functional cases:
 
-| Code   | Meaning                                                                                              |
-| ------ | ---------------------------------------------------------------------------------------------------- |
-| `409`  | Business rule violation or duplicated resource.                                                      |
-| `412`  | Stale `If-Match`: the resource was modified by someone else; the SPA must refresh and retry.         |
-| `422`  | Semantic validation failure or body mismatch against a previous `Idempotency-Key`.                   |
-| `428`  | Missing `If-Match` on an administrative operation that requires it.                                  |
-| `503`  | AI unavailable: expected case, not a crash.                                                          |
+| Code  | Meaning                                                                                      |
+| ----- | -------------------------------------------------------------------------------------------- |
+| `409` | Business rule violation or duplicated resource.                                              |
+| `412` | Stale `If-Match`: the resource was modified by someone else; the SPA must refresh and retry. |
+| `422` | Semantic validation failure or body mismatch against a previous `Idempotency-Key`.           |
+| `428` | Missing `If-Match` on an administrative operation that requires it.                          |
+| `503` | AI unavailable: expected case, not a crash.                                                  |
 
 > **Implementation status:** the SPA does **not** currently send `Idempotency-Key` on mutations nor `If-Match` on administrative updates. There is no global interceptor that injects these headers yet; today only the 401 flow is centralized in `httpErrorInterceptor`. Closing this gap is tracked as pending work and must be addressed through a dedicated OpenSpec change — do not assume the contract is satisfied end-to-end until that lands.
 
@@ -327,20 +327,20 @@ Common errors the UI must handle as functional cases:
 
 ### npm commands
 
-| Command                    | Use                                                                          |
-| -------------------------- | ---------------------------------------------------------------------------- |
-| `npm run dev` / `start`    | Angular dev server (`ng serve academic-triage-spa`).                         |
-| `npm run build`            | Production build (`ng build academic-triage-spa`).                           |
-| `npm run check`            | Typecheck of the Angular source (`tsc -p tsconfig.app.json --noEmit`).       |
-| `npm run lint`             | ESLint Angular + TypeScript with `--max-warnings=0`.                         |
-| `npm run lint:fix`         | ESLint with autofix.                                                         |
-| `npm run format`           | Prettier write across the repo.                                              |
-| `npm run format:check`     | Prettier in check mode.                                                      |
-| `npm run test:unit`        | Vitest unit tests (`vitest run`).                                            |
-| `npm run test:unit:watch`  | Vitest in watch mode.                                                        |
-| `npm run test:e2e`         | Playwright E2E (starts the dev server if not already running).               |
-| `npm run test:e2e:ui`      | Playwright in interactive UI mode.                                           |
-| `npm run ng -- <cmd>`      | Angular CLI for scaffolding and ad-hoc commands.                             |
+| Command                   | Use                                                                    |
+| ------------------------- | ---------------------------------------------------------------------- |
+| `npm run dev` / `start`   | Angular dev server (`ng serve academic-triage-spa`).                   |
+| `npm run build`           | Production build (`ng build academic-triage-spa`).                     |
+| `npm run check`           | Typecheck of the Angular source (`tsc -p tsconfig.app.json --noEmit`). |
+| `npm run lint`            | ESLint Angular + TypeScript with `--max-warnings=0`.                   |
+| `npm run lint:fix`        | ESLint with autofix.                                                   |
+| `npm run format`          | Prettier write across the repo.                                        |
+| `npm run format:check`    | Prettier in check mode.                                                |
+| `npm run test:unit`       | Vitest unit tests (`vitest run`).                                      |
+| `npm run test:unit:watch` | Vitest in watch mode.                                                  |
+| `npm run test:e2e`        | Playwright E2E (starts the dev server if not already running).         |
+| `npm run test:e2e:ui`     | Playwright in interactive UI mode.                                     |
+| `npm run ng -- <cmd>`     | Angular CLI for scaffolding and ad-hoc commands.                       |
 
 ### Unit coverage (Vitest)
 
@@ -388,17 +388,17 @@ Authentication is JWT-based and stateless. The token is held in `Storage` throug
 
 ### Route availability per role
 
-| UI area                            | Route                 | Guard / required role                |
-| ---------------------------------- | --------------------- | ------------------------------------ |
-| Public home                        | `/`                   | public                               |
-| Login / Register                   | `/auth/...`           | `guestGuard`                         |
-| Authenticated shell                | `/app`                | `authGuard`                          |
-| Dashboard                          | `/app/dashboard`      | `authGuard`                          |
-| Requests (list/detail/create)      | `/app/requests/...`   | `authGuard` + per-state/role rules   |
-| Catalogs                           | `/app/catalogs`       | `roleGuard` with `ADMIN`             |
-| Business rules                     | `/app/business-rules` | `roleGuard` with `ADMIN`, `STAFF`    |
-| Users                              | `/app/users`          | `roleGuard` with `ADMIN`             |
-| Reports                            | `/app/reports`        | `roleGuard` with `ADMIN`             |
+| UI area                       | Route                 | Guard / required role              |
+| ----------------------------- | --------------------- | ---------------------------------- |
+| Public home                   | `/`                   | public                             |
+| Login / Register              | `/auth/...`           | `guestGuard`                       |
+| Authenticated shell           | `/app`                | `authGuard`                        |
+| Dashboard                     | `/app/dashboard`      | `authGuard`                        |
+| Requests (list/detail/create) | `/app/requests/...`   | `authGuard` + per-state/role rules |
+| Catalogs                      | `/app/catalogs`       | `roleGuard` with `ADMIN`           |
+| Business rules                | `/app/business-rules` | `roleGuard` with `ADMIN`, `STAFF`  |
+| Users                         | `/app/users`          | `roleGuard` with `ADMIN`           |
+| Reports                       | `/app/reports`        | `roleGuard` with `ADMIN`           |
 
 > Final permission authority always lives on the backend. `roleGuard` prevents rendering unreachable UI but does not replace remote verification.
 

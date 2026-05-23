@@ -4,7 +4,10 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   selector: 'at-empty-state',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: `
-    :host { display: block; padding: var(--at-s6) 0; }
+    :host {
+      display: block;
+      padding: var(--at-s6) 0;
+    }
 
     .qempty {
       display: flex;

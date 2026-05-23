@@ -293,12 +293,8 @@ test.describe('ADMIN role access', () => {
     },
   );
 
-  test(
-    'can access /app/users',
-    { tag: ['@e2e', '@admin', '@ROLE-E2E-037'] },
-    async ({ page }) => {
-      await page.goto('/app/users');
-      await expect(page).toHaveURL(/\/app\/users/);
-    },
-  );
+  test('can access /app/users', { tag: ['@e2e', '@admin', '@ROLE-E2E-037'] }, async ({ page }) => {
+    await page.goto('/app/users');
+    await expect(page).toHaveURL(/\/app\/users/);
+  });
 });
