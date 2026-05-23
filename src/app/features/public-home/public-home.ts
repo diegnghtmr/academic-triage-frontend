@@ -14,7 +14,6 @@ import { RouterLink } from '@angular/router';
       <nav class="home-nav" aria-label="Acciones principales">
         <a class="btn btn--primary" routerLink="/auth/login">Iniciar sesión</a>
         <a class="btn" routerLink="/auth/register">Registro</a>
-        <a class="btn btn--ghost" routerLink="/app">Área autenticada</a>
       </nav>
     </div>
   `,
@@ -54,7 +53,5 @@ import { RouterLink } from '@angular/router';
   `,
 })
 export class PublicHome {
-  protected readonly message = signal(
-    'Desde aquí puedes iniciar sesión, crear tu cuenta o continuar si ya tienes acceso.',
-  );
+  protected readonly message = signal('Iniciá sesión o creá tu cuenta para acceder al sistema.');
 }
