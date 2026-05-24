@@ -27,6 +27,8 @@ import type {
 } from '../models/business-rule.types';
 import { CONDITION_TYPE_OPTIONS, PRIORITY_OPTIONS } from '../models/business-rule.types';
 import { conditionalBusinessRuleValidator } from '../validators/conditional-validators';
+import { integerOnlyValidator } from '../validators/integer-validator';
+import { messageFor } from '@shared/i18n/validation-messages';
 
 /**
  * Create and edit form for business rules.
@@ -150,10 +152,10 @@ import { conditionalBusinessRuleValidator } from '../validators/conditional-vali
                       : null
                   "
                 />
-                @if (form.controls.deadlineDays.invalid && form.controls.deadlineDays.touched) {
-                  <span id="br-days-error" class="field__error" role="alert"
-                    >Ingrese un número entero mayor o igual a 0.</span
-                  >
+                @if (deadlineDaysErrorMessage()) {
+                  <span id="br-days-error" class="field__error" role="alert">{{
+                    deadlineDaysErrorMessage()
+                  }}</span>
                 }
               </div>
             }
@@ -379,7 +381,7 @@ export class BusinessRuleFormPage {
         'REQUEST_TYPE',
         Validators.required,
       ),
-      deadlineDays: this.fb.control<number | null>(null),
+      deadlineDays: this.fb.control<number | null>(null, [integerOnlyValidator]),
       requestTypeId: this.fb.control<number | null>(null),
       resultingPriority: this.fb.nonNullable.control<PriorityEnum>('HIGH', Validators.required),
       active: this.fb.nonNullable.control(true),
@@ -417,6 +419,17 @@ export class BusinessRuleFormPage {
   protected readonly ariaRequiredDeadlineDays = computed(() =>
     this.showDeadlineDays(),
   );
+
+  /**
+   * First validation error message for deadlineDays (for inline display).
+   * Returns null when no touched errors exist.
+   */
+  protected readonly deadlineDaysErrorMessage = computed<string | null>(() => {
+    const ctrl = this.form.controls.deadlineDays;
+    if (!ctrl.touched || !ctrl.errors) return null;
+    const [key, value] = Object.entries(ctrl.errors)[0];
+    return messageFor(key, value);
+  });
 
   constructor() {
     const idParam = this.route.snapshot.paramMap.get('id');

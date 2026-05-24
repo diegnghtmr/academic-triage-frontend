@@ -75,15 +75,25 @@ function validateRequestTypeId(
 /**
  * Validates `deadlineDays`: must not be null and must be >= 0 when required.
  * Returns true when valid, false otherwise (sets error on the control).
+ *
+ * When not required, also clears the 'integer' error so hidden fields never
+ * block submit via control-level validators (UV-9 AC4).
+ *
+ * When required, only the conditional keys are cleared — the 'integer' error
+ * set by the control-level `integerOnlyValidator` is left untouched so that
+ * decimal values are properly rejected (UV-9 AC5).
  */
 function validateDeadlineDays(
   control: AbstractControl,
   required: boolean,
 ): boolean {
-  const CONDITIONAL_KEYS = ['requiredForRuleType', 'min'];
+  // Keys owned exclusively by this conditional validator
+  const CONDITIONAL_OWN_KEYS = ['requiredForRuleType', 'min'];
+  // When hidden, also clear the control-level integer error (UV-9 AC4)
+  const HIDDEN_CLEAR_KEYS = ['requiredForRuleType', 'min', 'integer'];
 
   if (!required) {
-    clearErrors(control, CONDITIONAL_KEYS);
+    clearErrors(control, HIDDEN_CLEAR_KEYS);
     return true;
   }
 
@@ -101,7 +111,9 @@ function validateDeadlineDays(
     return false;
   }
 
-  clearErrors(control, CONDITIONAL_KEYS);
+  // Valid for conditional purposes — only clear OWN conditional keys.
+  // The 'integer' error (if any) is left for the control-level validator to own.
+  clearErrors(control, CONDITIONAL_OWN_KEYS);
   return true;
 }
 

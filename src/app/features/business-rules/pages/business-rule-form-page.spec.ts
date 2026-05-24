@@ -300,7 +300,7 @@ describe('BusinessRuleFormPage — C. submit() construction', () => {
     expect(body['requestTypeId']).toBeNull();
   });
 
-  it('DEADLINE with deadlineDays=3.7 → conditionValue "3" (Math.trunc)', () => {
+  it('DEADLINE with deadlineDays=3.7 → form invalid, no API call (UV-9 AC5: decimal rejected)', () => {
     const { page, createStub } = setup();
     fillBase(page);
     page['form'].controls.conditionType.setValue('DEADLINE');
@@ -308,9 +308,10 @@ describe('BusinessRuleFormPage — C. submit() construction', () => {
 
     page['submit']();
 
-    expect(createStub).toHaveBeenCalledOnce();
-    const body = createStub.mock.calls[0][0] as Record<string, unknown>;
-    expect(body['conditionValue']).toBe('3');
+    // Decimals are now blocked by integerOnlyValidator (UV-9 AC5 hard rule)
+    expect(page['form'].controls.deadlineDays.hasError('integer')).toBe(true);
+    expect(page['form'].invalid).toBe(true);
+    expect(createStub).not.toHaveBeenCalled();
   });
 
   // ── REQUEST_TYPE_AND_DEADLINE ───────────────────────────────────────────────
@@ -489,6 +490,65 @@ describe('BusinessRuleFormPage — E. Catalog loading', () => {
     const { page } = setup({ listRequestTypes: errorStub });
     expect(page['catalogError']()).not.toBeNull();
     expect(page['requestTypes']()).toHaveLength(0);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// G. Integer validator integration — decimal reject (UV-9 AC5, UV-9 AC6, UV-12 AC4)
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('BusinessRuleFormPage — G. integerOnly on deadlineDays (UV-9 AC5/AC6)', () => {
+  function fillBasicValid(page: BusinessRuleFormPage) {
+    page['form'].controls.name.setValue('Test regla');
+    page['form'].controls.description.setValue('');
+    page['form'].controls.conditionType.setValue('DEADLINE');
+  }
+
+  // UV-9.S2: decimal in deadlineDays is rejected
+  it('UV-9 AC5 (S2): deadlineDays=1.5 → form invalid with integer error', () => {
+    const { page } = setup();
+    fillBasicValid(page);
+    page['form'].controls.deadlineDays.setValue(1.5);
+
+    expect(page['form'].controls.deadlineDays.hasError('integer')).toBe(true);
+    expect(page['form'].invalid).toBe(true);
+  });
+
+  it('UV-9 AC5: deadlineDays=0.1 → form invalid with integer error', () => {
+    const { page } = setup();
+    fillBasicValid(page);
+    page['form'].controls.deadlineDays.setValue(0.1);
+
+    expect(page['form'].controls.deadlineDays.hasError('integer')).toBe(true);
+    expect(page['form'].invalid).toBe(true);
+  });
+
+  it('UV-9 AC5: decimal does NOT submit (no API call)', () => {
+    const { page, createStub } = setup();
+    fillBasicValid(page);
+    page['form'].controls.deadlineDays.setValue(1.5);
+
+    page['submit']();
+
+    expect(createStub).not.toHaveBeenCalled();
+  });
+
+  // UV-9.S4: 0 is valid (integer)
+  it('UV-9 AC6 (S4): deadlineDays=0 → no integer error (0 is valid)', () => {
+    const { page } = setup();
+    fillBasicValid(page);
+    page['form'].controls.deadlineDays.setValue(0);
+
+    expect(page['form'].controls.deadlineDays.hasError('integer')).toBe(false);
+    expect(page['form'].valid).toBe(true);
+  });
+
+  it('UV-9 AC6: deadlineDays=5 (integer) → no integer error', () => {
+    const { page } = setup();
+    fillBasicValid(page);
+    page['form'].controls.deadlineDays.setValue(5);
+
+    expect(page['form'].controls.deadlineDays.hasError('integer')).toBe(false);
   });
 });
 
