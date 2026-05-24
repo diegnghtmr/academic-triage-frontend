@@ -114,8 +114,7 @@ export function clearServerErrors(form: FormGroup): void {
     if (errors === null || errors['server'] === undefined) {
       continue;
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { server: _server, ...rest } = errors;
+    const { server: _, ...rest } = errors;
     control.setErrors(Object.keys(rest).length > 0 ? rest : null);
   }
 }
