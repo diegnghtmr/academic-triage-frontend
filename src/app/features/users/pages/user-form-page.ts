@@ -29,13 +29,13 @@ import { UsersApiService } from '../data-access/users-api.service';
 import type { UpdateUserBody } from '../models/user-admin.types';
 
 /** Stable DOM IDs for focus management. */
-const USER_CONTROL_IDS = {
+const USER_CONTROL_IDS: Readonly<Record<string, string>> = {
   firstName: 'uf-firstname',
   lastName: 'uf-lastname',
   identification: 'uf-id',
   email: 'uf-email',
   role: 'uf-role',
-} as const;
+};
 
 @Component({
   selector: 'at-user-form-page',
@@ -155,16 +155,26 @@ const USER_CONTROL_IDS = {
               />
             </at-form-field>
 
-            <div class="field">
-              <label class="field__label" for="uf-role"
-                >Rol <span aria-hidden="true">*</span></label
+            <at-form-field
+              label="Rol"
+              controlId="uf-role"
+              [required]="true"
+              [errorMessage]="roleError()"
+              [invalid]="form.controls.role.invalid && form.controls.role.touched"
+            >
+              <select
+                class="input"
+                id="uf-role"
+                formControlName="role"
+                aria-required="true"
+                [attr.aria-invalid]="form.controls.role.invalid && form.controls.role.touched"
+                [attr.aria-describedby]="form.controls.role.invalid && form.controls.role.touched ? 'uf-role-error' : null"
               >
-              <select class="input" id="uf-role" formControlName="role" aria-required="true">
                 @for (r of roleOptions; track r) {
                   <option [value]="r">{{ r | displayLabel: 'role' }}</option>
                 }
               </select>
-            </div>
+            </at-form-field>
 
             <div class="field field--checkbox">
               <label class="field__checkbox-label">
@@ -295,6 +305,15 @@ export class UserFormPage {
 
   protected readonly emailError = computed(() => {
     const ctrl = this.form.controls.email;
+    if (!ctrl.touched || ctrl.valid) return null;
+    const errs = ctrl.errors;
+    if (!errs) return null;
+    const key = Object.keys(errs)[0];
+    return messageFor(key, errs[key]);
+  });
+
+  protected readonly roleError = computed(() => {
+    const ctrl = this.form.controls.role;
     if (!ctrl.touched || ctrl.valid) return null;
     const errs = ctrl.errors;
     if (!errs) return null;
