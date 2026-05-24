@@ -125,6 +125,30 @@ describe('PasswordField — toggle logic (UV-4 AC2, AC7)', () => {
   });
 });
 
+// ─── B2. aria-pressed sync + keyboard activation completeness ─────────────────
+
+describe('PasswordField — aria-pressed sync and keyboard contract (UV-4 AC2, AC6)', () => {
+  it('UV-4 AC2: aria-pressed binding uses revealed() directly (no conversion)', () => {
+    // [attr.aria-pressed]="revealed()" — browser serializes boolean to "true"/"false"
+    expect(source).toContain('[attr.aria-pressed]="revealed()"');
+  });
+
+  it('UV-4 AC6: keyboard activation is handled natively via <button> element', () => {
+    // <button> elements respond to Enter and Space natively — no manual keydown binding needed
+    expect(source).toContain('<button');
+    expect(source).toContain('type="button"');
+    // No manual keydown handler needed (browser handles it)
+    const hasManualKeydown = source.includes('(keydown)') || source.includes('(keyup)');
+    expect(hasManualKeydown).toBe(false);
+  });
+
+  it('UV-4 AC2: aria-label switches between Mostrar and Ocultar based on revealed()', () => {
+    expect(source).toContain('[attr.aria-label]');
+    expect(source).toContain('Ocultar contraseña');
+    expect(source).toContain('Mostrar contraseña');
+  });
+});
+
 // ─── C. CVA smoke tests (UV-12 AC3) ──────────────────────────────────────────
 
 describe('PasswordField — ControlValueAccessor smoke tests (UV-12 AC3)', () => {

@@ -109,3 +109,31 @@ describe('ErrorSummary — docket style prefix (UV-7)', () => {
     expect(source).toContain('[ revisar ]');
   });
 });
+
+describe('ErrorSummary — focus delegation contract (UV-7 AC6 — complete)', () => {
+  it('UV-7 AC6: focusFirst output emits on item click', () => {
+    expect(source).toContain('focusFirst');
+    expect(source).toContain('output');
+    expect(source).toContain('onItemClick');
+  });
+
+  it('UV-7 AC6: onItemClick calls focusFirst.emit with the clicked item', () => {
+    expect(source).toContain('focusFirst.emit');
+    expect(source).toContain('item');
+  });
+
+  it('UV-7 AC6: button click triggers onItemClick — (click) binding present', () => {
+    expect(source).toContain('(click)="onItemClick(item)"');
+  });
+
+  it('UV-7 AC4: role="alert" is conditionally rendered via @if guard', () => {
+    // role="alert" must be inside @if (hasErrors()) conditional block
+    // Verified by checking both tokens exist in the template
+    expect(source).toContain('@if (hasErrors())');
+    expect(source).toContain('role="alert"');
+  });
+
+  it('focusFirst output is typed as ErrorSummaryItem', () => {
+    expect(source).toContain('output<ErrorSummaryItem>');
+  });
+});

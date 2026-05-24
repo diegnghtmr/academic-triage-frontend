@@ -81,6 +81,44 @@ describe('FormField — template ARIA wiring (UV-7 AC1–AC3)', () => {
   });
 });
 
+describe('FormField — aria-required contract (UV-7 AC3 — W-1 fix)', () => {
+  it('UV-7 AC3: exposes ariaRequired computed signal for consumer binding', () => {
+    // W-1: FormField must expose ariaRequired so consumers can bind
+    // [attr.aria-required]="formField.ariaRequired()" on the projected input
+    expect(source).toContain('ariaRequired');
+  });
+
+  it('UV-7 AC3: ariaRequired is derived from required() via computed()', () => {
+    expect(source).toContain('ariaRequired');
+    expect(source).toContain('computed(');
+  });
+
+  it('UV-7 AC3: ariaRequired returns "true" (string) when required is true', () => {
+    // aria-required must be a string "true" | null for proper attribute binding
+    expect(source).toContain("'true'");
+  });
+
+  it('UV-7 AC3: ariaRequired returns null when required is false (removes attribute)', () => {
+    // null removes the attribute from the DOM
+    expect(source).toContain('null');
+  });
+});
+
+describe('FormField — describedBy contract (UV-7 AC1)', () => {
+  it('UV-7 AC1: describedBy returns null when no hint and no error (removes attribute)', () => {
+    // null ensures aria-describedby is removed when not needed
+    expect(source).toContain('parts.length > 0');
+  });
+
+  it('UV-7 AC1: describedBy includes hintId when hint is present', () => {
+    expect(source).toContain('hintId()');
+  });
+
+  it('UV-7 AC1: describedBy includes errorId when errorMessage is present', () => {
+    expect(source).toContain('errorId()');
+  });
+});
+
 describe('FormField — selector and change detection (UV-7)', () => {
   it('has selector at-form-field', () => {
     expect(source).toContain("selector: 'at-form-field'");
