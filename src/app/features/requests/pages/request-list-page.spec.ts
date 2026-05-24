@@ -7,8 +7,9 @@
  * this follows the same pattern used in users-list-page.spec.ts.
  */
 import '@angular/compiler';
-import { EnvironmentProviders, provideZonelessChangeDetection } from '@angular/core';
-import type { Provider } from '@angular/core';
+import { readFileSync } from 'node:fs';
+import { provideZonelessChangeDetection } from '@angular/core';
+import type { EnvironmentProviders, Provider } from '@angular/core';
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { convertToParamMap } from '@angular/router';
@@ -248,5 +249,32 @@ describe('RequestListPage — query-param parsing, URL writing and API integrati
       listSpy.mock.calls[listSpy.mock.calls.length - 1][0];
     expect(lastCallArg.status).toBe('CLOSED');
     expect(lastCallArg.page).toBe(2);
+  });
+});
+
+// ── Suite D — S3/W-1: empty-state source assertions (UV-11.S2) ───────────────
+
+describe('RequestListPage — S3/W-1: empty-state template source assertion (UV-11.S2)', () => {
+  const source = readFileSync(
+    new URL('./request-list-page.ts', import.meta.url).pathname,
+    'utf-8',
+  );
+
+  it('template contains at-empty-state element (UV-11.S2)', () => {
+    expect(source).toContain('at-empty-state');
+  });
+
+  it('at-empty-state is conditional on !loading() && rows().length === 0 (UV-11.S2)', () => {
+    // The empty-state render condition must check both loading=false AND rows empty.
+    expect(source).toContain('!loading()');
+    expect(source).toContain('rows().length === 0');
+  });
+
+  it('at-empty-state has a message input binding or attribute (UV-11.S2)', () => {
+    expect(source).toContain('message=');
+  });
+
+  it('EmptyState is imported into the component (UV-11.S2)', () => {
+    expect(source).toContain('EmptyState');
   });
 });
