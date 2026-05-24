@@ -77,7 +77,7 @@ export interface ErrorSummaryItem {
 })
 export class ErrorSummary {
   readonly items = input.required<readonly ErrorSummaryItem[]>();
-  readonly headline = input('Revisá los siguientes errores.');
+  readonly headline = input('Revisa los siguientes errores.');
   readonly focusFirst = output<ErrorSummaryItem>();
 
   protected readonly hasErrors = computed(() => this.items().length > 0);

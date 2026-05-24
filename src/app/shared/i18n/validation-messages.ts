@@ -40,7 +40,7 @@ export function messageFor(errorKey: string, errorValue: unknown): string {
   if (errorKey === 'server') {
     return typeof errorValue === 'string' && errorValue.length > 0
       ? errorValue
-      : 'Ocurrió un error. Intentá de nuevo.';
+      : 'Ocurrió un error. Intenta de nuevo.';
   }
 
   switch (errorKey) {

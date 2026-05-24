@@ -34,7 +34,7 @@ const LOGIN_CONTROL_IDS = {
         <h1 class="login-wrap__title">Iniciar sesión</h1>
         @if (registeredNotice()) {
           <p class="login-wrap__notice" role="status">
-            Registro completado. Iniciá sesión con tu cuenta.
+            Registro completado. Inicia sesión con tu cuenta.
           </p>
         }
 

@@ -181,7 +181,7 @@ export const REGISTER_CONTROL_IDS = {
         </form>
 
         <p class="reg-wrap__link">
-          ¿Ya tenés cuenta?
+          ¿Ya tienes cuenta?
           <a routerLink="/auth/login">Iniciar sesión</a>
         </p>
       </div>

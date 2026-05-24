@@ -53,5 +53,5 @@ import { RouterLink } from '@angular/router';
   `,
 })
 export class PublicHome {
-  protected readonly message = signal('Iniciá sesión o creá tu cuenta para acceder al sistema.');
+  protected readonly message = signal('Inicia sesión o crea tu cuenta para acceder al sistema.');
 }

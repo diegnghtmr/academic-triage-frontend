@@ -314,7 +314,7 @@ describe('RequestDetailPage — S4a: assign action error wiring (UV-8 AC5)', () 
 
     // 404 triggers the recovery guidance copy (UV-8 AC6 — assign by numeric ID)
     expect(page['assignError']()).toBe(
-      'ID de staff inválido o usuario no encontrado. Verificá con el equipo.',
+      'ID de staff inválido o usuario no encontrado. Verifica con el equipo.',
     );
   });
 

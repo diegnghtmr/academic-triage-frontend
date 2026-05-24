@@ -59,14 +59,14 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
  * Documented as technical debt until a staff selector is available (PRD §R8).
  */
 const ASSIGN_STAFF_HINT =
-  'Ingresá el ID numérico del miembro del staff. Próximamente: selector con búsqueda.';
+  'Ingresa el ID numérico del miembro del staff. Próximamente: selector con búsqueda.';
 
 /**
  * Recovery message shown when the backend rejects the assigned staff ID
  * (e.g. 404 Not Found or 422 validation) — UV-8 AC6.
  */
 const ASSIGN_NOT_FOUND_MSG =
-  'ID de staff inválido o usuario no encontrado. Verificá con el equipo.';
+  'ID de staff inválido o usuario no encontrado. Verifica con el equipo.';
 
 /** Control ID maps for applyProblemToForm — field name → DOM input id. */
 const CLASSIFY_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
