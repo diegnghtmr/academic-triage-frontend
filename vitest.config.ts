@@ -10,6 +10,8 @@ export default defineConfig({
       '@shared/models': resolve(__dirname, 'src/app/shared/models'),
       '@shared/data-access': resolve(__dirname, 'src/app/shared/data-access'),
       '@shared/pipes': resolve(__dirname, 'src/app/shared/pipes'),
+      '@shared/utils': resolve(__dirname, 'src/app/shared/utils'),
+      '@shared/i18n': resolve(__dirname, 'src/app/shared/i18n'),
       '@shared': resolve(__dirname, 'src/app/features/shared'),
     },
   },

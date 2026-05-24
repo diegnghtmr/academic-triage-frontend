@@ -10,15 +10,22 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { catchError, EMPTY, finalize, type Observable } from 'rxjs';
+import { catchError, EMPTY, finalize } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { AuthSessionStore } from '@core/auth/auth-session.store';
 import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
 import { DateTimeLabelPipe } from '@shared/pipes/date-time-label.pipe';
 import { DisplayLabelPipe } from '@shared/pipes/display-label.pipe';
+import { ErrorAlert } from '@shared/ui/error-alert';
+import { FormField } from '@shared/ui/form-field/form-field';
 import { StateBadge } from '@shared/ui/state-badge';
 import { PriorityBadge } from '@shared/ui/priority-badge';
+import {
+  applyProblemToForm,
+  clearServerErrors,
+} from '@shared/utils/problem-field-mapper';
+import { messageFor } from '@shared/i18n/validation-messages';
 
 import { adaptHistoryEntry, adaptRequestDetail } from '../adapters/request-detail.adapter';
 import { AiPanel } from '../components/ai-panel';
@@ -31,7 +38,6 @@ import type { AiSummaryResponse } from '../models/ai-api.types';
 import type {
   PriorityEnum,
   PrioritySuggestionResponse,
-  RequestResponse,
   RequestStatusEnum,
   RequestTypeResponse,
 } from '../models/request-api.types';
@@ -51,6 +57,32 @@ import {
 /** Standard message when the AI returns 503. */
 const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este entorno.';
 
+/** Control ID maps for applyProblemToForm — field name → DOM input id. */
+const CLASSIFY_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
+  requestTypeId: 'detail-classify-type',
+  observations: 'detail-classify-obs',
+};
+const PRIORITIZE_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
+  priority: 'detail-priority',
+  justification: 'detail-priority-just',
+};
+const ASSIGN_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
+  assignedToUserId: 'detail-assign-user',
+  observations: 'detail-assign-obs',
+};
+const ATTEND_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
+  observations: 'detail-attend-obs',
+};
+const CLOSE_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
+  closingObservation: 'detail-close-obs',
+};
+const CANCEL_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
+  cancellationReason: 'detail-cancel-reason',
+};
+const REJECT_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
+  rejectionReason: 'detail-reject-reason',
+};
+
 @Component({
   selector: 'at-request-detail-page',
   imports: [
@@ -58,6 +90,8 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
     RouterLink,
     DisplayLabelPipe,
     DateTimeLabelPipe,
+    ErrorAlert,
+    FormField,
     StateBadge,
     PriorityBadge,
     Pipeline,
@@ -172,6 +206,7 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
                       id="note-observations"
                       formControlName="observations"
                       rows="3"
+                      [attr.aria-invalid]="(noteForm.controls.observations.touched && !!noteForm.controls.observations.errors) || null"
                     ></textarea>
                   </div>
                   <div class="note-form__actions">
@@ -320,25 +355,42 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
             @if (canClassify()(d.status)) {
               <form class="action-form" [formGroup]="classifyForm" (ngSubmit)="submitClassify()">
                 <h4 class="action-form__title">Clasificar</h4>
-                <div class="field">
-                  <label class="field__label" for="detail-classify-type">Tipo de solicitud</label>
-                  <select class="input" id="detail-classify-type" formControlName="requestTypeId">
+                <at-form-field
+                  label="Tipo de solicitud"
+                  controlId="detail-classify-type"
+                  [required]="true"
+                  [errorMessage]="firstClassifyRequestTypeIdError()"
+                  [invalid]="classifyForm.controls.requestTypeId.touched && !!classifyForm.controls.requestTypeId.errors"
+                >
+                  <select
+                    class="input"
+                    id="detail-classify-type"
+                    formControlName="requestTypeId"
+                    [attr.aria-required]="'true'"
+                    [attr.aria-invalid]="(classifyForm.controls.requestTypeId.touched && !!classifyForm.controls.requestTypeId.errors) || null"
+                    [attr.aria-describedby]="firstClassifyRequestTypeIdError() ? 'detail-classify-type-error' : null"
+                  >
                     @for (t of requestTypesWithId(); track t.id) {
                       <option [ngValue]="t.id">{{ t.name }}</option>
                     }
                   </select>
-                </div>
-                <div class="field">
-                  <label class="field__label" for="detail-classify-obs"
-                    >Observaciones (opcional)</label
-                  >
+                </at-form-field>
+                <at-form-field
+                  label="Observaciones (opcional)"
+                  controlId="detail-classify-obs"
+                  [errorMessage]="firstClassifyObservationsError()"
+                  [invalid]="classifyForm.controls.observations.touched && !!classifyForm.controls.observations.errors"
+                >
                   <textarea
                     class="input"
                     id="detail-classify-obs"
                     formControlName="observations"
                     rows="2"
+                    [attr.aria-invalid]="(classifyForm.controls.observations.touched && !!classifyForm.controls.observations.errors) || null"
+                    [attr.aria-describedby]="firstClassifyObservationsError() ? 'detail-classify-obs-error' : null"
                   ></textarea>
-                </div>
+                </at-form-field>
+                <at-error-alert variant="error" [message]="classifyError()" />
                 <button
                   class="btn btn--sm"
                   type="submit"
@@ -355,23 +407,43 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
                 (ngSubmit)="submitPrioritize()"
               >
                 <h4 class="action-form__title">Priorizar</h4>
-                <div class="field">
-                  <label class="field__label" for="detail-priority">Prioridad</label>
-                  <select class="input" id="detail-priority" formControlName="priority">
+                <at-form-field
+                  label="Prioridad"
+                  controlId="detail-priority"
+                  [required]="true"
+                  [errorMessage]="null"
+                  [invalid]="prioritizeForm.controls.priority.touched && !!prioritizeForm.controls.priority.errors"
+                >
+                  <select
+                    class="input"
+                    id="detail-priority"
+                    formControlName="priority"
+                    [attr.aria-required]="'true'"
+                    [attr.aria-invalid]="(prioritizeForm.controls.priority.touched && !!prioritizeForm.controls.priority.errors) || null"
+                  >
                     @for (p of priorityOptions; track p) {
                       <option [ngValue]="p">{{ p | displayLabel: 'priority' }}</option>
                     }
                   </select>
-                </div>
-                <div class="field">
-                  <label class="field__label" for="detail-priority-just">Justificación</label>
+                </at-form-field>
+                <at-form-field
+                  label="Justificación"
+                  controlId="detail-priority-just"
+                  [required]="true"
+                  [errorMessage]="firstPrioritizeJustificationError()"
+                  [invalid]="prioritizeForm.controls.justification.touched && !!prioritizeForm.controls.justification.errors"
+                >
                   <textarea
                     class="input"
                     id="detail-priority-just"
                     formControlName="justification"
                     rows="2"
+                    [attr.aria-required]="'true'"
+                    [attr.aria-invalid]="(prioritizeForm.controls.justification.touched && !!prioritizeForm.controls.justification.errors) || null"
+                    [attr.aria-describedby]="firstPrioritizeJustificationError() ? 'detail-priority-just-error' : null"
                   ></textarea>
-                </div>
+                </at-form-field>
+                <at-error-alert variant="error" [message]="prioritizeError()" />
                 <button
                   class="btn btn--sm"
                   type="submit"
@@ -384,27 +456,39 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
             @if (canAssign()(d.status, d.priority)) {
               <form class="action-form" [formGroup]="assignForm" (ngSubmit)="submitAssign()">
                 <h4 class="action-form__title">Asignar responsable</h4>
-                <div class="field">
-                  <label class="field__label" for="detail-assign-user">Usuario responsable</label>
+                <at-form-field
+                  label="Usuario responsable"
+                  controlId="detail-assign-user"
+                  [required]="true"
+                  hint="Puedes tomar este dato del listado de usuarios."
+                  [errorMessage]="firstAssignUserIdError()"
+                  [invalid]="assignForm.controls.assignedToUserId.touched && !!assignForm.controls.assignedToUserId.errors"
+                >
                   <input
                     class="input"
                     id="detail-assign-user"
                     type="number"
                     formControlName="assignedToUserId"
+                    [attr.aria-required]="'true'"
+                    [attr.aria-invalid]="(assignForm.controls.assignedToUserId.touched && !!assignForm.controls.assignedToUserId.errors) || null"
+                    [attr.aria-describedby]="firstAssignUserIdError() ? 'detail-assign-user-hint detail-assign-user-error' : 'detail-assign-user-hint'"
                   />
-                  <small>Puedes tomar este dato del listado de usuarios.</small>
-                </div>
-                <div class="field">
-                  <label class="field__label" for="detail-assign-obs"
-                    >Observaciones (opcional)</label
-                  >
+                </at-form-field>
+                <at-form-field
+                  label="Observaciones (opcional)"
+                  controlId="detail-assign-obs"
+                  [errorMessage]="null"
+                  [invalid]="false"
+                >
                   <textarea
                     class="input"
                     id="detail-assign-obs"
                     formControlName="observations"
                     rows="2"
+                    [attr.aria-invalid]="(assignForm.controls.observations.touched && !!assignForm.controls.observations.errors) || null"
                   ></textarea>
-                </div>
+                </at-form-field>
+                <at-error-alert variant="error" [message]="assignError()" />
                 <button
                   class="btn btn--sm"
                   type="submit"
@@ -417,15 +501,24 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
             @if (canAttend()(d.status)) {
               <form class="action-form" [formGroup]="attendForm" (ngSubmit)="submitAttend()">
                 <h4 class="action-form__title">Atender</h4>
-                <div class="field">
-                  <label class="field__label" for="detail-attend-obs">Observaciones</label>
+                <at-form-field
+                  label="Observaciones"
+                  controlId="detail-attend-obs"
+                  [required]="true"
+                  [errorMessage]="firstAttendObservationsError()"
+                  [invalid]="attendForm.controls.observations.touched && !!attendForm.controls.observations.errors"
+                >
                   <textarea
                     class="input"
                     id="detail-attend-obs"
                     formControlName="observations"
                     rows="3"
+                    [attr.aria-required]="'true'"
+                    [attr.aria-invalid]="(attendForm.controls.observations.touched && !!attendForm.controls.observations.errors) || null"
+                    [attr.aria-describedby]="firstAttendObservationsError() ? 'detail-attend-obs-error' : null"
                   ></textarea>
-                </div>
+                </at-form-field>
+                <at-error-alert variant="error" [message]="attendError()" />
                 <button
                   class="btn btn--sm"
                   type="submit"
@@ -438,15 +531,24 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
             @if (canClose()(d.status)) {
               <form class="action-form" [formGroup]="closeForm" (ngSubmit)="submitClose()">
                 <h4 class="action-form__title">Cerrar</h4>
-                <div class="field">
-                  <label class="field__label" for="detail-close-obs">Observación de cierre</label>
+                <at-form-field
+                  label="Observación de cierre"
+                  controlId="detail-close-obs"
+                  [required]="true"
+                  [errorMessage]="firstCloseObservationError()"
+                  [invalid]="closeForm.controls.closingObservation.touched && !!closeForm.controls.closingObservation.errors"
+                >
                   <textarea
                     class="input"
                     id="detail-close-obs"
                     formControlName="closingObservation"
                     rows="3"
+                    [attr.aria-required]="'true'"
+                    [attr.aria-invalid]="(closeForm.controls.closingObservation.touched && !!closeForm.controls.closingObservation.errors) || null"
+                    [attr.aria-describedby]="firstCloseObservationError() ? 'detail-close-obs-error' : null"
                   ></textarea>
-                </div>
+                </at-form-field>
+                <at-error-alert variant="error" [message]="closeError()" />
                 <button
                   class="btn btn--sm"
                   type="submit"
@@ -459,17 +561,24 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
             @if (canCancel()(d.status)) {
               <form class="action-form" [formGroup]="cancelForm" (ngSubmit)="submitCancel()">
                 <h4 class="action-form__title">Cancelar</h4>
-                <div class="field">
-                  <label class="field__label" for="detail-cancel-reason"
-                    >Motivo de cancelación</label
-                  >
+                <at-form-field
+                  label="Motivo de cancelación"
+                  controlId="detail-cancel-reason"
+                  [required]="true"
+                  [errorMessage]="firstCancelReasonError()"
+                  [invalid]="cancelForm.controls.cancellationReason.touched && !!cancelForm.controls.cancellationReason.errors"
+                >
                   <textarea
                     class="input"
                     id="detail-cancel-reason"
                     formControlName="cancellationReason"
                     rows="3"
+                    [attr.aria-required]="'true'"
+                    [attr.aria-invalid]="(cancelForm.controls.cancellationReason.touched && !!cancelForm.controls.cancellationReason.errors) || null"
+                    [attr.aria-describedby]="firstCancelReasonError() ? 'detail-cancel-reason-error' : null"
                   ></textarea>
-                </div>
+                </at-form-field>
+                <at-error-alert variant="error" [message]="cancelError()" />
                 <button
                   class="btn btn--sm"
                   type="submit"
@@ -482,15 +591,24 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
             @if (canReject()(d.status)) {
               <form class="action-form" [formGroup]="rejectForm" (ngSubmit)="submitReject()">
                 <h4 class="action-form__title">Rechazar (ADMIN)</h4>
-                <div class="field">
-                  <label class="field__label" for="detail-reject-reason">Motivo de rechazo</label>
+                <at-form-field
+                  label="Motivo de rechazo"
+                  controlId="detail-reject-reason"
+                  [required]="true"
+                  [errorMessage]="firstRejectReasonError()"
+                  [invalid]="rejectForm.controls.rejectionReason.touched && !!rejectForm.controls.rejectionReason.errors"
+                >
                   <textarea
                     class="input"
                     id="detail-reject-reason"
                     formControlName="rejectionReason"
                     rows="3"
+                    [attr.aria-required]="'true'"
+                    [attr.aria-invalid]="(rejectForm.controls.rejectionReason.touched && !!rejectForm.controls.rejectionReason.errors) || null"
+                    [attr.aria-describedby]="firstRejectReasonError() ? 'detail-reject-reason-error' : null"
                   ></textarea>
-                </div>
+                </at-form-field>
+                <at-error-alert variant="error" [message]="rejectError()" />
                 <button
                   class="btn btn--sm"
                   type="submit"
@@ -972,6 +1090,15 @@ export class RequestDetailPage {
   protected readonly catalogWarning = signal<string | null>(null);
   protected readonly noteSubmitting = signal(false);
 
+  // Per-action error signals (UV-8 AC5) — each action owns its error scope.
+  protected readonly classifyError = signal<string | null>(null);
+  protected readonly prioritizeError = signal<string | null>(null);
+  protected readonly assignError = signal<string | null>(null);
+  protected readonly attendError = signal<string | null>(null);
+  protected readonly closeError = signal<string | null>(null);
+  protected readonly cancelError = signal<string | null>(null);
+  protected readonly rejectError = signal<string | null>(null);
+
   protected readonly priorityOptions: PriorityEnum[] = ['HIGH', 'MEDIUM', 'LOW'];
 
   protected readonly noteForm = this.fb.nonNullable.group({
@@ -1090,6 +1217,72 @@ export class RequestDetailPage {
     ),
   );
 
+  // ── Per-action field error computed helpers (UV-8 AC5) ───────────────────
+
+  /** Returns the first error message for classifyForm.requestTypeId, or null. */
+  protected readonly firstClassifyRequestTypeIdError = computed<string | null>(() => {
+    const ctrl = this.classifyForm.controls.requestTypeId;
+    if (!ctrl.touched || !ctrl.errors) return null;
+    const [key, value] = Object.entries(ctrl.errors)[0];
+    return messageFor(key, value);
+  });
+
+  /** Returns the first error message for classifyForm.observations, or null. */
+  protected readonly firstClassifyObservationsError = computed<string | null>(() => {
+    const ctrl = this.classifyForm.controls.observations;
+    if (!ctrl.touched || !ctrl.errors) return null;
+    const [key, value] = Object.entries(ctrl.errors)[0];
+    return messageFor(key, value);
+  });
+
+  /** Returns the first error message for prioritizeForm.justification, or null. */
+  protected readonly firstPrioritizeJustificationError = computed<string | null>(() => {
+    const ctrl = this.prioritizeForm.controls.justification;
+    if (!ctrl.touched || !ctrl.errors) return null;
+    const [key, value] = Object.entries(ctrl.errors)[0];
+    return messageFor(key, value);
+  });
+
+  /** Returns the first error message for assignForm.assignedToUserId, or null. */
+  protected readonly firstAssignUserIdError = computed<string | null>(() => {
+    const ctrl = this.assignForm.controls.assignedToUserId;
+    if (!ctrl.touched || !ctrl.errors) return null;
+    const [key, value] = Object.entries(ctrl.errors)[0];
+    return messageFor(key, value);
+  });
+
+  /** Returns the first error message for attendForm.observations, or null. */
+  protected readonly firstAttendObservationsError = computed<string | null>(() => {
+    const ctrl = this.attendForm.controls.observations;
+    if (!ctrl.touched || !ctrl.errors) return null;
+    const [key, value] = Object.entries(ctrl.errors)[0];
+    return messageFor(key, value);
+  });
+
+  /** Returns the first error message for closeForm.closingObservation, or null. */
+  protected readonly firstCloseObservationError = computed<string | null>(() => {
+    const ctrl = this.closeForm.controls.closingObservation;
+    if (!ctrl.touched || !ctrl.errors) return null;
+    const [key, value] = Object.entries(ctrl.errors)[0];
+    return messageFor(key, value);
+  });
+
+  /** Returns the first error message for cancelForm.cancellationReason, or null. */
+  protected readonly firstCancelReasonError = computed<string | null>(() => {
+    const ctrl = this.cancelForm.controls.cancellationReason;
+    if (!ctrl.touched || !ctrl.errors) return null;
+    const [key, value] = Object.entries(ctrl.errors)[0];
+    return messageFor(key, value);
+  });
+
+  /** Returns the first error message for rejectForm.rejectionReason, or null. */
+  protected readonly firstRejectReasonError = computed<string | null>(() => {
+    const ctrl = this.rejectForm.controls.rejectionReason;
+    if (!ctrl.touched || !ctrl.errors) return null;
+    const [key, value] = Object.entries(ctrl.errors)[0];
+    return messageFor(key, value);
+  });
+
   constructor() {
     this.catalogApi
       .listRequestTypes()
@@ -1162,6 +1355,7 @@ export class RequestDetailPage {
 
   protected submitNote(): void {
     if (this.noteForm.invalid) {
+      this.noteForm.markAllAsTouched();
       return;
     }
     this.noteSubmitting.set(true);
@@ -1183,78 +1377,204 @@ export class RequestDetailPage {
   }
 
   protected submitClassify(): void {
+    if (this.classifyForm.invalid) {
+      this.classifyForm.markAllAsTouched();
+      return;
+    }
     const v = this.classifyForm.getRawValue();
     if (v.requestTypeId === null) {
       return;
     }
-    this.runAction(
-      this.api.classifyRequest(this.requestId, {
+    clearServerErrors(this.classifyForm);
+    this.classifyError.set(null);
+    this.actionBusy.set(true);
+    this.api
+      .classifyRequest(this.requestId, {
         requestTypeId: v.requestTypeId,
         observations: v.observations === '' ? undefined : v.observations,
-      }),
-    );
-  }
-
-  protected submitPrioritize(): void {
-    const v = this.prioritizeForm.getRawValue();
-    if (v.priority === null) {
-      return;
-    }
-    this.runAction(
-      this.api.prioritizeRequest(this.requestId, {
-        priority: v.priority,
-        justification: v.justification,
-      }),
-    );
-  }
-
-  protected submitAssign(): void {
-    const v = this.assignForm.getRawValue();
-    if (v.assignedToUserId === null) {
-      return;
-    }
-    this.runAction(
-      this.api.assignRequest(this.requestId, {
-        assignedToUserId: v.assignedToUserId,
-        observations: v.observations === '' ? undefined : v.observations,
-      }),
-    );
-  }
-
-  protected submitAttend(): void {
-    this.runAction(this.api.attendRequest(this.requestId, this.attendForm.getRawValue()));
-  }
-
-  protected submitClose(): void {
-    this.runAction(this.api.closeRequest(this.requestId, this.closeForm.getRawValue()));
-  }
-
-  protected submitCancel(): void {
-    this.runAction(this.api.cancelRequest(this.requestId, this.cancelForm.getRawValue()));
-  }
-
-  protected submitReject(): void {
-    this.runAction(this.api.rejectRequest(this.requestId, this.rejectForm.getRawValue()));
-  }
-
-  private mapErr(err: HttpErrorResponse): string {
-    const p = this.problemMapper.fromHttpError(err);
-    return p?.detail ?? p?.title ?? 'No pudimos completar la acción. Inténtalo de nuevo.';
-  }
-
-  private runAction(obs: Observable<RequestResponse>): void {
-    this.actionBusy.set(true);
-    this.actionError.set(null);
-    obs
+      })
       .pipe(
         catchError((err: HttpErrorResponse) => {
-          this.actionError.set(this.mapErr(err));
+          const p = this.problemMapper.fromHttpError(err);
+          const { remainingGlobal } = applyProblemToForm(p, this.classifyForm, CLASSIFY_CONTROL_ID_MAP);
+          this.classifyError.set(
+            remainingGlobal[0]?.message ?? p?.detail ?? p?.title ?? 'No pudimos completar la acción. Inténtalo de nuevo.',
+          );
           return EMPTY;
         }),
         finalize(() => this.actionBusy.set(false)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => this.reload());
+  }
+
+  protected submitPrioritize(): void {
+    if (this.prioritizeForm.invalid) {
+      this.prioritizeForm.markAllAsTouched();
+      return;
+    }
+    const v = this.prioritizeForm.getRawValue();
+    if (v.priority === null) {
+      return;
+    }
+    clearServerErrors(this.prioritizeForm);
+    this.prioritizeError.set(null);
+    this.actionBusy.set(true);
+    this.api
+      .prioritizeRequest(this.requestId, {
+        priority: v.priority,
+        justification: v.justification,
+      })
+      .pipe(
+        catchError((err: HttpErrorResponse) => {
+          const p = this.problemMapper.fromHttpError(err);
+          const { remainingGlobal } = applyProblemToForm(p, this.prioritizeForm, PRIORITIZE_CONTROL_ID_MAP);
+          this.prioritizeError.set(
+            remainingGlobal[0]?.message ?? p?.detail ?? p?.title ?? 'No pudimos completar la acción. Inténtalo de nuevo.',
+          );
+          return EMPTY;
+        }),
+        finalize(() => this.actionBusy.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.reload());
+  }
+
+  protected submitAssign(): void {
+    if (this.assignForm.invalid) {
+      this.assignForm.markAllAsTouched();
+      return;
+    }
+    const v = this.assignForm.getRawValue();
+    if (v.assignedToUserId === null) {
+      return;
+    }
+    clearServerErrors(this.assignForm);
+    this.assignError.set(null);
+    this.actionBusy.set(true);
+    this.api
+      .assignRequest(this.requestId, {
+        assignedToUserId: v.assignedToUserId,
+        observations: v.observations === '' ? undefined : v.observations,
+      })
+      .pipe(
+        catchError((err: HttpErrorResponse) => {
+          const p = this.problemMapper.fromHttpError(err);
+          const { remainingGlobal } = applyProblemToForm(p, this.assignForm, ASSIGN_CONTROL_ID_MAP);
+          this.assignError.set(
+            remainingGlobal[0]?.message ?? p?.detail ?? p?.title ?? 'No pudimos completar la acción. Inténtalo de nuevo.',
+          );
+          return EMPTY;
+        }),
+        finalize(() => this.actionBusy.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.reload());
+  }
+
+  protected submitAttend(): void {
+    if (this.attendForm.invalid) {
+      this.attendForm.markAllAsTouched();
+      return;
+    }
+    clearServerErrors(this.attendForm);
+    this.attendError.set(null);
+    this.actionBusy.set(true);
+    this.api
+      .attendRequest(this.requestId, this.attendForm.getRawValue())
+      .pipe(
+        catchError((err: HttpErrorResponse) => {
+          const p = this.problemMapper.fromHttpError(err);
+          const { remainingGlobal } = applyProblemToForm(p, this.attendForm, ATTEND_CONTROL_ID_MAP);
+          this.attendError.set(
+            remainingGlobal[0]?.message ?? p?.detail ?? p?.title ?? 'No pudimos completar la acción. Inténtalo de nuevo.',
+          );
+          return EMPTY;
+        }),
+        finalize(() => this.actionBusy.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.reload());
+  }
+
+  protected submitClose(): void {
+    if (this.closeForm.invalid) {
+      this.closeForm.markAllAsTouched();
+      return;
+    }
+    clearServerErrors(this.closeForm);
+    this.closeError.set(null);
+    this.actionBusy.set(true);
+    this.api
+      .closeRequest(this.requestId, this.closeForm.getRawValue())
+      .pipe(
+        catchError((err: HttpErrorResponse) => {
+          const p = this.problemMapper.fromHttpError(err);
+          const { remainingGlobal } = applyProblemToForm(p, this.closeForm, CLOSE_CONTROL_ID_MAP);
+          this.closeError.set(
+            remainingGlobal[0]?.message ?? p?.detail ?? p?.title ?? 'No pudimos completar la acción. Inténtalo de nuevo.',
+          );
+          return EMPTY;
+        }),
+        finalize(() => this.actionBusy.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.reload());
+  }
+
+  protected submitCancel(): void {
+    if (this.cancelForm.invalid) {
+      this.cancelForm.markAllAsTouched();
+      return;
+    }
+    clearServerErrors(this.cancelForm);
+    this.cancelError.set(null);
+    this.actionBusy.set(true);
+    this.api
+      .cancelRequest(this.requestId, this.cancelForm.getRawValue())
+      .pipe(
+        catchError((err: HttpErrorResponse) => {
+          const p = this.problemMapper.fromHttpError(err);
+          const { remainingGlobal } = applyProblemToForm(p, this.cancelForm, CANCEL_CONTROL_ID_MAP);
+          this.cancelError.set(
+            remainingGlobal[0]?.message ?? p?.detail ?? p?.title ?? 'No pudimos completar la acción. Inténtalo de nuevo.',
+          );
+          return EMPTY;
+        }),
+        finalize(() => this.actionBusy.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.reload());
+  }
+
+  protected submitReject(): void {
+    if (this.rejectForm.invalid) {
+      this.rejectForm.markAllAsTouched();
+      return;
+    }
+    clearServerErrors(this.rejectForm);
+    this.rejectError.set(null);
+    this.actionBusy.set(true);
+    this.api
+      .rejectRequest(this.requestId, this.rejectForm.getRawValue())
+      .pipe(
+        catchError((err: HttpErrorResponse) => {
+          const p = this.problemMapper.fromHttpError(err);
+          const { remainingGlobal } = applyProblemToForm(p, this.rejectForm, REJECT_CONTROL_ID_MAP);
+          this.rejectError.set(
+            remainingGlobal[0]?.message ?? p?.detail ?? p?.title ?? 'No pudimos completar la acción. Inténtalo de nuevo.',
+          );
+          return EMPTY;
+        }),
+        finalize(() => this.actionBusy.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.reload());
+  }
+
+  private mapErr(err: HttpErrorResponse): string {
+    const p = this.problemMapper.fromHttpError(err);
+    return p?.detail ?? p?.title ?? 'No pudimos completar la acción. Inténtalo de nuevo.';
   }
 
   private reload(): void {
