@@ -149,6 +149,18 @@ describe('PasswordField — aria-pressed sync and keyboard contract (UV-4 AC2, A
   });
 });
 
+// ─── B3. aria-required binding (UV-7 AC3 — W-1 closure) ─────────────────────
+
+describe('PasswordField — aria-required binding (UV-7 AC3)', () => {
+  it('UV-7 AC3: exposes ariaRequired as an optional input defaulting to false', () => {
+    expect(source).toContain('ariaRequired = input(false)');
+  });
+
+  it('UV-7 AC3: internal input binds [attr.aria-required] to ariaRequired() with null fallback', () => {
+    expect(source).toContain('[attr.aria-required]="ariaRequired() || null"');
+  });
+});
+
 // ─── C. CVA smoke tests (UV-12 AC3) ──────────────────────────────────────────
 
 describe('PasswordField — ControlValueAccessor smoke tests (UV-12 AC3)', () => {

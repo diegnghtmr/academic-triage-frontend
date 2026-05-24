@@ -84,6 +84,7 @@ export const REGISTER_CONTROL_IDS = {
               autocomplete="username"
               [attr.aria-invalid]="isInvalid('username') || null"
               [attr.aria-describedby]="describedBy('username')"
+              [attr.aria-required]="true"
             />
           </at-form-field>
 
@@ -102,6 +103,7 @@ export const REGISTER_CONTROL_IDS = {
               autocomplete="email"
               [attr.aria-invalid]="isInvalid('email') || null"
               [attr.aria-describedby]="describedBy('email')"
+              [attr.aria-required]="true"
             />
           </at-form-field>
 
@@ -118,6 +120,7 @@ export const REGISTER_CONTROL_IDS = {
               formControlName="password"
               [ariaDescribedBy]="describedBy('password')"
               [ariaInvalid]="isInvalid('password')"
+              [ariaRequired]="true"
             />
           </at-form-field>
 
@@ -136,6 +139,7 @@ export const REGISTER_CONTROL_IDS = {
               autocomplete="given-name"
               [attr.aria-invalid]="isInvalid('firstName') || null"
               [attr.aria-describedby]="describedBy('firstName')"
+              [attr.aria-required]="true"
             />
           </at-form-field>
 
@@ -154,6 +158,7 @@ export const REGISTER_CONTROL_IDS = {
               autocomplete="family-name"
               [attr.aria-invalid]="isInvalid('lastName') || null"
               [attr.aria-describedby]="describedBy('lastName')"
+              [attr.aria-required]="true"
             />
           </at-form-field>
 
@@ -171,6 +176,7 @@ export const REGISTER_CONTROL_IDS = {
               formControlName="identification"
               [attr.aria-invalid]="isInvalid('identification') || null"
               [attr.aria-describedby]="describedBy('identification')"
+              [attr.aria-required]="true"
             />
           </at-form-field>
 

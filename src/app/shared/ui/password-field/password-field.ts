@@ -43,6 +43,7 @@ import { NG_VALUE_ACCESSOR } from '@angular/forms';
         [attr.autocomplete]="autocomplete()"
         [attr.aria-describedby]="ariaDescribedBy()"
         [attr.aria-invalid]="ariaInvalid() || null"
+        [attr.aria-required]="ariaRequired() || null"
         [placeholder]="placeholder()"
         [value]="value()"
         (input)="onInput($event)"
@@ -89,6 +90,7 @@ export class PasswordField implements ControlValueAccessor {
   readonly placeholder = input('');
   readonly ariaDescribedBy = input<string | null>(null);
   readonly ariaInvalid = input(false);
+  readonly ariaRequired = input(false);
 
   protected readonly revealed = signal(false);
   protected readonly value = signal('');

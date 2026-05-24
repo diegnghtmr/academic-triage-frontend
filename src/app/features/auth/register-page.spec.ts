@@ -24,6 +24,34 @@ import { messageFor } from '../../shared/i18n/validation-messages';
  */
 const source = readFileSync(join(import.meta.dirname, 'register-page.ts'), 'utf-8');
 
+// ─── UV-7 AC3 — aria-required binding on projected inputs (W-1 closure) ──────
+
+describe('RegisterPage — aria-required binding (UV-7 AC3)', () => {
+  it('UV-7 AC3: username input binds [attr.aria-required]="true"', () => {
+    expect(source).toMatch(/formControlName="username"[\s\S]*?\[attr\.aria-required\]="true"/);
+  });
+
+  it('UV-7 AC3: email input binds [attr.aria-required]="true"', () => {
+    expect(source).toMatch(/formControlName="email"[\s\S]*?\[attr\.aria-required\]="true"/);
+  });
+
+  it('UV-7 AC3: firstName input binds [attr.aria-required]="true"', () => {
+    expect(source).toMatch(/formControlName="firstName"[\s\S]*?\[attr\.aria-required\]="true"/);
+  });
+
+  it('UV-7 AC3: lastName input binds [attr.aria-required]="true"', () => {
+    expect(source).toMatch(/formControlName="lastName"[\s\S]*?\[attr\.aria-required\]="true"/);
+  });
+
+  it('UV-7 AC3: identification input binds [attr.aria-required]="true"', () => {
+    expect(source).toMatch(/formControlName="identification"[\s\S]*?\[attr\.aria-required\]="true"/);
+  });
+
+  it('UV-7 AC3: at-password-field receives [ariaRequired]="true"', () => {
+    expect(source).toMatch(/<at-password-field[\s\S]*?\[ariaRequired\]="true"/);
+  });
+});
+
 // ─── shared env ───────────────────────────────────────────────────────────────
 
 beforeAll(() => {

@@ -346,3 +346,17 @@ describe('LoginPage — primitives wiring (UV-3 AC1–AC4, UV-1)', () => {
     expect(source).not.toContain('formControlName="username"');
   });
 });
+
+// ─── UV-7 AC3 — aria-required binding (W-1 closure) ──────────────────────────
+
+describe('LoginPage — aria-required binding (UV-7 AC3)', () => {
+  const source = readFileSync(join(import.meta.dirname, 'login-page.ts'), 'utf-8');
+
+  it('UV-7 AC3: identifier input binds [attr.aria-required]="true"', () => {
+    expect(source).toMatch(/formControlName="identifier"[\s\S]*?\[attr\.aria-required\]="true"/);
+  });
+
+  it('UV-7 AC3: at-password-field receives [ariaRequired]="true"', () => {
+    expect(source).toMatch(/<at-password-field[\s\S]*?\[ariaRequired\]="true"/);
+  });
+});

@@ -67,6 +67,7 @@ const LOGIN_CONTROL_IDS = {
               placeholder="nombre de usuario o correo electrónico"
               [attr.aria-invalid]="isInvalid('identifier') || null"
               [attr.aria-describedby]="describedBy('identifier')"
+              [attr.aria-required]="true"
             />
           </at-form-field>
 
@@ -83,6 +84,7 @@ const LOGIN_CONTROL_IDS = {
               formControlName="password"
               [ariaDescribedBy]="describedBy('password')"
               [ariaInvalid]="isInvalid('password')"
+              [ariaRequired]="true"
             />
           </at-form-field>
 
