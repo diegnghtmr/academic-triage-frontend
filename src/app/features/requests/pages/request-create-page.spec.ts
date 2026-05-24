@@ -7,9 +7,10 @@
  * this follows the same pattern used in auth.guard.spec.ts and role.guard.spec.ts.
  */
 import '@angular/compiler';
+import { readFileSync } from 'node:fs';
 import { HttpErrorResponse } from '@angular/common/http';
-import { EnvironmentProviders, provideZonelessChangeDetection, signal } from '@angular/core';
-import type { Provider, WritableSignal } from '@angular/core';
+import { provideZonelessChangeDetection, signal } from '@angular/core';
+import type { EnvironmentProviders, Provider, WritableSignal } from '@angular/core';
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
@@ -318,7 +319,7 @@ describe('RequestCreatePage — submit()', () => {
     expect(navigateMock).toHaveBeenCalledWith(['/app/requests/list']);
   });
 
-  it('HTTP error → errorMessage set from problem.detail; submitting reverts to false', () => {
+  it('HTTP error → globalSummaryItems contains problem.detail; submitting reverts to false', () => {
     const httpErr = new HttpErrorResponse({
       status: 422,
       statusText: 'Unprocessable Entity',
@@ -330,7 +331,7 @@ describe('RequestCreatePage — submit()', () => {
 
     page['submit']();
 
-    expect(page['errorMessage']()).toBe('Description is too short.');
+    expect(page['globalSummaryItems']().some((i) => i.message === 'Description is too short.')).toBe(true);
     expect(page['submitting']()).toBe(false);
   });
 });
@@ -471,6 +472,7 @@ describe('RequestCreatePage — AI suggestion', () => {
 // Suite 5 — Catalog loading
 // ---------------------------------------------------------------------------
 
+
 describe('RequestCreatePage — catalog loading', () => {
   beforeAll(bootstrapTestEnv);
   afterEach(() => TestBed.resetTestingModule());
@@ -488,5 +490,369 @@ describe('RequestCreatePage — catalog loading', () => {
     const { page } = buildSetup({ catalogError: true });
 
     expect(page['catalogError']()).toBe('Could not load catalog.');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Suite 6 — S3: markAllAsTouched + error visibility (UV-1 AC1, UV-1 AC2)
+// ---------------------------------------------------------------------------
+
+describe('RequestCreatePage — S3: submit invalid → markAllAsTouched (UV-1 AC1)', () => {
+  beforeAll(bootstrapTestEnv);
+  afterEach(() => TestBed.resetTestingModule());
+
+  it('submit with invalid form → markAllAsTouched() is called (all controls become touched)', () => {
+    const { page } = buildSetup();
+    // Default form is invalid — all fields pristine/untouched
+    expect(page['form'].touched).toBe(false);
+
+    page['submit']();
+
+    expect(page['form'].touched).toBe(true);
+  });
+
+  it('submit with invalid form → requestTypeId control becomes touched', () => {
+    const { page } = buildSetup();
+    expect(page['form'].controls.requestTypeId.touched).toBe(false);
+
+    page['submit']();
+
+    expect(page['form'].controls.requestTypeId.touched).toBe(true);
+  });
+
+  it('submit with invalid form → description control becomes touched', () => {
+    const { page } = buildSetup();
+    expect(page['form'].controls.description.touched).toBe(false);
+
+    page['submit']();
+
+    expect(page['form'].controls.description.touched).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Suite 7 — S3: fieldErrors from ProblemDetail mapped to controls (UV-6, UV-8)
+// ---------------------------------------------------------------------------
+
+describe('RequestCreatePage — S3: fieldErrors mapping via applyProblemToForm (UV-6 AC1, UV-8)', () => {
+  beforeAll(bootstrapTestEnv);
+  afterEach(() => TestBed.resetTestingModule());
+
+  it('HTTP 422 with fieldErrors → description control gets server error', () => {
+    const httpErr = new HttpErrorResponse({
+      status: 422,
+      statusText: 'Unprocessable Entity',
+      error: {
+        title: 'Validation Error',
+        detail: 'Hay errores de validación.',
+        fieldErrors: [{ field: 'description', message: 'La descripción es muy corta.' }],
+      },
+    });
+    const createRequestMock = vi.fn().mockReturnValue(throwError(() => httpErr));
+    const { page } = buildSetup({ createRequest: createRequestMock });
+    page['form'].controls.requestTypeId.setValue(1);
+    page['form'].controls.originChannelId.setValue(1);
+    page['form'].controls.description.setValue('Valid description text here');
+
+    page['submit']();
+
+    const descErrors = page['form'].controls.description.errors;
+    expect(descErrors).not.toBeNull();
+    expect(descErrors?.['server']).toBe('La descripción es muy corta.');
+  });
+
+  it('HTTP 422 with fieldErrors → unknown field goes to globalSummaryItems', () => {
+    const httpErr = new HttpErrorResponse({
+      status: 422,
+      statusText: 'Unprocessable Entity',
+      error: {
+        title: 'Validation Error',
+        detail: 'Hay errores de validación.',
+        fieldErrors: [{ field: 'unknownField', message: 'Campo desconocido.' }],
+      },
+    });
+    const createRequestMock = vi.fn().mockReturnValue(throwError(() => httpErr));
+    const { page } = buildSetup({ createRequest: createRequestMock });
+    page['form'].controls.requestTypeId.setValue(1);
+    page['form'].controls.originChannelId.setValue(1);
+    page['form'].controls.description.setValue('Valid description text here');
+
+    page['submit']();
+
+    const items = page['globalSummaryItems']();
+    expect(items.some((i) => i.message.includes('Campo desconocido.'))).toBe(true);
+  });
+
+  it('retry submit → clearServerErrors clears previous server errors before new request', () => {
+    const httpErr = new HttpErrorResponse({
+      status: 422,
+      statusText: 'Unprocessable Entity',
+      error: {
+        title: 'Validation Error',
+        detail: 'Error.',
+        fieldErrors: [{ field: 'description', message: 'Server error 1.' }],
+      },
+    });
+    const createRequestMock = vi
+      .fn()
+      .mockReturnValueOnce(throwError(() => httpErr))
+      .mockReturnValueOnce(throwError(() => httpErr));
+    const { page } = buildSetup({ createRequest: createRequestMock });
+    page['form'].controls.requestTypeId.setValue(1);
+    page['form'].controls.originChannelId.setValue(1);
+    page['form'].controls.description.setValue('Valid description text here');
+
+    page['submit']();
+    // First call sets server error
+    expect(page['form'].controls.description.errors?.['server']).toBe('Server error 1.');
+
+    page['submit']();
+    // Second call should clear and then re-apply — still has server error from second call
+    expect(page['form'].controls.description.errors?.['server']).toBe('Server error 1.');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Suite 8 — S3: description field error message via messageFor() (UV-1)
+// ---------------------------------------------------------------------------
+
+describe('RequestCreatePage — S3: description error message text (UV-1)', () => {
+  beforeAll(bootstrapTestEnv);
+  afterEach(() => TestBed.resetTestingModule());
+
+  it('firstDescriptionError() with required error → returns "Este campo es requerido"', () => {
+    const { page } = buildSetup();
+    page['form'].controls.description.setValue('');
+    page['form'].controls.description.markAsTouched();
+
+    const errMsg = page['firstDescriptionError']();
+    expect(errMsg).toBe('Este campo es requerido');
+  });
+
+  it('firstDescriptionError() with minlength → returns "Mínimo 10 caracteres"', () => {
+    const { page } = buildSetup();
+    page['form'].controls.description.setValue('short');
+    page['form'].controls.description.markAsTouched();
+
+    const errMsg = page['firstDescriptionError']();
+    expect(errMsg).toBe('Mínimo 10 caracteres');
+  });
+
+  it('firstDescriptionError() with maxlength → returns "Máximo 2000 caracteres"', () => {
+    const { page } = buildSetup();
+    page['form'].controls.description.setValue('a'.repeat(2001));
+    page['form'].controls.description.markAsTouched();
+
+    const errMsg = page['firstDescriptionError']();
+    expect(errMsg).toBe('Máximo 2000 caracteres');
+  });
+
+  it('firstDescriptionError() with no errors → returns null', () => {
+    const { page } = buildSetup();
+    page['form'].controls.description.setValue('Valid description text');
+    page['form'].controls.description.markAsTouched();
+
+    const errMsg = page['firstDescriptionError']();
+    expect(errMsg).toBeNull();
+  });
+
+  it('firstRequestTypeIdError() with required error → returns "Este campo es requerido"', () => {
+    const { page } = buildSetup();
+    page['form'].controls.requestTypeId.setValue(null);
+    page['form'].controls.requestTypeId.markAsTouched();
+
+    expect(page['firstRequestTypeIdError']()).toBe('Este campo es requerido');
+  });
+
+  it('firstOriginChannelIdError() with required error → returns "Este campo es requerido"', () => {
+    const { page } = buildSetup();
+    page['form'].controls.originChannelId.setValue(null);
+    page['form'].controls.originChannelId.markAsTouched();
+
+    expect(page['firstOriginChannelIdError']()).toBe('Este campo es requerido');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Suite 9 — S3: descriptionRules computed (UV-5, UV-8 AC2-AC3)
+// ---------------------------------------------------------------------------
+
+describe('RequestCreatePage — S3: descriptionRules computed (UV-5)', () => {
+  beforeAll(bootstrapTestEnv);
+  afterEach(() => TestBed.resetTestingModule());
+
+  it('empty description → required and min10 hard rules unsatisfied', () => {
+    const { page } = buildSetup();
+    page['form'].controls.description.setValue('');
+
+    const rules = page['descriptionRules']();
+    const requiredRule = rules.find((r) => r.id === 'required');
+    const min10Rule = rules.find((r) => r.id === 'min10');
+    expect(requiredRule?.satisfied).toBe(false);
+    expect(min10Rule?.satisfied).toBe(false);
+  });
+
+  it('description with 5 chars → "required" satisfied, "min10" NOT satisfied', () => {
+    const { page } = buildSetup();
+    page['form'].controls.description.setValue('hello');
+
+    const rules = page['descriptionRules']();
+    const requiredRule = rules.find((r) => r.id === 'required');
+    const min10Rule = rules.find((r) => r.id === 'min10');
+    expect(requiredRule?.satisfied).toBe(true);
+    expect(min10Rule?.satisfied).toBe(false);
+  });
+
+  it('description >= 10 chars <= 2000 → hard rules satisfied', () => {
+    const { page } = buildSetup();
+    page['form'].controls.description.setValue('1234567890');
+
+    const rules = page['descriptionRules']();
+    const hardRules = rules.filter((r) => r.kind === 'hard');
+    expect(hardRules.every((r) => r.satisfied)).toBe(true);
+  });
+
+  it('description > 2000 chars → max2000 hard rule unsatisfied', () => {
+    const { page } = buildSetup();
+    page['form'].controls.description.setValue('a'.repeat(2001));
+
+    const rules = page['descriptionRules']();
+    const max2000Rule = rules.find((r) => r.id === 'max2000');
+    expect(max2000Rule?.satisfied).toBe(false);
+  });
+
+  it('advisory rule: identifica tramite → satisfied when >= 5 words', () => {
+    const { page } = buildSetup();
+    page['form'].controls.description.setValue('necesito tramitar mi certificado urgente');
+
+    const rules = page['descriptionRules']();
+    const advisoryRule = rules.find((r) => r.id === 'identifies-tramite');
+    expect(advisoryRule?.satisfied).toBe(true);
+  });
+
+  it('advisory rule: identifica tramite → unsatisfied with < 5 words', () => {
+    const { page } = buildSetup();
+    page['form'].controls.description.setValue('uno dos tres cuatro');
+
+    const rules = page['descriptionRules']();
+    const advisoryRule = rules.find((r) => r.id === 'identifies-tramite');
+    expect(advisoryRule?.satisfied).toBe(false);
+  });
+
+  it('advisory rule: sufficient detail → satisfied when >= 40 chars', () => {
+    const { page } = buildSetup();
+    page['form'].controls.description.setValue('a'.repeat(40));
+
+    const rules = page['descriptionRules']();
+    const advisoryRule = rules.find((r) => r.id === 'sufficient-detail');
+    expect(advisoryRule?.satisfied).toBe(true);
+  });
+
+  it('advisory rule: sufficient detail → unsatisfied when < 40 chars', () => {
+    const { page } = buildSetup();
+    page['form'].controls.description.setValue('short text');
+
+    const rules = page['descriptionRules']();
+    const advisoryRule = rules.find((r) => r.id === 'sufficient-detail');
+    expect(advisoryRule?.satisfied).toBe(false);
+  });
+
+  it('all rules have kind hard or advisory', () => {
+    const { page } = buildSetup();
+    page['form'].controls.description.setValue('test');
+
+    const rules = page['descriptionRules']();
+    expect(rules.every((r) => r.kind === 'hard' || r.kind === 'advisory')).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Suite 10 — S3: AI button disabled reason (UV-5 AC6, UV-8 AC4)
+// ---------------------------------------------------------------------------
+
+describe('RequestCreatePage — S3: AI button disabled reason (UV-5 AC6)', () => {
+  beforeAll(bootstrapTestEnv);
+  afterEach(() => TestBed.resetTestingModule());
+
+  it('aiDisabledReason(): non-null when description < 10 chars', () => {
+    const { page } = buildSetup({ role: 'STAFF' });
+    page['form'].controls.description.setValue('short');
+
+    expect(page['aiDisabledReason']()).not.toBeNull();
+  });
+
+  it('aiDisabledReason(): null when description >= 10 chars and not loading', () => {
+    const { page } = buildSetup({ role: 'STAFF' });
+    page['form'].controls.description.setValue('long enough description here');
+
+    expect(page['aiDisabledReason']()).toBeNull();
+  });
+
+  it('aiDisabledReason(): non-null when AI is loading (even with valid description)', () => {
+    const { page } = buildSetup({ role: 'STAFF' });
+    page['form'].controls.description.setValue('long enough description here');
+    page['aiLoading'].set(true);
+
+    expect(page['aiDisabledReason']()).not.toBeNull();
+  });
+
+  it('aiDisabledReason() text includes minimum character hint when < 10 chars', () => {
+    const { page } = buildSetup({ role: 'STAFF' });
+    page['form'].controls.description.setValue('short');
+
+    const reason = page['aiDisabledReason']();
+    // Should mention 10 characters minimum
+    expect(reason).toContain('10');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Suite 11 — S3: template source-level ARIA assertions (UV-7)
+// ---------------------------------------------------------------------------
+
+describe('RequestCreatePage — S3: template ARIA source assertions (UV-7)', () => {
+  const source = readFileSync(
+    new URL('./request-create-page.ts', import.meta.url).pathname,
+    'utf-8',
+  );
+
+  it('description textarea binds [attr.aria-required]', () => {
+    expect(source).toContain('[attr.aria-required]');
+  });
+
+  it('description textarea binds [attr.aria-invalid]', () => {
+    expect(source).toContain('[attr.aria-invalid]');
+  });
+
+  it('description textarea has formControlName="description"', () => {
+    expect(source).toContain('formControlName="description"');
+  });
+
+  it('at-form-field used for description (UV-7 AC1)', () => {
+    expect(source).toContain('at-form-field');
+  });
+
+  it('at-error-summary present for global errors (UV-7 AC4)', () => {
+    expect(source).toContain('at-error-summary');
+  });
+
+  it('at-character-counter wired to description (UV-5 AC5)', () => {
+    expect(source).toContain('at-character-counter');
+  });
+
+  it('at-validation-checklist wired to descriptionRules (UV-5 AC1)', () => {
+    expect(source).toContain('at-validation-checklist');
+  });
+
+  it('student hint has id for aria-describedby linking (UV-7 AC1)', () => {
+    expect(source).toContain('id="crt-ch-hint"');
+  });
+
+  it('student input has aria-describedby linking to hint (UV-7 AC1)', () => {
+    expect(source).toContain('aria-describedby="crt-ch-hint"');
+  });
+
+  it('AI disabled reason uses at-error-alert with variant warning (UV-11 AC3)', () => {
+    expect(source).toContain('variant="warning"');
   });
 });

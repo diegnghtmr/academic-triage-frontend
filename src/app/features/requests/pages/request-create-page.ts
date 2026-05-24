@@ -1,4 +1,4 @@
-import { HttpErrorResponse } from '@angular/common/http';
+import type { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -15,6 +15,20 @@ import { catchError, EMPTY, finalize, forkJoin, map } from 'rxjs';
 
 import { AuthSessionStore } from '@core/auth/auth-session.store';
 import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
+import { CharacterCounter } from '@shared/ui/character-counter/character-counter';
+import { ErrorAlert } from '@shared/ui/error-alert';
+import { ErrorSummary } from '@shared/ui/error-summary/error-summary';
+import { FormField } from '@shared/ui/form-field/form-field';
+import {
+  ValidationChecklist,
+  type ChecklistRule,
+} from '@shared/ui/validation-checklist/validation-checklist';
+import { messageFor } from '../../../shared/i18n/validation-messages';
+import {
+  applyProblemToForm,
+  clearServerErrors,
+  type ErrorSummaryItem,
+} from '../../../shared/utils/problem-field-mapper';
 
 import { AiApiService } from '../data-access/ai-api.service';
 import { CatalogApiService } from '../data-access/catalog-api.service';
@@ -30,9 +44,26 @@ import { WEB_CHANNEL_NAME } from '@shared/models/origin-channel';
 /** Standard message when the AI returns 503. */
 const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este entorno.';
 
+/** Stable map from form field names to DOM control IDs for error summary links. */
+const CONTROL_ID_MAP: Readonly<Record<string, string>> = {
+  requestTypeId: 'crt-type',
+  originChannelId: 'crt-ch',
+  description: 'crt-desc',
+  deadline: 'crt-deadline',
+};
+
 @Component({
   selector: 'at-request-create-page',
-  imports: [ReactiveFormsModule, RouterLink, DecimalPipe],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    DecimalPipe,
+    FormField,
+    ErrorSummary,
+    ErrorAlert,
+    CharacterCounter,
+    ValidationChecklist,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="form-page">
@@ -49,21 +80,41 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
 
       <div class="card">
         <form class="create-form" [formGroup]="form" (ngSubmit)="submit()">
-          <div class="field">
-            <label class="field__label" for="crt-type">
-              Tipo de solicitud <span class="field__req" aria-hidden="true">*</span>
-            </label>
-            <select class="input" id="crt-type" formControlName="requestTypeId">
+
+          <at-error-summary
+            [items]="globalSummaryItems()"
+            (focusFirst)="focusField($event)"
+          />
+
+          <at-form-field
+            label="Tipo de solicitud"
+            controlId="crt-type"
+            [required]="true"
+            [errorMessage]="firstRequestTypeIdError()"
+            [invalid]="isFieldInvalid('requestTypeId')"
+          >
+            <select
+              class="input"
+              id="crt-type"
+              formControlName="requestTypeId"
+              [attr.aria-required]="'true'"
+              [attr.aria-invalid]="isFieldInvalid('requestTypeId') || null"
+              [attr.aria-describedby]="firstRequestTypeIdError() ? 'crt-type-error' : null"
+            >
               <option [ngValue]="null">Seleccionar…</option>
               @for (t of requestTypesWithId(); track t.id) {
                 <option [ngValue]="t.id">{{ t.name }}</option>
               }
             </select>
-          </div>
-          <div class="field">
-            <label class="field__label" for="crt-ch">
-              Canal de origen <span class="field__req" aria-hidden="true">*</span>
-            </label>
+          </at-form-field>
+
+          <at-form-field
+            label="Canal de origen"
+            controlId="crt-ch"
+            [required]="true"
+            [errorMessage]="firstOriginChannelIdError()"
+            [invalid]="isFieldInvalid('originChannelId')"
+          >
             @if (isStudent()) {
               @let fixedChannel = selectedOriginChannel();
               <input
@@ -73,25 +124,51 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
                 [value]="fixedChannel?.name ?? 'Sistema web'"
                 readonly
                 aria-readonly="true"
+                aria-describedby="crt-ch-hint"
               />
-              <small class="field__hint"
+              <small class="field__hint" id="crt-ch-hint"
                 >Este canal se asigna automáticamente para estudiantes.</small
               >
             } @else {
-              <select class="input" id="crt-ch" formControlName="originChannelId">
+              <select
+                class="input"
+                id="crt-ch"
+                formControlName="originChannelId"
+                [attr.aria-required]="'true'"
+                [attr.aria-invalid]="isFieldInvalid('originChannelId') || null"
+                [attr.aria-describedby]="firstOriginChannelIdError() ? 'crt-ch-error' : null"
+              >
                 <option [ngValue]="null">Seleccionar…</option>
                 @for (c of originChannelsWithId(); track c.id) {
                   <option [ngValue]="c.id">{{ c.name }}</option>
                 }
               </select>
             }
-          </div>
-          <div class="field">
-            <label class="field__label" for="crt-desc">
-              Descripción <span class="field__req" aria-hidden="true">*</span>
-            </label>
-            <textarea class="input" id="crt-desc" rows="6" formControlName="description"></textarea>
-          </div>
+          </at-form-field>
+
+          <at-form-field
+            label="Descripción"
+            controlId="crt-desc"
+            [required]="true"
+            [errorMessage]="firstDescriptionError()"
+            [invalid]="isFieldInvalid('description')"
+          >
+            <textarea
+              class="input"
+              id="crt-desc"
+              rows="6"
+              formControlName="description"
+              [attr.aria-required]="'true'"
+              [attr.aria-invalid]="isFieldInvalid('description') || null"
+              [attr.aria-describedby]="firstDescriptionError() ? 'crt-desc-error' : null"
+            ></textarea>
+            <at-character-counter
+              [value]="form.controls.description.value"
+              [min]="10"
+              [max]="2000"
+            />
+            <at-validation-checklist [rules]="descriptionRules()" />
+          </at-form-field>
 
           <!-- AI assistant: STAFF only (contract: POST /ai/suggest-classification → STAFF only) -->
           @if (canSuggestAiRole()) {
@@ -116,6 +193,10 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
                   Pedir ayuda a la IA
                 }
               </button>
+
+              @if (aiDisabledReason()) {
+                <at-error-alert [message]="aiDisabledReason()" variant="warning" />
+              }
 
               @if (aiError()) {
                 <p class="field__error" role="status">{{ aiError() }}</p>
@@ -147,15 +228,15 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
               }
             </section>
           }
-          <div class="field">
-            <label class="field__label" for="crt-deadline">
-              Fecha límite <small>(opcional)</small>
-            </label>
+
+          <at-form-field
+            label="Fecha límite"
+            controlId="crt-deadline"
+            [required]="false"
+          >
             <input class="input" id="crt-deadline" type="date" formControlName="deadline" />
-          </div>
-          @if (errorMessage()) {
-            <p class="field__error" role="alert">{{ errorMessage() }}</p>
-          }
+          </at-form-field>
+
           <div class="form-actions">
             <a class="btn btn--ghost form-actions__btn" routerLink="/app/requests/list">
               Cancelar
@@ -163,7 +244,7 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
             <button
               class="btn btn--primary form-actions__btn"
               type="submit"
-              [disabled]="form.invalid || submitting()"
+              [disabled]="submitting()"
             >
               {{ submitting() ? 'Enviando…' : 'Crear solicitud' }}
             </button>
@@ -216,38 +297,6 @@ const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este ento
       display: flex;
       flex-direction: column;
       gap: var(--at-s4);
-    }
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: var(--at-s2);
-    }
-    .field__label {
-      font-size: var(--at-fs-xs);
-      color: var(--at-text-muted);
-      font-family: var(--at-font-mono);
-      letter-spacing: var(--at-tracking-wide);
-      text-transform: uppercase;
-    }
-    .field__label small {
-      text-transform: none;
-      letter-spacing: 0;
-      margin-left: var(--at-s2);
-      color: var(--at-text-dim);
-    }
-    .field__req {
-      color: var(--at-danger);
-    }
-    .field__hint {
-      font-size: var(--at-fs-xs);
-      color: var(--at-text-muted);
-      margin-top: var(--at-s1);
-    }
-    .field__error {
-      font-size: var(--at-fs-sm);
-      color: var(--at-danger);
-      padding: var(--at-s1) var(--at-s2);
-      background: var(--at-err-bg);
     }
 
     .ai-section {
@@ -337,12 +386,14 @@ export class RequestCreatePage {
   protected readonly requestTypes = signal<RequestTypeResponse[]>([]);
   protected readonly originChannels = signal<OriginChannelResponse[]>([]);
   protected readonly catalogError = signal<string | null>(null);
-  protected readonly errorMessage = signal<string | null>(null);
   protected readonly submitting = signal(false);
 
   protected readonly aiLoading = signal(false);
   protected readonly aiError = signal<string | null>(null);
   protected readonly aiSuggestion = signal<AiClassificationResponse | null>(null);
+
+  /** Server-side error items shown in the global ErrorSummary (unknown fields + global detail). */
+  protected readonly globalSummaryItems = signal<readonly ErrorSummaryItem[]>([]);
 
   protected readonly form = this.fb.nonNullable.group({
     requestTypeId: this.fb.control<number | null>(null, Validators.required),
@@ -398,6 +449,101 @@ export class RequestCreatePage {
     return this.requestTypes().some((t) => t.id === s.suggestedRequestTypeId);
   });
 
+  /**
+   * Description validation checklist rules (UV-5, UV-8 AC2-AC3).
+   * Hard rules block submit; advisory rules are guidance only.
+   */
+  protected readonly descriptionRules = computed<readonly ChecklistRule[]>(() => {
+    const val = this.form.controls.description.value;
+    const len = val.length;
+    const wordCount = val.trim() === '' ? 0 : val.trim().split(/\s+/).length;
+    return [
+      {
+        id: 'required',
+        label: 'Campo requerido',
+        satisfied: len > 0,
+        kind: 'hard',
+      },
+      {
+        id: 'min10',
+        label: 'Mínimo 10 caracteres',
+        satisfied: len >= 10,
+        kind: 'hard',
+      },
+      {
+        id: 'max2000',
+        label: 'Máximo 2000 caracteres',
+        satisfied: len <= 2000,
+        kind: 'hard',
+      },
+      {
+        id: 'identifies-tramite',
+        label: 'Identifica trámite o problema',
+        satisfied: wordCount >= 5,
+        kind: 'advisory',
+      },
+      {
+        id: 'sufficient-detail',
+        label: 'Suficiente detalle para clasificación',
+        satisfied: len >= 40,
+        kind: 'advisory',
+      },
+    ];
+  });
+
+  /**
+   * Returns the first error message for the description field when touched.
+   * null = no visible error.
+   */
+  protected readonly firstDescriptionError = computed<string | null>(() => {
+    const ctrl = this.form.controls.description;
+    if (!ctrl.touched || ctrl.valid) return null;
+    const errors = ctrl.errors;
+    if (!errors) return null;
+    const [firstKey] = Object.keys(errors);
+    return messageFor(firstKey, errors[firstKey]);
+  });
+
+  /** Returns the first error message for the requestTypeId field when touched. */
+  protected readonly firstRequestTypeIdError = computed<string | null>(() => {
+    const ctrl = this.form.controls.requestTypeId;
+    if (!ctrl.touched || ctrl.valid) return null;
+    const errors = ctrl.errors;
+    if (!errors) return null;
+    const [firstKey] = Object.keys(errors);
+    return messageFor(firstKey, errors[firstKey]);
+  });
+
+  /** Returns the first error message for the originChannelId field when touched. */
+  protected readonly firstOriginChannelIdError = computed<string | null>(() => {
+    const ctrl = this.form.controls.originChannelId;
+    if (!ctrl.touched || ctrl.valid) return null;
+    const errors = ctrl.errors;
+    if (!errors) return null;
+    const [firstKey] = Object.keys(errors);
+    return messageFor(firstKey, errors[firstKey]);
+  });
+
+  /**
+   * Explains why the AI button is disabled.
+   * null = button is enabled (or should not show reason).
+   */
+  protected readonly aiDisabledReason = computed<string | null>(() => {
+    if (this.aiLoading()) {
+      return 'Consultando IA…';
+    }
+    if (this.descriptionLength() < 10) {
+      return 'Descripción mínima 10 caracteres para activar la ayuda de IA.';
+    }
+    return null;
+  });
+
+  /** Checks if a named control is invalid and touched (used for aria-invalid). */
+  protected isFieldInvalid(controlName: keyof typeof this.form.controls): boolean {
+    const ctrl = this.form.controls[controlName];
+    return ctrl.invalid && ctrl.touched;
+  }
+
   constructor() {
     forkJoin({
       types: this.catalogApi.listRequestTypes(),
@@ -419,6 +565,13 @@ export class RequestCreatePage {
           );
         },
       });
+  }
+
+  /** Focus management for ErrorSummary — delegates to the DOM control by ID. */
+  protected focusField(item: ErrorSummaryItem): void {
+    if (item.controlId) {
+      document.getElementById(item.controlId)?.focus();
+    }
   }
 
   private assignStudentDefaultChannel(channels: OriginChannelResponse[]): void {
@@ -479,6 +632,7 @@ export class RequestCreatePage {
 
   protected submit(): void {
     if (this.form.invalid) {
+      this.form.markAllAsTouched();
       return;
     }
     const v = this.form.getRawValue();
@@ -493,18 +647,16 @@ export class RequestCreatePage {
     if (v.deadline !== '') {
       body.deadline = v.deadline;
     }
-    this.errorMessage.set(null);
+    this.globalSummaryItems.set([]);
+    clearServerErrors(this.form);
     this.submitting.set(true);
     this.requestsApi
       .createRequest(body)
       .pipe(
         catchError((err: HttpErrorResponse) => {
           const p = this.problemMapper.fromHttpError(err);
-          this.errorMessage.set(
-            p?.detail ??
-              p?.title ??
-              'No pudimos crear la solicitud. Inténtalo de nuevo en unos instantes.',
-          );
+          const { remainingGlobal } = applyProblemToForm(p, this.form, CONTROL_ID_MAP);
+          this.globalSummaryItems.set(remainingGlobal);
           return EMPTY;
         }),
         finalize(() => this.submitting.set(false)),

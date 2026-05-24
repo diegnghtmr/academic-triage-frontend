@@ -23,6 +23,8 @@ import { StateBadge } from '@shared/ui/state-badge';
 import { STATUS_LABEL_MAP } from '@shared/models/request-status';
 import { DateTimeLabelPipe } from '@shared/pipes/date-time-label.pipe';
 
+import { EmptyState } from '@shared/ui/empty-state';
+
 import { RequestsApiService } from '../data-access/requests-api.service';
 import type {
   ListRequestsQueryParams,
@@ -37,6 +39,7 @@ import type {
     PageSection,
     LoadingState,
     ErrorAlert,
+    EmptyState,
     PaginationNav,
     SegTabs,
     StateBadge,
@@ -65,6 +68,9 @@ import type {
         <at-loading-state />
       } @else {
         <div class="stale-wrap" [class.is-stale]="loading()" [attr.aria-busy]="loading()">
+          @if (!loading() && rows().length === 0) {
+            <at-empty-state message="No hay solicitudes que coincidan con los filtros." />
+          } @else {
           <table class="tbl">
             <thead>
               <tr>
@@ -109,6 +115,7 @@ import type {
             (prev)="prevPage()"
             (next)="nextPage()"
           />
+          }
         </div>
       }
     </at-page-section>
