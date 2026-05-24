@@ -9,9 +9,10 @@
  * Covers:
  *   A. Form basics (name, description, conditionType, resultingPriority validators)
  *   B. Conditional visibility computeds (showDeadlineDays, showRequestTypeSelector)
- *   C. submit() construction — conditionValue derivation, guard conditions, edit vs create
+ *   C. submit() construction — conditionValue derivation, conditional validator blocking, edit vs create
  *   D. loadItem (edit mode) — form population from BusinessRuleResponse
  *   E. Catalog loading — requestTypes populated, catalogError on failure
+ *   F. Conditional validators integration (UV-9 AC1–AC4) — form.invalid/control errors
  */
 import '@angular/compiler';
 import { EnvironmentProviders, provideZonelessChangeDetection } from '@angular/core';
@@ -231,7 +232,7 @@ describe('BusinessRuleFormPage — C. submit() construction', () => {
 
   // ── REQUEST_TYPE ────────────────────────────────────────────────────────────
 
-  it('REQUEST_TYPE without requestTypeId → sets submitError, no API call', () => {
+  it('REQUEST_TYPE without requestTypeId → form invalid, no API call', () => {
     const { page, createStub } = setup();
     fillBase(page);
     page['form'].controls.conditionType.setValue('REQUEST_TYPE');
@@ -239,7 +240,7 @@ describe('BusinessRuleFormPage — C. submit() construction', () => {
 
     page['submit']();
 
-    expect(page['submitError']()).not.toBeNull();
+    expect(page['form'].invalid).toBe(true);
     expect(createStub).not.toHaveBeenCalled();
   });
 
@@ -261,7 +262,7 @@ describe('BusinessRuleFormPage — C. submit() construction', () => {
 
   // ── DEADLINE ────────────────────────────────────────────────────────────────
 
-  it('DEADLINE without deadlineDays → sets submitError, no API call', () => {
+  it('DEADLINE without deadlineDays → form invalid, no API call', () => {
     const { page, createStub } = setup();
     fillBase(page);
     page['form'].controls.conditionType.setValue('DEADLINE');
@@ -269,11 +270,11 @@ describe('BusinessRuleFormPage — C. submit() construction', () => {
 
     page['submit']();
 
-    expect(page['submitError']()).not.toBeNull();
+    expect(page['form'].invalid).toBe(true);
     expect(createStub).not.toHaveBeenCalled();
   });
 
-  it('DEADLINE with negative deadlineDays → sets submitError, no API call', () => {
+  it('DEADLINE with negative deadlineDays → form invalid, no API call', () => {
     const { page, createStub } = setup();
     fillBase(page);
     page['form'].controls.conditionType.setValue('DEADLINE');
@@ -281,7 +282,7 @@ describe('BusinessRuleFormPage — C. submit() construction', () => {
 
     page['submit']();
 
-    expect(page['submitError']()).not.toBeNull();
+    expect(page['form'].invalid).toBe(true);
     expect(createStub).not.toHaveBeenCalled();
   });
 
@@ -314,7 +315,7 @@ describe('BusinessRuleFormPage — C. submit() construction', () => {
 
   // ── REQUEST_TYPE_AND_DEADLINE ───────────────────────────────────────────────
 
-  it('REQUEST_TYPE_AND_DEADLINE missing requestTypeId → submitError, no call', () => {
+  it('REQUEST_TYPE_AND_DEADLINE missing requestTypeId → form invalid, no call', () => {
     const { page, createStub } = setup();
     fillBase(page);
     page['form'].controls.conditionType.setValue('REQUEST_TYPE_AND_DEADLINE');
@@ -323,11 +324,11 @@ describe('BusinessRuleFormPage — C. submit() construction', () => {
 
     page['submit']();
 
-    expect(page['submitError']()).not.toBeNull();
+    expect(page['form'].invalid).toBe(true);
     expect(createStub).not.toHaveBeenCalled();
   });
 
-  it('REQUEST_TYPE_AND_DEADLINE missing deadlineDays → submitError, no call', () => {
+  it('REQUEST_TYPE_AND_DEADLINE missing deadlineDays → form invalid, no call', () => {
     const { page, createStub } = setup();
     fillBase(page);
     page['form'].controls.conditionType.setValue('REQUEST_TYPE_AND_DEADLINE');
@@ -336,7 +337,7 @@ describe('BusinessRuleFormPage — C. submit() construction', () => {
 
     page['submit']();
 
-    expect(page['submitError']()).not.toBeNull();
+    expect(page['form'].invalid).toBe(true);
     expect(createStub).not.toHaveBeenCalled();
   });
 
@@ -488,5 +489,162 @@ describe('BusinessRuleFormPage — E. Catalog loading', () => {
     const { page } = setup({ listRequestTypes: errorStub });
     expect(page['catalogError']()).not.toBeNull();
     expect(page['requestTypes']()).toHaveLength(0);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// F. Conditional validators integration (UV-9 AC1–AC4)
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('BusinessRuleFormPage — F. Conditional validators (UV-9)', () => {
+  function fillBasicValid(page: BusinessRuleFormPage) {
+    page['form'].controls.name.setValue('Test regla');
+    page['form'].controls.description.setValue('');
+  }
+
+  // UV-9 AC1: REQUEST_TYPE requires requestTypeId
+  it('UV-9 AC1: REQUEST_TYPE + requestTypeId=null → form.invalid', () => {
+    const { page } = setup();
+    fillBasicValid(page);
+    page['form'].controls.conditionType.setValue('REQUEST_TYPE');
+    page['form'].controls.requestTypeId.setValue(null);
+
+    expect(page['form'].invalid).toBe(true);
+    expect(page['form'].controls.requestTypeId.hasError('requiredForRuleType')).toBe(true);
+  });
+
+  it('UV-9 AC1: REQUEST_TYPE + requestTypeId=3 → form.valid', () => {
+    const { page } = setup();
+    fillBasicValid(page);
+    page['form'].controls.conditionType.setValue('REQUEST_TYPE');
+    page['form'].controls.requestTypeId.setValue(3);
+
+    expect(page['form'].valid).toBe(true);
+    expect(page['form'].controls.requestTypeId.hasError('requiredForRuleType')).toBe(false);
+  });
+
+  // UV-9 AC2: DEADLINE requires deadlineDays
+  it('UV-9 AC2: DEADLINE + deadlineDays=null → form.invalid with requiredForRuleType', () => {
+    const { page } = setup();
+    fillBasicValid(page);
+    page['form'].controls.conditionType.setValue('DEADLINE');
+    page['form'].controls.deadlineDays.setValue(null);
+
+    expect(page['form'].invalid).toBe(true);
+    expect(page['form'].controls.deadlineDays.hasError('requiredForRuleType')).toBe(true);
+  });
+
+  it('UV-9 AC2: DEADLINE + deadlineDays negative → form.invalid with min error', () => {
+    const { page } = setup();
+    fillBasicValid(page);
+    page['form'].controls.conditionType.setValue('DEADLINE');
+    page['form'].controls.deadlineDays.setValue(-1);
+
+    expect(page['form'].invalid).toBe(true);
+    expect(page['form'].controls.deadlineDays.hasError('min')).toBe(true);
+  });
+
+  it('UV-9 AC6: DEADLINE + deadlineDays=0 → form.valid', () => {
+    const { page } = setup();
+    fillBasicValid(page);
+    page['form'].controls.conditionType.setValue('DEADLINE');
+    page['form'].controls.deadlineDays.setValue(0);
+
+    expect(page['form'].valid).toBe(true);
+  });
+
+  // UV-9 AC3: REQUEST_TYPE_AND_DEADLINE requires both
+  it('UV-9 AC3: REQUEST_TYPE_AND_DEADLINE missing requestTypeId → form.invalid', () => {
+    const { page } = setup();
+    fillBasicValid(page);
+    page['form'].controls.conditionType.setValue('REQUEST_TYPE_AND_DEADLINE');
+    page['form'].controls.requestTypeId.setValue(null);
+    page['form'].controls.deadlineDays.setValue(5);
+
+    expect(page['form'].invalid).toBe(true);
+    expect(page['form'].controls.requestTypeId.hasError('requiredForRuleType')).toBe(true);
+  });
+
+  it('UV-9 AC3: REQUEST_TYPE_AND_DEADLINE missing deadlineDays → form.invalid', () => {
+    const { page } = setup();
+    fillBasicValid(page);
+    page['form'].controls.conditionType.setValue('REQUEST_TYPE_AND_DEADLINE');
+    page['form'].controls.requestTypeId.setValue(2);
+    page['form'].controls.deadlineDays.setValue(null);
+
+    expect(page['form'].invalid).toBe(true);
+    expect(page['form'].controls.deadlineDays.hasError('requiredForRuleType')).toBe(true);
+  });
+
+  it('UV-9 AC3: REQUEST_TYPE_AND_DEADLINE both valid → form.valid', () => {
+    const { page } = setup();
+    fillBasicValid(page);
+    page['form'].controls.conditionType.setValue('REQUEST_TYPE_AND_DEADLINE');
+    page['form'].controls.requestTypeId.setValue(2);
+    page['form'].controls.deadlineDays.setValue(5);
+
+    expect(page['form'].valid).toBe(true);
+  });
+
+  // UV-9 AC4: Hidden field does not block submit
+  it('UV-9 AC4: REQUEST_TYPE with residual deadlineDays → form valid when requestTypeId present', () => {
+    const { page } = setup();
+    fillBasicValid(page);
+    page['form'].controls.conditionType.setValue('REQUEST_TYPE');
+    page['form'].controls.requestTypeId.setValue(1);
+    // Residual value from a prior DEADLINE selection — should be ignored
+    page['form'].controls.deadlineDays.setValue(99);
+
+    expect(page['form'].valid).toBe(true);
+    expect(page['form'].controls.deadlineDays.hasError('requiredForRuleType')).toBe(false);
+  });
+
+  it('UV-9 AC4: DEADLINE with residual requestTypeId → form valid when deadlineDays present', () => {
+    const { page } = setup();
+    fillBasicValid(page);
+    page['form'].controls.conditionType.setValue('DEADLINE');
+    page['form'].controls.deadlineDays.setValue(3);
+    // Residual requestTypeId — should not cause errors
+    page['form'].controls.requestTypeId.setValue(5);
+
+    expect(page['form'].valid).toBe(true);
+    expect(page['form'].controls.requestTypeId.hasError('requiredForRuleType')).toBe(false);
+  });
+
+  // aria-required dynamic computed (source assertions — UV-12 AC4)
+  it('ariaRequiredRequestTypeId(): true when conditionType requires requestTypeId', () => {
+    const { page } = setup();
+    page['form'].controls.conditionType.setValue('REQUEST_TYPE');
+    expect(page['ariaRequiredRequestTypeId']()).toBe(true);
+  });
+
+  it('ariaRequiredRequestTypeId(): true for REQUEST_TYPE_AND_DEADLINE', () => {
+    const { page } = setup();
+    page['form'].controls.conditionType.setValue('REQUEST_TYPE_AND_DEADLINE');
+    expect(page['ariaRequiredRequestTypeId']()).toBe(true);
+  });
+
+  it('ariaRequiredRequestTypeId(): false for DEADLINE', () => {
+    const { page } = setup();
+    page['form'].controls.conditionType.setValue('DEADLINE');
+    expect(page['ariaRequiredRequestTypeId']()).toBe(false);
+  });
+
+  it('ariaRequiredDeadlineDays(): true for DEADLINE', () => {
+    const { page } = setup();
+    page['form'].controls.conditionType.setValue('DEADLINE');
+    expect(page['ariaRequiredDeadlineDays']()).toBe(true);
+  });
+
+  it('ariaRequiredDeadlineDays(): true for REQUEST_TYPE_AND_DEADLINE', () => {
+    const { page } = setup();
+    page['form'].controls.conditionType.setValue('REQUEST_TYPE_AND_DEADLINE');
+    expect(page['ariaRequiredDeadlineDays']()).toBe(true);
+  });
+
+  it('ariaRequiredDeadlineDays(): false for REQUEST_TYPE', () => {
+    const { page } = setup();
+    page['form'].controls.conditionType.setValue('REQUEST_TYPE');
+    expect(page['ariaRequiredDeadlineDays']()).toBe(false);
   });
 });
