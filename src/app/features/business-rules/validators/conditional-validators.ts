@@ -55,7 +55,7 @@ function validateRequestTypeId(
   control: AbstractControl,
   required: boolean,
 ): boolean {
-  const CONDITIONAL_KEYS = ['requiredForRuleType'];
+  const CONDITIONAL_KEYS = ['requiredRequestTypeId'];
 
   if (!required) {
     clearErrors(control, CONDITIONAL_KEYS);
@@ -64,7 +64,7 @@ function validateRequestTypeId(
 
   const value: unknown = control.value;
   if (value === null || value === undefined || value === '') {
-    addErrors(control, { requiredForRuleType: true });
+    addErrors(control, { requiredRequestTypeId: true });
     return false;
   }
 
@@ -88,9 +88,9 @@ function validateDeadlineDays(
   required: boolean,
 ): boolean {
   // Keys owned exclusively by this conditional validator
-  const CONDITIONAL_OWN_KEYS = ['requiredForRuleType', 'min'];
+  const CONDITIONAL_OWN_KEYS = ['requiredDeadlineDays', 'min'];
   // When hidden, also clear the control-level integer error (UV-9 AC4)
-  const HIDDEN_CLEAR_KEYS = ['requiredForRuleType', 'min', 'integer'];
+  const HIDDEN_CLEAR_KEYS = ['requiredDeadlineDays', 'min', 'integer'];
 
   if (!required) {
     clearErrors(control, HIDDEN_CLEAR_KEYS);
@@ -100,13 +100,13 @@ function validateDeadlineDays(
   const value: unknown = control.value;
   if (value === null || value === undefined || value === '') {
     clearErrors(control, ['min']);
-    addErrors(control, { requiredForRuleType: true });
+    addErrors(control, { requiredDeadlineDays: true });
     return false;
   }
 
   const num = Number(value);
   if (num < 0) {
-    clearErrors(control, ['requiredForRuleType']);
+    clearErrors(control, ['requiredDeadlineDays']);
     addErrors(control, { min: { min: 0, actual: num } });
     return false;
   }

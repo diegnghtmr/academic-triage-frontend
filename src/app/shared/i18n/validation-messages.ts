@@ -23,7 +23,8 @@ export const VALIDATION_MESSAGES = {
   email: 'Formato de correo electrónico inválido',
   pattern: 'El formato no es válido',
   integer: 'Debe ser un número entero',
-  requiredForRuleType: 'Requerido para este tipo de regla',
+  requiredRequestTypeId: 'El tipo de solicitud es requerido para esta condición',
+  requiredDeadlineDays: 'Los días de plazo son requeridos para esta condición',
 } as const;
 
 type ValidationMessagesKey = keyof typeof VALIDATION_MESSAGES;

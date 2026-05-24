@@ -49,14 +49,14 @@ describe('conditionalBusinessRuleValidator — A. REQUEST_TYPE', () => {
     const fg = makeGroup('REQUEST_TYPE', null, null);
     const result = conditionalBusinessRuleValidator(fg);
     expect(result).not.toBeNull();
-    expect(fg.controls.requestTypeId.hasError('requiredForRuleType')).toBe(true);
+    expect(fg.controls.requestTypeId.hasError('requiredRequestTypeId')).toBe(true);
   });
 
   it('UV-9 AC1: no error when requestTypeId has a value > 0', () => {
     const fg = makeGroup('REQUEST_TYPE', 5, null);
     const result = conditionalBusinessRuleValidator(fg);
     expect(result).toBeNull();
-    expect(fg.controls.requestTypeId.hasError('requiredForRuleType')).toBe(false);
+    expect(fg.controls.requestTypeId.hasError('requiredRequestTypeId')).toBe(false);
   });
 
   it('UV-9 AC4: deadlineDays is ignored (hidden field) for REQUEST_TYPE', () => {
@@ -64,7 +64,7 @@ describe('conditionalBusinessRuleValidator — A. REQUEST_TYPE', () => {
     const fg = makeGroup('REQUEST_TYPE', 3, 99);
     const result = conditionalBusinessRuleValidator(fg);
     expect(result).toBeNull();
-    expect(fg.controls.deadlineDays.hasError('requiredForRuleType')).toBe(false);
+    expect(fg.controls.deadlineDays.hasError('requiredDeadlineDays')).toBe(false);
   });
 
   it('UV-9 AC4: residual deadlineDays does not block when REQUEST_TYPE + requestTypeId valid', () => {
@@ -84,7 +84,7 @@ describe('conditionalBusinessRuleValidator — B. DEADLINE', () => {
     const fg = makeGroup('DEADLINE', null, null);
     const result = conditionalBusinessRuleValidator(fg);
     expect(result).not.toBeNull();
-    expect(fg.controls.deadlineDays.hasError('requiredForRuleType')).toBe(true);
+    expect(fg.controls.deadlineDays.hasError('requiredDeadlineDays')).toBe(true);
   });
 
   it('UV-9 AC2: error when deadlineDays is negative', () => {
@@ -98,7 +98,7 @@ describe('conditionalBusinessRuleValidator — B. DEADLINE', () => {
     const fg = makeGroup('DEADLINE', null, 0);
     const result = conditionalBusinessRuleValidator(fg);
     expect(result).toBeNull();
-    expect(fg.controls.deadlineDays.hasError('requiredForRuleType')).toBe(false);
+    expect(fg.controls.deadlineDays.hasError('requiredDeadlineDays')).toBe(false);
   });
 
   it('DEADLINE: deadlineDays = 3 is valid', () => {
@@ -111,7 +111,7 @@ describe('conditionalBusinessRuleValidator — B. DEADLINE', () => {
     const fg = makeGroup('DEADLINE', 99, 5);
     const result = conditionalBusinessRuleValidator(fg);
     expect(result).toBeNull();
-    expect(fg.controls.requestTypeId.hasError('requiredForRuleType')).toBe(false);
+    expect(fg.controls.requestTypeId.hasError('requiredRequestTypeId')).toBe(false);
   });
 });
 
@@ -124,24 +124,24 @@ describe('conditionalBusinessRuleValidator — C. REQUEST_TYPE_AND_DEADLINE', ()
     const fg = makeGroup('REQUEST_TYPE_AND_DEADLINE', null, 5);
     const result = conditionalBusinessRuleValidator(fg);
     expect(result).not.toBeNull();
-    expect(fg.controls.requestTypeId.hasError('requiredForRuleType')).toBe(true);
-    expect(fg.controls.deadlineDays.hasError('requiredForRuleType')).toBe(false);
+    expect(fg.controls.requestTypeId.hasError('requiredRequestTypeId')).toBe(true);
+    expect(fg.controls.deadlineDays.hasError('requiredDeadlineDays')).toBe(false);
   });
 
   it('UV-9 AC3: error when deadlineDays is null (requestTypeId valid)', () => {
     const fg = makeGroup('REQUEST_TYPE_AND_DEADLINE', 3, null);
     const result = conditionalBusinessRuleValidator(fg);
     expect(result).not.toBeNull();
-    expect(fg.controls.deadlineDays.hasError('requiredForRuleType')).toBe(true);
-    expect(fg.controls.requestTypeId.hasError('requiredForRuleType')).toBe(false);
+    expect(fg.controls.deadlineDays.hasError('requiredDeadlineDays')).toBe(true);
+    expect(fg.controls.requestTypeId.hasError('requiredRequestTypeId')).toBe(false);
   });
 
   it('UV-9 AC3: error when both are missing', () => {
     const fg = makeGroup('REQUEST_TYPE_AND_DEADLINE', null, null);
     const result = conditionalBusinessRuleValidator(fg);
     expect(result).not.toBeNull();
-    expect(fg.controls.requestTypeId.hasError('requiredForRuleType')).toBe(true);
-    expect(fg.controls.deadlineDays.hasError('requiredForRuleType')).toBe(true);
+    expect(fg.controls.requestTypeId.hasError('requiredRequestTypeId')).toBe(true);
+    expect(fg.controls.deadlineDays.hasError('requiredDeadlineDays')).toBe(true);
   });
 
   it('UV-9 AC3: valid when both requestTypeId and deadlineDays present', () => {
@@ -156,17 +156,17 @@ describe('conditionalBusinessRuleValidator — C. REQUEST_TYPE_AND_DEADLINE', ()
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('conditionalBusinessRuleValidator — D. Error cleanup', () => {
-  it('requiredForRuleType cleared on control when field becomes valid', () => {
+  it('field-specific required key cleared on control when field becomes valid', () => {
     // Start with REQUEST_TYPE, no requestTypeId → error set
     const fg = makeGroup('REQUEST_TYPE', null, null);
     conditionalBusinessRuleValidator(fg);
-    expect(fg.controls.requestTypeId.hasError('requiredForRuleType')).toBe(true);
+    expect(fg.controls.requestTypeId.hasError('requiredRequestTypeId')).toBe(true);
 
     // Now requestTypeId is filled → rerun validator → error cleared
     fg.controls.requestTypeId.setValue(5);
     const result = conditionalBusinessRuleValidator(fg);
     expect(result).toBeNull();
-    expect(fg.controls.requestTypeId.hasError('requiredForRuleType')).toBe(false);
+    expect(fg.controls.requestTypeId.hasError('requiredRequestTypeId')).toBe(false);
   });
 
   it('min error cleared on deadlineDays when value becomes valid', () => {

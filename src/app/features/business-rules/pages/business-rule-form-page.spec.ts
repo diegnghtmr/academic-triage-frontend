@@ -570,7 +570,7 @@ describe('BusinessRuleFormPage — F. Conditional validators (UV-9)', () => {
     page['form'].controls.requestTypeId.setValue(null);
 
     expect(page['form'].invalid).toBe(true);
-    expect(page['form'].controls.requestTypeId.hasError('requiredForRuleType')).toBe(true);
+    expect(page['form'].controls.requestTypeId.hasError('requiredRequestTypeId')).toBe(true);
   });
 
   it('UV-9 AC1: REQUEST_TYPE + requestTypeId=3 → form.valid', () => {
@@ -580,18 +580,18 @@ describe('BusinessRuleFormPage — F. Conditional validators (UV-9)', () => {
     page['form'].controls.requestTypeId.setValue(3);
 
     expect(page['form'].valid).toBe(true);
-    expect(page['form'].controls.requestTypeId.hasError('requiredForRuleType')).toBe(false);
+    expect(page['form'].controls.requestTypeId.hasError('requiredRequestTypeId')).toBe(false);
   });
 
   // UV-9 AC2: DEADLINE requires deadlineDays
-  it('UV-9 AC2: DEADLINE + deadlineDays=null → form.invalid with requiredForRuleType', () => {
+  it('UV-9 AC2: DEADLINE + deadlineDays=null → form.invalid with requiredDeadlineDays', () => {
     const { page } = setup();
     fillBasicValid(page);
     page['form'].controls.conditionType.setValue('DEADLINE');
     page['form'].controls.deadlineDays.setValue(null);
 
     expect(page['form'].invalid).toBe(true);
-    expect(page['form'].controls.deadlineDays.hasError('requiredForRuleType')).toBe(true);
+    expect(page['form'].controls.deadlineDays.hasError('requiredDeadlineDays')).toBe(true);
   });
 
   it('UV-9 AC2: DEADLINE + deadlineDays negative → form.invalid with min error', () => {
@@ -622,7 +622,7 @@ describe('BusinessRuleFormPage — F. Conditional validators (UV-9)', () => {
     page['form'].controls.deadlineDays.setValue(5);
 
     expect(page['form'].invalid).toBe(true);
-    expect(page['form'].controls.requestTypeId.hasError('requiredForRuleType')).toBe(true);
+    expect(page['form'].controls.requestTypeId.hasError('requiredRequestTypeId')).toBe(true);
   });
 
   it('UV-9 AC3: REQUEST_TYPE_AND_DEADLINE missing deadlineDays → form.invalid', () => {
@@ -633,7 +633,7 @@ describe('BusinessRuleFormPage — F. Conditional validators (UV-9)', () => {
     page['form'].controls.deadlineDays.setValue(null);
 
     expect(page['form'].invalid).toBe(true);
-    expect(page['form'].controls.deadlineDays.hasError('requiredForRuleType')).toBe(true);
+    expect(page['form'].controls.deadlineDays.hasError('requiredDeadlineDays')).toBe(true);
   });
 
   it('UV-9 AC3: REQUEST_TYPE_AND_DEADLINE both valid → form.valid', () => {
@@ -656,7 +656,7 @@ describe('BusinessRuleFormPage — F. Conditional validators (UV-9)', () => {
     page['form'].controls.deadlineDays.setValue(99);
 
     expect(page['form'].valid).toBe(true);
-    expect(page['form'].controls.deadlineDays.hasError('requiredForRuleType')).toBe(false);
+    expect(page['form'].controls.deadlineDays.hasError('requiredDeadlineDays')).toBe(false);
   });
 
   it('UV-9 AC4: DEADLINE with residual requestTypeId → form valid when deadlineDays present', () => {
@@ -668,7 +668,7 @@ describe('BusinessRuleFormPage — F. Conditional validators (UV-9)', () => {
     page['form'].controls.requestTypeId.setValue(5);
 
     expect(page['form'].valid).toBe(true);
-    expect(page['form'].controls.requestTypeId.hasError('requiredForRuleType')).toBe(false);
+    expect(page['form'].controls.requestTypeId.hasError('requiredRequestTypeId')).toBe(false);
   });
 
   // aria-required dynamic computed (source assertions — UV-12 AC4)
