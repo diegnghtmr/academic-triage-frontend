@@ -23,15 +23,18 @@ test.describe('public home critical path', () => {
     await submitButton.click();
 
     // After click on empty form, required inputs should be marked invalid.
-    await expect(page.getByLabel('Usuario')).toHaveAttribute('aria-invalid', 'true');
+    // Use getByRole('textbox') to disambiguate from ValidationChecklist
+    // list items that share the field name via aria-label.
+    const usuarioInput = page.getByRole('textbox', { name: 'Usuario', exact: true });
+    await expect(usuarioInput).toHaveAttribute('aria-invalid', 'true');
 
     const suffix = Date.now();
-    await page.getByLabel('Usuario').fill(`qa-user-${suffix}`);
-    await page.getByLabel('Correo').fill(`qa-user-${suffix}@example.com`);
-    await page.getByLabel('Contraseña').fill('TestPassw0rd!');
-    await page.getByLabel('Nombre').fill('QA');
-    await page.getByLabel('Apellido').fill('Automation');
-    await page.getByLabel('Identificación').fill(`ID-${suffix}`);
+    await usuarioInput.fill(`qa-user-${suffix}`);
+    await page.getByRole('textbox', { name: /Correo/i }).fill(`qa-user-${suffix}@example.com`);
+    await page.getByLabel('Contraseña', { exact: true }).fill('TestPassw0rd!');
+    await page.getByRole('textbox', { name: 'Nombre', exact: true }).fill('QA');
+    await page.getByRole('textbox', { name: 'Apellido', exact: true }).fill('Automation');
+    await page.getByRole('textbox', { name: 'Identificación', exact: true }).fill(`ID-${suffix}`);
 
     await expect(submitButton).toBeEnabled();
   });
