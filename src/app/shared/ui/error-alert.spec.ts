@@ -29,14 +29,14 @@ describe('ErrorAlert — variant input (UV-11 AC2)', () => {
 });
 
 describe('ErrorAlert — role computed from variant (UV-7 AC5)', () => {
-  it('UV-7 AC5: role="alert" for variant error', () => {
-    // role is computed based on variant — error/warning → alert
-    expect(source).toContain('role');
+  it('UV-7 AC5: role="alert" only for error variant (assertive)', () => {
+    // Per UV-7: role="alert" ONLY for real errors
     expect(source).toContain('"alert"');
+    expect(source).toContain("=== 'error'");
   });
 
-  it('UV-7 AC5: role="status" for variant success/info', () => {
-    // success and info → role="status"
+  it('UV-7 AC5: role="status" for warning/success/info (non-assertive)', () => {
+    // warning/success/info → role="status" per UV-7
     expect(source).toContain('"status"');
   });
 
