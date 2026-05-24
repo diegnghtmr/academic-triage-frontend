@@ -4,12 +4,11 @@ import {
   Component,
   DestroyRef,
   ElementRef,
-  computed,
   inject,
   signal,
   viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
@@ -19,10 +18,6 @@ import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
 import { ErrorSummary } from '@shared/ui/error-summary/error-summary';
 import { FormField } from '@shared/ui/form-field/form-field';
 import { PasswordField } from '@shared/ui/password-field/password-field';
-import {
-  ValidationChecklist,
-  type ChecklistRule,
-} from '@shared/ui/validation-checklist/validation-checklist';
 import { applyProblemToForm, clearServerErrors } from '@shared/utils/problem-field-mapper';
 import type { ErrorSummaryItem } from '@shared/utils/problem-field-mapper';
 
@@ -51,24 +46,12 @@ export const REGISTER_CONTROL_IDS = {
  */
 @Component({
   selector: 'at-register-page',
-  imports: [
-    ReactiveFormsModule,
-    RouterLink,
-    FormField,
-    PasswordField,
-    ErrorSummary,
-    ValidationChecklist,
-  ],
+  imports: [ReactiveFormsModule, RouterLink, FormField, PasswordField, ErrorSummary],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="reg-wrap">
       <div class="reg-wrap__inner">
         <h1 class="reg-wrap__title">Registro de Estudiante</h1>
-        <p class="reg-wrap__subtitle">
-          Creá tu cuenta STUDENT. Al registrarte, serás redirigido a
-          <a routerLink="/auth/login">iniciar sesión</a> — no se realiza inicio de sesión
-          automático.
-        </p>
 
         <at-error-summary
           #errorSummaryEl
@@ -131,8 +114,6 @@ export const REGISTER_CONTROL_IDS = {
               [ariaRequired]="true"
             />
           </at-form-field>
-
-          <at-validation-checklist [rules]="checklistRules()" />
 
           <at-form-field
             label="Nombre"
@@ -231,15 +212,6 @@ export const REGISTER_CONTROL_IDS = {
       margin-bottom: var(--at-s2);
       color: var(--at-text);
     }
-    .reg-wrap__subtitle {
-      font-size: var(--at-fs-sm);
-      color: var(--at-text-muted);
-      margin-bottom: var(--at-s4);
-    }
-    .reg-wrap__subtitle a {
-      color: var(--at-mercury);
-      text-decoration: underline;
-    }
     .reg-form {
       display: flex;
       flex-direction: column;
@@ -278,58 +250,10 @@ export class RegisterPage {
     identification: ['', [Validators.required, Validators.maxLength(20)]],
   });
 
-  /**
-   * Signal tracking form status changes for checklist computation.
-   * Using toSignal to bridge RxJS → signals per design §D-6.
-   */
-  private readonly formStatus = toSignal(this.form.statusChanges, {
-    initialValue: this.form.status,
-  });
-
-  /**
-   * Checklist rules derived from current form validity state.
-   * Hard rules map to contractual OpenAPI requirements.
-   * Advisory rules are guidance hints (UV-5 AC2–AC3).
-   */
-  readonly checklistRules = computed<readonly ChecklistRule[]>(() => {
-    // Read formStatus to trigger recomputation on status changes
-    this.formStatus();
-    const c = this.form.controls;
-    return [
-      {
-        id: 'username-required',
-        label: 'Usuario — requerido, mínimo 3 caracteres',
-        satisfied: !c.username.hasError('required') && !c.username.hasError('minlength'),
-        kind: 'hard',
-      },
-      {
-        id: 'email-required',
-        label: 'Correo — formato válido requerido',
-        satisfied: !c.email.hasError('required') && !c.email.hasError('email'),
-        kind: 'hard',
-      },
-      {
-        id: 'password-required',
-        label: 'Contraseña — mínimo 8 caracteres',
-        satisfied: !c.password.hasError('required') && !c.password.hasError('minlength'),
-        kind: 'hard',
-      },
-      {
-        id: 'identification-required',
-        label: 'Identificación — requerida',
-        satisfied: !c.identification.hasError('required'),
-        kind: 'hard',
-      },
-      {
-        id: 'name-complete',
-        label: 'Nombre y apellido completos',
-        satisfied: !c.firstName.hasError('required') && !c.lastName.hasError('required'),
-        kind: 'advisory',
-      },
-    ] as const;
-  });
-
-  private readonly errorSummaryEl = viewChild<ElementRef<HTMLElement>>('errorSummaryEl');
+  // `at-error-summary` is a component; passing `{ read: ElementRef }` forces
+  // Angular to return the host ElementRef instead of the component instance,
+  // so `.nativeElement.focus()` works for accessibility focus on submit-invalid.
+  private readonly errorSummaryEl = viewChild('errorSummaryEl', { read: ElementRef });
 
   private readonly controlIdMap: Readonly<Record<string, string>> = {
     username: REGISTER_CONTROL_IDS.username,

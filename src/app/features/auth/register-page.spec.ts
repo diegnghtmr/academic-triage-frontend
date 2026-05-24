@@ -153,15 +153,10 @@ describe('RegisterPage — template wiring (UV-2 AC8, AC9, UV-1)', () => {
     expect(source.toLowerCase()).toContain('student');
   });
 
-  it('UV-2 AC8: copy mentions no auto-login or redirection to login', () => {
-    // The template must have copy about no auto-login / redirect to login
-    const hasAutoLoginCopy =
-      source.includes('inicio de sesión automático') ||
-      source.includes('redirigir') ||
-      source.includes('redirigido') ||
-      source.includes('login') ||
-      source.includes('iniciar sesión');
-    expect(hasAutoLoginCopy).toBe(true);
+  it('UV-2 AC9: redirect target is /auth/login (REQ-NO-AUTO-LOGIN reachable from copy)', () => {
+    // The subtitle copy was removed per UX feedback (overwhelming on first view);
+    // the no-auto-login guarantee is now enforced exclusively by the submit handler.
+    expect(source).toContain('/auth/login');
   });
 
   it('UV-2 AC9: redirect navigates to /auth/login with registered=1 (REQ-NO-AUTO-LOGIN)', () => {
@@ -260,36 +255,17 @@ describe('RegisterPage — fieldErrors mapping (UV-2 AC6, AC7)', () => {
   });
 });
 
-// ─── Validation Checklist integration (T-S2b.5, UV-5 AC1–AC3) ───────────────
+// ─── ValidationChecklist removed per UX feedback ─────────────────────────────
+// The aggregated checklist was perceived as upfront errors on page load.
+// Per-field errors via FormField (touch-gated) replace it. The primitive
+// stays in src/app/shared/ui/validation-checklist/ for other use cases.
 
-describe('RegisterPage — ValidationChecklist wiring (UV-5 AC1–AC3)', () => {
-  it('UV-5: source imports ValidationChecklist', () => {
-    expect(source).toContain('ValidationChecklist');
+describe('RegisterPage — no ValidationChecklist aggregator (UX feedback)', () => {
+  it('source does NOT import ValidationChecklist', () => {
+    expect(source).not.toContain('ValidationChecklist');
   });
 
-  it('UV-5: source imports at-validation-checklist selector', () => {
-    expect(source).toContain('at-validation-checklist');
-  });
-
-  it('UV-5 AC2: hard rules for contractual requirements are present in checklist rules computation', () => {
-    // The page must compute checklist rules based on form control validity
-    // Hard rules map to contractual validators (required, minlength)
-    expect(source).toContain("'hard'");
-  });
-
-  it('UV-5 AC3: advisory rules use kind "advisory"', () => {
-    expect(source).toContain("'advisory'");
-  });
-
-  it('UV-5 AC1: checklist reflects password satisfied state based on form', () => {
-    // Checklist rules must derive from form control status (via toSignal or computed)
-    const hasToSignal = source.includes('toSignal') || source.includes('formStatus');
-    const hasComputed = source.includes('computed(');
-    expect(hasToSignal || hasComputed).toBe(true);
-  });
-
-  it('UV-5: ValidationChecklist is listed in component imports', () => {
-    // The component decorator imports array must include ValidationChecklist
-    expect(source).toMatch(/imports:\s*\[[\s\S]*?ValidationChecklist[\s\S]*?\]/);
+  it('template does NOT render at-validation-checklist', () => {
+    expect(source).not.toContain('at-validation-checklist');
   });
 });
