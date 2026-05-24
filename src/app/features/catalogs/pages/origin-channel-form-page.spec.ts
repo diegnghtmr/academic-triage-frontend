@@ -186,7 +186,7 @@ describe('OriginChannelFormPage', () => {
       expect(router.navigate).toHaveBeenCalledWith(['/app/catalogs/origin-channels']);
     });
 
-    it('on HTTP error: sets submitError from problem.detail', () => {
+    it('on HTTP error: summaryItems contains detail from problem', () => {
       const err = new HttpErrorResponse({
         error: { status: 422, title: 'Unprocessable', detail: 'Name already taken' },
         status: 422,
@@ -195,7 +195,8 @@ describe('OriginChannelFormPage', () => {
       const page = setup({ create });
       page['form'].controls.name.setValue('Duplicate');
       page['submit']();
-      expect(page['submitError']()).toBe('Name already taken');
+      const items = page['summaryItems']();
+      expect(items.some((i) => i.message.includes('Name already taken'))).toBe(true);
     });
 
     it('invalid form → createOriginChannel is NOT called', () => {

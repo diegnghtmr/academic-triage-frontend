@@ -13,13 +13,27 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
 import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
+import { messageFor } from '@shared/i18n/validation-messages';
+import { CharacterCounter } from '@shared/ui/character-counter/character-counter';
+import { ErrorSummary } from '@shared/ui/error-summary/error-summary';
+import { FormField } from '@shared/ui/form-field/form-field';
+import {
+  applyProblemToForm,
+  clearServerErrors,
+} from '@shared/utils/problem-field-mapper';
+import type { ErrorSummaryItem } from '@shared/utils/problem-field-mapper';
 
 import { CatalogAdminApiService } from '../data-access/catalog-admin-api.service';
 import type { CreateRequestTypeBody } from '../models/catalog-admin.types';
 
+const RT_CONTROL_IDS = {
+  name: 'rt-name',
+  description: 'rt-desc',
+} as const;
+
 @Component({
   selector: 'at-request-type-form-page',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, FormField, ErrorSummary, CharacterCounter],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="form-page">
@@ -40,11 +54,18 @@ import type { CreateRequestTypeBody } from '../models/catalog-admin.types';
         <p class="field__error" role="alert">{{ loadError() }}</p>
       } @else {
         <div class="card">
+          @if (summaryItems().length > 0) {
+            <at-error-summary [items]="summaryItems()" />
+          }
+
           <form class="edit-form" [formGroup]="form" (ngSubmit)="submit()">
-            <div class="field">
-              <label class="field__label" for="rt-name">
-                Nombre <span class="field__req" aria-hidden="true">*</span>
-              </label>
+            <at-form-field
+              label="Nombre"
+              controlId="rt-name"
+              [required]="true"
+              [errorMessage]="nameError()"
+              [invalid]="form.controls.name.invalid && form.controls.name.touched"
+            >
               <input
                 class="input"
                 id="rt-name"
@@ -52,31 +73,32 @@ import type { CreateRequestTypeBody } from '../models/catalog-admin.types';
                 formControlName="name"
                 maxlength="100"
                 autocomplete="off"
+                aria-required="true"
+                [attr.aria-invalid]="form.controls.name.invalid && form.controls.name.touched"
+                [attr.aria-describedby]="form.controls.name.invalid && form.controls.name.touched ? 'rt-name-error' : null"
               />
-              @if (form.controls.name.invalid && form.controls.name.touched) {
-                <span class="field__error" role="alert">
-                  El nombre es requerido (máx. 100 caracteres).
-                </span>
-              }
-            </div>
+            </at-form-field>
 
-            <div class="field">
-              <label class="field__label" for="rt-desc">Descripción</label>
+            <at-form-field
+              label="Descripción"
+              controlId="rt-desc"
+              [errorMessage]="descriptionError()"
+              [invalid]="form.controls.description.invalid && form.controls.description.touched"
+            >
               <textarea
                 class="input"
                 id="rt-desc"
                 rows="4"
                 formControlName="description"
                 maxlength="500"
+                [attr.aria-invalid]="form.controls.description.invalid && form.controls.description.touched"
+                [attr.aria-describedby]="form.controls.description.invalid && form.controls.description.touched ? 'rt-desc-error' : null"
               ></textarea>
-              @if (form.controls.description.invalid && form.controls.description.touched) {
-                <span class="field__error" role="alert">Máximo 500 caracteres.</span>
-              }
-            </div>
-
-            @if (submitError()) {
-              <p class="field__error" role="alert">{{ submitError() }}</p>
-            }
+              <at-character-counter
+                [value]="form.controls.description.value"
+                [max]="500"
+              />
+            </at-form-field>
 
             <div class="form-actions">
               <a class="btn btn--ghost form-actions__btn" routerLink="/app/catalogs/request-types">
@@ -85,7 +107,7 @@ import type { CreateRequestTypeBody } from '../models/catalog-admin.types';
               <button
                 class="btn btn--primary form-actions__btn"
                 type="submit"
-                [disabled]="form.invalid || submitting() || loadingItem()"
+                [disabled]="submitting() || loadingItem()"
               >
                 {{ submitting() ? 'Guardando…' : isEdit() ? 'Guardar' : 'Crear' }}
               </button>
@@ -140,27 +162,6 @@ import type { CreateRequestTypeBody } from '../models/catalog-admin.types';
       flex-direction: column;
       gap: var(--at-s4);
     }
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: var(--at-s2);
-    }
-    .field__label {
-      font-size: var(--at-fs-xs);
-      color: var(--at-text-muted);
-      font-family: var(--at-font-mono);
-      letter-spacing: var(--at-tracking-wide);
-      text-transform: uppercase;
-    }
-    .field__req {
-      color: var(--at-danger);
-    }
-    .field__error {
-      font-size: var(--at-fs-sm);
-      color: var(--at-danger);
-      padding: var(--at-s1) var(--at-s2);
-      background: var(--at-err-bg);
-    }
     .form-actions {
       display: flex;
       justify-content: flex-end;
@@ -194,7 +195,7 @@ export class RequestTypeFormPage {
   protected readonly loadingItem = signal(false);
   protected readonly submitting = signal(false);
   protected readonly loadError = signal<string | null>(null);
-  protected readonly submitError = signal<string | null>(null);
+  protected readonly summaryItems = signal<readonly ErrorSummaryItem[]>([]);
 
   private readonly typeId = signal<number | null>(null);
   protected readonly isEdit = computed(() => this.typeId() !== null);
@@ -202,6 +203,25 @@ export class RequestTypeFormPage {
   protected readonly form = this.fb.nonNullable.group({
     name: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(100)]),
     description: this.fb.nonNullable.control('', [Validators.maxLength(500)]),
+  });
+
+  // Error message computeds
+  protected readonly nameError = computed(() => {
+    const ctrl = this.form.controls.name;
+    if (!ctrl.touched || ctrl.valid) return null;
+    const errs = ctrl.errors;
+    if (!errs) return null;
+    const key = Object.keys(errs)[0];
+    return messageFor(key, errs[key]);
+  });
+
+  protected readonly descriptionError = computed(() => {
+    const ctrl = this.form.controls.description;
+    if (!ctrl.touched || ctrl.valid) return null;
+    const errs = ctrl.errors;
+    if (!errs) return null;
+    const key = Object.keys(errs)[0];
+    return messageFor(key, errs[key]);
   });
 
   constructor() {
@@ -238,15 +258,19 @@ export class RequestTypeFormPage {
 
   protected submit(): void {
     if (this.form.invalid) {
+      this.form.markAllAsTouched();
       return;
     }
+
+    clearServerErrors(this.form);
+    this.summaryItems.set([]);
+
     const v = this.form.getRawValue();
     const body: CreateRequestTypeBody = { name: v.name };
     if (v.description.trim() !== '') {
       body.description = v.description.trim();
     }
 
-    this.submitError.set(null);
     this.submitting.set(true);
 
     const id = this.typeId();
@@ -257,7 +281,12 @@ export class RequestTypeFormPage {
       .pipe(
         catchError((err: HttpErrorResponse) => {
           const p = this.problemMapper.fromHttpError(err);
-          this.submitError.set(p?.detail ?? p?.title ?? 'No pudimos guardar el tipo de solicitud.');
+          const { remainingGlobal } = applyProblemToForm(p, this.form, RT_CONTROL_IDS);
+          this.summaryItems.set(
+            remainingGlobal.length > 0
+              ? remainingGlobal
+              : [{ field: null, message: 'No pudimos guardar el tipo de solicitud.' }],
+          );
           return EMPTY;
         }),
         finalize(() => this.submitting.set(false)),

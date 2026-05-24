@@ -1,5 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -8,13 +15,31 @@ import { catchError, EMPTY, finalize } from 'rxjs';
 import type { RoleEnum } from '@core/auth/models/auth-api.types';
 import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
 import { DisplayLabelPipe } from '@shared/pipes/display-label.pipe';
+import { CharacterCounter } from '@shared/ui/character-counter/character-counter';
+import { ErrorSummary } from '@shared/ui/error-summary/error-summary';
+import { FormField } from '@shared/ui/form-field/form-field';
+import {
+  applyProblemToForm,
+  clearServerErrors,
+} from '@shared/utils/problem-field-mapper';
+import type { ErrorSummaryItem } from '@shared/utils/problem-field-mapper';
+import { messageFor } from '@shared/i18n/validation-messages';
 
 import { UsersApiService } from '../data-access/users-api.service';
 import type { UpdateUserBody } from '../models/user-admin.types';
 
+/** Stable DOM IDs for focus management. */
+const USER_CONTROL_IDS = {
+  firstName: 'uf-firstname',
+  lastName: 'uf-lastname',
+  identification: 'uf-id',
+  email: 'uf-email',
+  role: 'uf-role',
+} as const;
+
 @Component({
   selector: 'at-user-form-page',
-  imports: [ReactiveFormsModule, RouterLink, DisplayLabelPipe],
+  imports: [ReactiveFormsModule, RouterLink, DisplayLabelPipe, FormField, ErrorSummary, CharacterCounter],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="section">
@@ -34,11 +59,18 @@ import type { UpdateUserBody } from '../models/user-admin.types';
             </p>
           }
 
+          @if (summaryItems().length > 0) {
+            <at-error-summary [items]="summaryItems()" />
+          }
+
           <form class="edit-form" [formGroup]="form" (ngSubmit)="submit()">
-            <div class="field">
-              <label class="field__label" for="uf-firstname"
-                >Nombre <span aria-hidden="true">*</span></label
-              >
+            <at-form-field
+              label="Nombre"
+              controlId="uf-firstname"
+              [required]="true"
+              [errorMessage]="firstNameError()"
+              [invalid]="form.controls.firstName.invalid && form.controls.firstName.touched"
+            >
               <input
                 class="input"
                 id="uf-firstname"
@@ -46,18 +78,23 @@ import type { UpdateUserBody } from '../models/user-admin.types';
                 formControlName="firstName"
                 maxlength="75"
                 autocomplete="given-name"
+                aria-required="true"
+                [attr.aria-invalid]="form.controls.firstName.invalid && form.controls.firstName.touched"
+                [attr.aria-describedby]="form.controls.firstName.invalid && form.controls.firstName.touched ? 'uf-firstname-error' : null"
               />
-              @if (form.controls.firstName.invalid && form.controls.firstName.touched) {
-                <span class="field__error" role="alert"
-                  >El nombre es requerido (máx. 75 caracteres).</span
-                >
-              }
-            </div>
+              <at-character-counter
+                [value]="form.controls.firstName.value"
+                [max]="75"
+              />
+            </at-form-field>
 
-            <div class="field">
-              <label class="field__label" for="uf-lastname"
-                >Apellido <span aria-hidden="true">*</span></label
-              >
+            <at-form-field
+              label="Apellido"
+              controlId="uf-lastname"
+              [required]="true"
+              [errorMessage]="lastNameError()"
+              [invalid]="form.controls.lastName.invalid && form.controls.lastName.touched"
+            >
               <input
                 class="input"
                 id="uf-lastname"
@@ -65,18 +102,23 @@ import type { UpdateUserBody } from '../models/user-admin.types';
                 formControlName="lastName"
                 maxlength="75"
                 autocomplete="family-name"
+                aria-required="true"
+                [attr.aria-invalid]="form.controls.lastName.invalid && form.controls.lastName.touched"
+                [attr.aria-describedby]="form.controls.lastName.invalid && form.controls.lastName.touched ? 'uf-lastname-error' : null"
               />
-              @if (form.controls.lastName.invalid && form.controls.lastName.touched) {
-                <span class="field__error" role="alert"
-                  >El apellido es requerido (máx. 75 caracteres).</span
-                >
-              }
-            </div>
+              <at-character-counter
+                [value]="form.controls.lastName.value"
+                [max]="75"
+              />
+            </at-form-field>
 
-            <div class="field">
-              <label class="field__label" for="uf-id"
-                >Identificación <span aria-hidden="true">*</span></label
-              >
+            <at-form-field
+              label="Identificación"
+              controlId="uf-id"
+              [required]="true"
+              [errorMessage]="identificationError()"
+              [invalid]="form.controls.identification.invalid && form.controls.identification.touched"
+            >
               <input
                 class="input"
                 id="uf-id"
@@ -84,35 +126,40 @@ import type { UpdateUserBody } from '../models/user-admin.types';
                 formControlName="identification"
                 maxlength="20"
                 autocomplete="off"
+                aria-required="true"
+                [attr.aria-invalid]="form.controls.identification.invalid && form.controls.identification.touched"
+                [attr.aria-describedby]="form.controls.identification.invalid && form.controls.identification.touched ? 'uf-id-error' : null"
               />
-              @if (form.controls.identification.invalid && form.controls.identification.touched) {
-                <span class="field__error" role="alert"
-                  >La identificación es requerida (máx. 20 caracteres).</span
-                >
-              }
-            </div>
+              <at-character-counter
+                [value]="form.controls.identification.value"
+                [max]="20"
+              />
+            </at-form-field>
 
-            <div class="field">
-              <label class="field__label" for="uf-email"
-                >Email <span aria-hidden="true">*</span></label
-              >
+            <at-form-field
+              label="Email"
+              controlId="uf-email"
+              [required]="true"
+              [errorMessage]="emailError()"
+              [invalid]="form.controls.email.invalid && form.controls.email.touched"
+            >
               <input
                 class="input"
                 id="uf-email"
                 type="email"
                 formControlName="email"
                 autocomplete="email"
+                aria-required="true"
+                [attr.aria-invalid]="form.controls.email.invalid && form.controls.email.touched"
+                [attr.aria-describedby]="form.controls.email.invalid && form.controls.email.touched ? 'uf-email-error' : null"
               />
-              @if (form.controls.email.invalid && form.controls.email.touched) {
-                <span class="field__error" role="alert">Ingrese un email válido.</span>
-              }
-            </div>
+            </at-form-field>
 
             <div class="field">
               <label class="field__label" for="uf-role"
                 >Rol <span aria-hidden="true">*</span></label
               >
-              <select class="input" id="uf-role" formControlName="role">
+              <select class="input" id="uf-role" formControlName="role" aria-required="true">
                 @for (r of roleOptions; track r) {
                   <option [value]="r">{{ r | displayLabel: 'role' }}</option>
                 }
@@ -126,14 +173,10 @@ import type { UpdateUserBody } from '../models/user-admin.types';
               </label>
             </div>
 
-            @if (submitError()) {
-              <p class="field__error" role="alert">{{ submitError() }}</p>
-            }
-
             <button
               class="btn btn--primary"
               type="submit"
-              [disabled]="form.invalid || submitting()"
+              [disabled]="submitting()"
             >
               @if (submitting()) {
                 Guardando…
@@ -181,22 +224,6 @@ import type { UpdateUserBody } from '../models/user-admin.types';
       flex-direction: column;
       gap: var(--at-s3);
     }
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: var(--at-s1);
-    }
-    .field__label {
-      font-size: var(--at-fs-sm);
-      color: var(--at-text-muted);
-      font-family: var(--at-font-mono);
-    }
-    .field__error {
-      font-size: var(--at-fs-sm);
-      color: var(--at-danger);
-      padding: var(--at-s1) var(--at-s2);
-      background: var(--at-err-bg);
-    }
     .field--checkbox .field__checkbox-label {
       display: flex;
       align-items: center;
@@ -220,9 +247,9 @@ export class UserFormPage {
   protected readonly loadingItem = signal(true);
   protected readonly submitting = signal(false);
   protected readonly loadError = signal<string | null>(null);
-  protected readonly submitError = signal<string | null>(null);
   /** `username` is read-only — displayed outside the form as a reference. */
   protected readonly username = signal<string | null>(null);
+  protected readonly summaryItems = signal<readonly ErrorSummaryItem[]>([]);
 
   private userId: number | null = null;
 
@@ -236,6 +263,43 @@ export class UserFormPage {
     email: this.fb.nonNullable.control('', [Validators.required, Validators.email]),
     role: this.fb.nonNullable.control<RoleEnum>('STUDENT', Validators.required),
     active: this.fb.nonNullable.control(true),
+  });
+
+  // Error message computeds
+  protected readonly firstNameError = computed(() => {
+    const ctrl = this.form.controls.firstName;
+    if (!ctrl.touched || ctrl.valid) return null;
+    const errs = ctrl.errors;
+    if (!errs) return null;
+    const key = Object.keys(errs)[0];
+    return messageFor(key, errs[key]);
+  });
+
+  protected readonly lastNameError = computed(() => {
+    const ctrl = this.form.controls.lastName;
+    if (!ctrl.touched || ctrl.valid) return null;
+    const errs = ctrl.errors;
+    if (!errs) return null;
+    const key = Object.keys(errs)[0];
+    return messageFor(key, errs[key]);
+  });
+
+  protected readonly identificationError = computed(() => {
+    const ctrl = this.form.controls.identification;
+    if (!ctrl.touched || ctrl.valid) return null;
+    const errs = ctrl.errors;
+    if (!errs) return null;
+    const key = Object.keys(errs)[0];
+    return messageFor(key, errs[key]);
+  });
+
+  protected readonly emailError = computed(() => {
+    const ctrl = this.form.controls.email;
+    if (!ctrl.touched || ctrl.valid) return null;
+    const errs = ctrl.errors;
+    if (!errs) return null;
+    const key = Object.keys(errs)[0];
+    return messageFor(key, errs[key]);
   });
 
   constructor() {
@@ -288,6 +352,10 @@ export class UserFormPage {
       return;
     }
 
+    clearServerErrors(this.form);
+    this.summaryItems.set([]);
+    this.submitting.set(true);
+
     const v = this.form.getRawValue();
     const body: UpdateUserBody = {
       firstName: v.firstName,
@@ -298,16 +366,16 @@ export class UserFormPage {
       active: v.active,
     };
 
-    this.submitError.set(null);
-    this.submitting.set(true);
-
     this.api
       .update(this.userId, body)
       .pipe(
         catchError((err: HttpErrorResponse) => {
           const p = this.problemMapper.fromHttpError(err);
-          this.submitError.set(
-            p?.detail ?? p?.title ?? 'No pudimos guardar los cambios del usuario.',
+          const { remainingGlobal } = applyProblemToForm(p, this.form, USER_CONTROL_IDS);
+          this.summaryItems.set(
+            remainingGlobal.length > 0
+              ? remainingGlobal
+              : [{ field: null, message: 'No pudimos guardar los cambios del usuario.' }],
           );
           return EMPTY;
         }),

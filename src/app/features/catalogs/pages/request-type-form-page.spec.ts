@@ -28,7 +28,7 @@ type PageInternals = {
   form: RequestTypeFormPage['form'];
   isEdit: () => boolean;
   loadError: () => string | null;
-  submitError: () => string | null;
+  summaryItems: () => readonly { field: string | null; message: string; controlId?: string }[];
   submitting: () => boolean;
   submit: () => void;
 };
@@ -236,7 +236,7 @@ describe('RequestTypeFormPage', () => {
     expect(navigateSpy).toHaveBeenCalledWith(['/app/catalogs/request-types']);
   });
 
-  it('C5: on HTTP error — submitError is set from problem.detail', () => {
+  it('C5: on HTTP error — summaryItems contains detail from problem', () => {
     const errorResponse = new HttpErrorResponse({
       error: { status: 500, title: 'Internal Error', detail: 'Database is down' },
       status: 500,
@@ -246,7 +246,8 @@ describe('RequestTypeFormPage', () => {
     page['form'].setValue({ name: 'Error Test', description: '' });
     (page as unknown as PageInternals).submit();
 
-    expect((page as unknown as PageInternals).submitError()).toBe('Database is down');
+    const items = page['summaryItems']();
+    expect(items.some((i: { message: string }) => i.message.includes('Database is down'))).toBe(true);
   });
 
   it('C6: submit() is a no-op when form is invalid — no API call', () => {
