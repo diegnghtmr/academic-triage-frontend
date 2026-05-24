@@ -8,6 +8,7 @@ import { TestBed } from '@angular/core/testing';
 import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
+import type { LoginRequest } from '../../core/auth/models/auth-api.types';
 import { ProblemErrorMapper } from '../../core/http/problem-error.mapper';
 
 /**
@@ -146,7 +147,7 @@ describe('LoginPage — form contract', () => {
 
   it('LoginRequest type must allow optional username for compat tooling', () => {
     // If this test compiles, the type allows username? as optional
-    const body: import('@core/auth/models/auth-api.types').LoginRequest = {
+    const body: LoginRequest = {
       identifier: 'jperez',
       password: 'MyPassword123',
       username: 'jperez',
