@@ -390,6 +390,48 @@ dd {
   font-size: var(--at-fs-xs);
 }
 
+// ── .field* — form field primitives (shared via at-form-field) ───────────────
+// These selectors are used by FormField's projected template.
+// Pages with legacy manual .field markup also benefit from global availability.
+// Local duplicates in feature pages will be removed in their respective slices.
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--at-s1);
+  margin-bottom: var(--at-s4);
+}
+
+.field__label {
+  display: block;
+  color: var(--at-text-muted);
+  font-size: var(--at-fs-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--at-tracking-wide);
+  margin-bottom: var(--at-s1);
+}
+
+.field__req {
+  color: var(--at-danger);
+  font-size: var(--at-fs-xs);
+}
+
+.field__hint {
+  color: var(--at-text-muted);
+  font-size: var(--at-fs-xs);
+  font-family: var(--at-font-mono);
+}
+
+.field__error {
+  color: var(--at-danger);
+  font-size: var(--at-fs-xs);
+  font-family: var(--at-font-mono);
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
 // ── App shell (layout host) ───────────────────────────────────
 at-app-shell {
   display: block;
