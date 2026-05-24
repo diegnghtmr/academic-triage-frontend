@@ -12,11 +12,18 @@ test.describe('public home critical path', () => {
     await expect(page.getByRole('heading', { name: 'Iniciar sesión' })).toBeVisible();
   });
 
-  test('register page keeps submit disabled until form is valid', async ({ page }) => {
+  test('register page reveals field errors on invalid submit (UV-1 AC1)', async ({ page }) => {
     await page.goto('/auth/register');
 
     const submitButton = page.getByRole('button', { name: 'Registrarme' });
-    await expect(submitButton).toBeDisabled();
+    // UV-1 AC1: submit is NOT disabled on form.invalid — user must be able to click
+    // and have markAllAsTouched() surface the validation errors.
+    await expect(submitButton).toBeEnabled();
+
+    await submitButton.click();
+
+    // After click on empty form, required inputs should be marked invalid.
+    await expect(page.getByLabel('Usuario')).toHaveAttribute('aria-invalid', 'true');
 
     const suffix = Date.now();
     await page.getByLabel('Usuario').fill(`qa-user-${suffix}`);
