@@ -1,5 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -8,12 +14,25 @@ import { catchError, EMPTY, finalize } from 'rxjs';
 import { AuthSessionStore } from '@core/auth/auth-session.store';
 import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
 import { parseSafeReturnUrl } from '@core/http/return-url';
+import { ErrorSummary } from '@shared/ui/error-summary/error-summary';
+import { FormField } from '@shared/ui/form-field/form-field';
+import { PasswordField } from '@shared/ui/password-field/password-field';
+import type { ErrorSummaryItem } from '@shared/utils/problem-field-mapper';
 
+import { messageFor } from '../../shared/i18n/validation-messages';
 import { AuthApiService } from './auth-api.service';
+
+/**
+ * Stable control IDs — used by `<at-form-field>` and for aria wiring.
+ */
+const LOGIN_CONTROL_IDS = {
+  identifier: 'login-identifier',
+  password: 'login-password',
+} as const;
 
 @Component({
   selector: 'at-login-page',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, FormField, PasswordField, ErrorSummary],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="login-wrap">
@@ -24,32 +43,50 @@ import { AuthApiService } from './auth-api.service';
             Registro completado. Iniciá sesión con tu cuenta.
           </p>
         }
+
+        <at-error-summary
+          [items]="globalErrors()"
+          (focusFirst)="focusSummaryTarget($event)"
+        />
+
         <form class="login-form" [formGroup]="form" (ngSubmit)="submit()">
-          <div class="field">
-            <label class="field__label" for="login-identifier">Usuario o correo</label>
+
+          <at-form-field
+            label="Usuario o correo"
+            [controlId]="ids.identifier"
+            [required]="true"
+            [invalid]="isInvalid('identifier')"
+            [errorMessage]="errorFor('identifier')"
+          >
             <input
               class="input"
-              id="login-identifier"
+              [id]="ids.identifier"
               type="text"
               formControlName="identifier"
               autocomplete="username"
               placeholder="nombre de usuario o correo electrónico"
+              [attr.aria-invalid]="isInvalid('identifier') || null"
+              [attr.aria-describedby]="describedBy('identifier')"
             />
-          </div>
-          <div class="field">
-            <label class="field__label" for="login-password">Contraseña</label>
-            <input
-              class="input"
-              id="login-password"
-              type="password"
-              formControlName="password"
+          </at-form-field>
+
+          <at-form-field
+            label="Contraseña"
+            [controlId]="ids.password"
+            [required]="true"
+            [invalid]="isInvalid('password')"
+            [errorMessage]="errorFor('password')"
+          >
+            <at-password-field
+              [controlId]="ids.password"
               autocomplete="current-password"
+              formControlName="password"
+              [ariaDescribedBy]="describedBy('password')"
+              [ariaInvalid]="isInvalid('password')"
             />
-          </div>
-          @if (errorMessage()) {
-            <p class="field__error" role="alert">{{ errorMessage() }}</p>
-          }
-          <button class="btn btn--primary" type="submit" [disabled]="form.invalid || loading()">
+          </at-form-field>
+
+          <button class="btn btn--primary" type="submit" [disabled]="loading()">
             @if (loading()) {
               Entrando…
             } @else {
@@ -137,22 +174,6 @@ import { AuthApiService } from './auth-api.service';
       display: flex;
       flex-direction: column;
       gap: var(--at-s3);
-    }
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: var(--at-s1);
-    }
-    .field__label {
-      font-size: var(--at-fs-sm);
-      color: var(--at-text-muted);
-      font-family: var(--at-font-mono);
-    }
-    .field__error {
-      font-size: var(--at-fs-sm);
-      color: var(--at-danger);
-      padding: var(--at-s1) var(--at-s2);
-      background: var(--at-err-bg);
     }
     .login-wrap__link {
       margin-top: var(--at-s3);
@@ -271,8 +292,11 @@ export class LoginPage {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
 
+  readonly ids = LOGIN_CONTROL_IDS;
+
   protected readonly loading = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
+  protected readonly globalErrors = signal<readonly ErrorSummaryItem[]>([]);
   protected readonly registeredNotice = signal(false);
 
   protected readonly form = this.fb.nonNullable.group({
@@ -285,10 +309,38 @@ export class LoginPage {
     this.registeredNotice.set(registered === '1');
   }
 
+  /** Returns the first active error message for a control, or null. */
+  protected errorFor(controlName: keyof typeof LOGIN_CONTROL_IDS): string | null {
+    const control = this.form.controls[controlName];
+    if (!control.touched || !control.errors) return null;
+    const [firstKey, firstValue] = Object.entries(control.errors)[0];
+    return messageFor(firstKey, firstValue);
+  }
+
+  /** Returns true when the control is invalid AND touched. */
+  protected isInvalid(controlName: keyof typeof LOGIN_CONTROL_IDS): boolean {
+    const control = this.form.controls[controlName];
+    return control.invalid && control.touched;
+  }
+
+  protected describedBy(controlName: keyof typeof LOGIN_CONTROL_IDS): string | null {
+    const controlId = this.ids[controlName];
+    return this.isInvalid(controlName) ? `${controlId}-error` : null;
+  }
+
+  protected focusSummaryTarget(item: ErrorSummaryItem): void {
+    if (item.controlId) {
+      const el = document.getElementById(item.controlId);
+      el?.focus();
+    }
+  }
+
   protected submit(): void {
     if (this.form.invalid) {
+      this.form.markAllAsTouched();
       return;
     }
+    this.globalErrors.set([]);
     this.errorMessage.set(null);
     this.loading.set(true);
     const body = this.form.getRawValue();
@@ -299,6 +351,7 @@ export class LoginPage {
           const problem = this.problemMapper.fromHttpError(err);
           const msg = problem?.detail ?? problem?.title ?? 'No se pudo iniciar sesión.';
           this.errorMessage.set(msg);
+          this.globalErrors.set([{ field: null, message: msg }]);
           return EMPTY;
         }),
         finalize(() => this.loading.set(false)),
@@ -309,6 +362,7 @@ export class LoginPage {
         const user = auth.user;
         if (typeof token !== 'string' || token === '' || user === undefined) {
           this.errorMessage.set('Respuesta de login incompleta.');
+          this.globalErrors.set([{ field: null, message: 'Respuesta de login incompleta.' }]);
           return;
         }
         this.session.setSession(token, user);
