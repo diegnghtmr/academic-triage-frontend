@@ -94,7 +94,8 @@ describe('FormField — selector and change detection (UV-7)', () => {
     // Only computed() should appear for internal derived values
     // Internal signals like signal(false) for mutable state must NOT be present
     // (per design: "only computed(), sin signals mutables")
-    const mutableSignalPattern = /protected readonly \w+ = signal\(/;
+    // Match both protected and readonly patterns
+    const mutableSignalPattern = /(protected\s+readonly|readonly)\s+\w+\s*=\s*signal\(/;
     expect(mutableSignalPattern.test(source)).toBe(false);
   });
 });

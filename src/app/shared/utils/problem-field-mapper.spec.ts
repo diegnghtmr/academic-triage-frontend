@@ -107,13 +107,9 @@ describe('ProblemFieldMapper — applyProblemToForm', () => {
       detail: "Ya existe un usuario con email 'user@example.com'",
     };
 
-    applyProblemToForm(problem, form, {});
+    const { remainingGlobal } = applyProblemToForm(problem, form, {});
 
-    const remainingGlobal: ErrorSummaryItem[] = [];
-    const { remainingGlobal: result } = applyProblemToForm(problem, form, {});
-    void remainingGlobal;
-
-    expect(result[0].message).toContain('usuario con email');
+    expect(remainingGlobal[0].message).toContain('usuario con email');
     // Must NOT set server error on email control (REQ-NO-DUPLICATE-PARSE)
     // (email control may still have required validator error, but NOT server error)
     expect(form.controls.email.errors?.['server']).toBeUndefined();
