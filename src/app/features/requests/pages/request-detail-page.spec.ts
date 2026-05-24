@@ -300,7 +300,7 @@ describe('RequestDetailPage — S4a: assign action error wiring (UV-8 AC5)', () 
   beforeAll(bootstrapTestEnv);
   afterEach(() => TestBed.resetTestingModule());
 
-  it('submitAssign() with HTTP error → assignError set from problem.detail', () => {
+  it('submitAssign() with 404 HTTP error → assignError shows recovery guidance (UV-8 AC6)', () => {
     const httpErr = new HttpErrorResponse({
       status: 404,
       statusText: 'Not Found',
@@ -313,7 +313,10 @@ describe('RequestDetailPage — S4a: assign action error wiring (UV-8 AC5)', () 
     page['assignForm'].controls.assignedToUserId.setValue(999);
     page['submitAssign']();
 
-    expect(page['assignError']()).toBe('Usuario no encontrado.');
+    // 404 triggers the recovery guidance copy (UV-8 AC6 — assign by numeric ID)
+    expect(page['assignError']()).toBe(
+      'ID de staff inválido o usuario no encontrado. Verificá con el equipo.',
+    );
   });
 
   it('submitAssign() with fieldErrors → assignedToUserId control gets server error', () => {
@@ -575,5 +578,36 @@ describe('RequestDetailPage — S4a: template source assertions (UV-7, UV-8)', (
   it('FormField and ErrorAlert are imported into the component', () => {
     expect(source).toContain('FormField');
     expect(source).toContain('ErrorAlert');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Suite 9 — S4c: assignment copy/recovery hint (UV-8 AC6)
+// ---------------------------------------------------------------------------
+
+describe('RequestDetailPage — S4c: assignment copy/recovery hint (UV-8 AC6)', () => {
+  const source = readFileSync(
+    new URL('./request-detail-page.ts', import.meta.url).pathname,
+    'utf-8',
+  );
+
+  it('assignment field has hint copy mentioning numeric ID (UV-8 AC6)', () => {
+    // The hint must indicate it is a numeric staff ID
+    expect(source).toContain('ID numérico');
+  });
+
+  it('assignment field hint mentions upcoming selector (UV-8 AC6 recovery guide)', () => {
+    // Recovery guide: future selector coming
+    expect(source).toContain('selector');
+  });
+
+  it('assignment section has ASSIGN_STAFF_HINT constant or inline hint string (UV-8 AC6)', () => {
+    // At minimum the hint text about staff is present in the source
+    expect(source).toMatch(/staff.*selector|selector.*staff|ID.*staff|staff.*ID/i);
+  });
+
+  it('submitAssign() error handling produces a friendly recovery message (UV-8 AC6)', () => {
+    // Source must contain the recovery guidance copy for assignment errors
+    expect(source).toContain('ASSIGN_NOT_FOUND_MSG');
   });
 });

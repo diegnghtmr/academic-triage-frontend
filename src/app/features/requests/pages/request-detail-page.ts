@@ -57,6 +57,20 @@ import {
 /** Standard message when the AI returns 503. */
 const AI_UNAVAILABLE_MSG = 'La asistencia de IA no está disponible en este entorno.';
 
+/**
+ * Hint copy for the numeric staff-ID assignment field (UV-8 AC6).
+ * Documented as technical debt until a staff selector is available (PRD §R8).
+ */
+const ASSIGN_STAFF_HINT =
+  'Ingresá el ID numérico del miembro del staff. Próximamente: selector con búsqueda.';
+
+/**
+ * Recovery message shown when the backend rejects the assigned staff ID
+ * (e.g. 404 Not Found or 422 validation) — UV-8 AC6.
+ */
+const ASSIGN_NOT_FOUND_MSG =
+  'ID de staff inválido o usuario no encontrado. Verificá con el equipo.';
+
 /** Control ID maps for applyProblemToForm — field name → DOM input id. */
 const CLASSIFY_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
   requestTypeId: 'detail-classify-type',
@@ -457,10 +471,10 @@ const REJECT_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
               <form class="action-form" [formGroup]="assignForm" (ngSubmit)="submitAssign()">
                 <h4 class="action-form__title">Asignar responsable</h4>
                 <at-form-field
-                  label="Usuario responsable"
+                  label="Usuario responsable (ID numérico del staff)"
                   controlId="detail-assign-user"
                   [required]="true"
-                  hint="Puedes tomar este dato del listado de usuarios."
+                  [hint]="assignStaffHint"
                   [errorMessage]="firstAssignUserIdError()"
                   [invalid]="assignForm.controls.assignedToUserId.touched && !!assignForm.controls.assignedToUserId.errors"
                 >
@@ -1101,6 +1115,9 @@ export class RequestDetailPage {
 
   protected readonly priorityOptions: PriorityEnum[] = ['HIGH', 'MEDIUM', 'LOW'];
 
+  /** Exposes the assignment hint constant to the template (UV-8 AC6). */
+  protected readonly assignStaffHint = ASSIGN_STAFF_HINT;
+
   protected readonly noteForm = this.fb.nonNullable.group({
     observations: ['', [Validators.required, Validators.maxLength(2000)]],
   });
@@ -1461,8 +1478,16 @@ export class RequestDetailPage {
         catchError((err: HttpErrorResponse) => {
           const p = this.problemMapper.fromHttpError(err);
           const { remainingGlobal } = applyProblemToForm(p, this.assignForm, ASSIGN_CONTROL_ID_MAP);
+          // For 404 or "not found" responses: show the recovery guidance copy (UV-8 AC6).
+          const backendMsg = remainingGlobal[0]?.message ?? p?.detail ?? p?.title;
+          const isNotFound =
+            err.status === 404 ||
+            (typeof backendMsg === 'string' &&
+              /no encontrado|not found/i.test(backendMsg));
           this.assignError.set(
-            remainingGlobal[0]?.message ?? p?.detail ?? p?.title ?? 'No pudimos completar la acción. Inténtalo de nuevo.',
+            isNotFound
+              ? ASSIGN_NOT_FOUND_MSG
+              : backendMsg ?? 'No pudimos completar la acción. Inténtalo de nuevo.',
           );
           return EMPTY;
         }),
