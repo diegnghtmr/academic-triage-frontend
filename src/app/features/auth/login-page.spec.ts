@@ -180,12 +180,15 @@ describe('LoginPage — UI copy and error behavior wiring', () => {
     expect(source).toContain('autocomplete="username"');
   });
 
-  it('error message element must use role="alert" for screen reader accessibility', () => {
-    expect(source).toContain('role="alert"');
+  it('error message accessibility: at-error-summary provides role="alert" (delegated to primitive)', () => {
+    // LoginPage now uses at-error-summary for error display; role="alert" is handled
+    // inside the primitive. The template binds globalErrors() signal to at-error-summary.
+    expect(source).toContain('at-error-summary');
+    expect(source).toContain('globalErrors()');
   });
 
-  it('error message element must be bound to errorMessage() signal', () => {
-    expect(source).toContain('errorMessage()');
+  it('error message element must be bound to globalErrors() signal via at-error-summary', () => {
+    expect(source).toContain('globalErrors()');
   });
 
   // ── canonical payload (structural) ────────────────────────────────────────
@@ -196,12 +199,15 @@ describe('LoginPage — UI copy and error behavior wiring', () => {
   });
 
   it('form input id must be "login-identifier" (not legacy "login-username")', () => {
-    expect(source).toContain('id="login-identifier"');
-    expect(source).not.toContain('id="login-username"');
+    // id is bound via [id]="ids.identifier" where ids.identifier = 'login-identifier'
+    expect(source).toContain('login-identifier');
+    expect(source).not.toContain('login-username');
   });
 
-  it('label for attribute must point to "login-identifier"', () => {
-    expect(source).toContain('for="login-identifier"');
+  it('label for attribute must point to "login-identifier" via at-form-field controlId binding', () => {
+    // at-form-field receives [controlId]="ids.identifier" and renders <label for="..."> internally
+    expect(source).toContain('ids.identifier');
+    expect(source).not.toContain('for="login-username"');
   });
 
   // ── error behavior wiring — 400 conflict ─────────────────────────────────
@@ -307,5 +313,35 @@ describe('LoginPage — UI copy and error behavior wiring', () => {
     const problem: null = null;
     const msg = problem?.detail ?? problem?.title ?? 'No se pudo iniciar sesión.';
     expect(msg).toBe('No se pudo iniciar sesión.');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LoginPage — primitives wiring (UV-3 AC1–AC4, UV-1)
+// Ensures LoginPage uses the shared UI primitives: at-form-field, at-password-field,
+// at-error-summary; and calls markAllAsTouched on invalid submit.
+// ─────────────────────────────────────────────────────────────────────────────
+describe('LoginPage — primitives wiring (UV-3 AC1–AC4, UV-1)', () => {
+  const source = readFileSync(join(import.meta.dirname, 'login-page.ts'), 'utf-8');
+
+  it('UV-1 AC1: submit calls markAllAsTouched on invalid form', () => {
+    expect(source).toContain('markAllAsTouched');
+  });
+
+  it('UV-3 AC1: uses at-form-field for field wrappers', () => {
+    expect(source).toContain('at-form-field');
+  });
+
+  it('UV-3 AC2: uses at-password-field for password input', () => {
+    expect(source).toContain('at-password-field');
+  });
+
+  it('UV-3 AC3: uses at-error-summary for global error list', () => {
+    expect(source).toContain('at-error-summary');
+  });
+
+  it('UV-3 AC4: formControlName is identifier (REQ-CONTRACT-IDENTIFIER)', () => {
+    expect(source).toContain('formControlName="identifier"');
+    expect(source).not.toContain('formControlName="username"');
   });
 });
