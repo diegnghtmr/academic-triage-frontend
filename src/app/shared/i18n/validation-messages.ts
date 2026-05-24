@@ -23,6 +23,7 @@ export const VALIDATION_MESSAGES = {
   email: 'Formato de correo electrónico inválido',
   pattern: 'El formato no es válido',
   integer: 'Debe ser un número entero',
+  requiredForRuleType: 'Requerido para este tipo de regla',
 } as const;
 
 type ValidationMessagesKey = keyof typeof VALIDATION_MESSAGES;

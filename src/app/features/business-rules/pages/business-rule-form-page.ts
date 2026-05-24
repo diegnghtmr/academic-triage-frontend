@@ -26,6 +26,7 @@ import type {
   UpdateBusinessRuleBody,
 } from '../models/business-rule.types';
 import { CONDITION_TYPE_OPTIONS, PRIORITY_OPTIONS } from '../models/business-rule.types';
+import { conditionalBusinessRuleValidator } from '../validators/conditional-validators';
 
 /**
  * Create and edit form for business rules.
@@ -37,6 +38,9 @@ import { CONDITION_TYPE_OPTIONS, PRIORITY_OPTIONS } from '../models/business-rul
  * | REQUEST_TYPE               | hidden       | required      |
  * | DEADLINE                   | required     | hidden        |
  * | REQUEST_TYPE_AND_DEADLINE  | required     | required      |
+ *
+ * Validation is enforced by `conditionalBusinessRuleValidator` at FormGroup level.
+ * Hidden fields never block submit (UV-9 AC4).
  *
  * On submit, `conditionValue` is derived from the form state:
  * - REQUEST_TYPE:            String(requestTypeId)
@@ -75,9 +79,16 @@ import { CONDITION_TYPE_OPTIONS, PRIORITY_OPTIONS } from '../models/business-rul
                 formControlName="name"
                 maxlength="150"
                 autocomplete="off"
+                aria-required="true"
+                [attr.aria-invalid]="form.controls.name.invalid && form.controls.name.touched"
+                [attr.aria-describedby]="
+                  form.controls.name.invalid && form.controls.name.touched
+                    ? 'br-name-error'
+                    : null
+                "
               />
               @if (form.controls.name.invalid && form.controls.name.touched) {
-                <span class="field__error" role="alert"
+                <span id="br-name-error" class="field__error" role="alert"
                   >El nombre es requerido (máx. 150 caracteres).</span
                 >
               }
@@ -92,9 +103,14 @@ import { CONDITION_TYPE_OPTIONS, PRIORITY_OPTIONS } from '../models/business-rul
                 rows="3"
                 formControlName="description"
                 maxlength="500"
+                [attr.aria-describedby]="
+                  form.controls.description.invalid && form.controls.description.touched
+                    ? 'br-desc-error'
+                    : null
+                "
               ></textarea>
               @if (form.controls.description.invalid && form.controls.description.touched) {
-                <span class="field__error" role="alert">Máximo 500 caracteres.</span>
+                <span id="br-desc-error" class="field__error" role="alert">Máximo 500 caracteres.</span>
               }
             </div>
 
@@ -124,9 +140,18 @@ import { CONDITION_TYPE_OPTIONS, PRIORITY_OPTIONS } from '../models/business-rul
                   min="0"
                   step="1"
                   formControlName="deadlineDays"
+                  [attr.aria-required]="ariaRequiredDeadlineDays()"
+                  [attr.aria-invalid]="
+                    form.controls.deadlineDays.invalid && form.controls.deadlineDays.touched
+                  "
+                  [attr.aria-describedby]="
+                    form.controls.deadlineDays.invalid && form.controls.deadlineDays.touched
+                      ? 'br-days-error'
+                      : null
+                  "
                 />
                 @if (form.controls.deadlineDays.invalid && form.controls.deadlineDays.touched) {
-                  <span class="field__error" role="alert"
+                  <span id="br-days-error" class="field__error" role="alert"
                     >Ingrese un número entero mayor o igual a 0.</span
                   >
                 }
@@ -142,7 +167,20 @@ import { CONDITION_TYPE_OPTIONS, PRIORITY_OPTIONS } from '../models/business-rul
                 @if (catalogLoading()) {
                   <p class="field__hint">Cargando tipos…</p>
                 } @else {
-                  <select class="input" id="br-rtype" formControlName="requestTypeId">
+                  <select
+                    class="input"
+                    id="br-rtype"
+                    formControlName="requestTypeId"
+                    [attr.aria-required]="ariaRequiredRequestTypeId()"
+                    [attr.aria-invalid]="
+                      form.controls.requestTypeId.invalid && form.controls.requestTypeId.touched
+                    "
+                    [attr.aria-describedby]="
+                      form.controls.requestTypeId.invalid && form.controls.requestTypeId.touched
+                        ? 'br-rtype-error'
+                        : null
+                    "
+                  >
                     <option [ngValue]="null">Seleccionar…</option>
                     @for (rt of requestTypes(); track rt.id) {
                       <option [ngValue]="rt.id">{{ rt.name }}</option>
@@ -153,7 +191,7 @@ import { CONDITION_TYPE_OPTIONS, PRIORITY_OPTIONS } from '../models/business-rul
                   <p class="field__error" role="alert">{{ catalogError() }}</p>
                 }
                 @if (form.controls.requestTypeId.invalid && form.controls.requestTypeId.touched) {
-                  <span class="field__error" role="alert">Seleccione un tipo de solicitud.</span>
+                  <span id="br-rtype-error" class="field__error" role="alert">Seleccione un tipo de solicitud.</span>
                 }
               </div>
             }
@@ -333,18 +371,21 @@ export class BusinessRuleFormPage {
   private readonly ruleId = signal<number | null>(null);
   protected readonly isEdit = computed(() => this.ruleId() !== null);
 
-  protected readonly form = this.fb.nonNullable.group({
-    name: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(150)]),
-    description: this.fb.nonNullable.control('', [Validators.maxLength(500)]),
-    conditionType: this.fb.nonNullable.control<ConditionTypeEnum>(
-      'REQUEST_TYPE',
-      Validators.required,
-    ),
-    deadlineDays: this.fb.control<number | null>(null),
-    requestTypeId: this.fb.control<number | null>(null),
-    resultingPriority: this.fb.nonNullable.control<PriorityEnum>('HIGH', Validators.required),
-    active: this.fb.nonNullable.control(true),
-  });
+  protected readonly form = this.fb.nonNullable.group(
+    {
+      name: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(150)]),
+      description: this.fb.nonNullable.control('', [Validators.maxLength(500)]),
+      conditionType: this.fb.nonNullable.control<ConditionTypeEnum>(
+        'REQUEST_TYPE',
+        Validators.required,
+      ),
+      deadlineDays: this.fb.control<number | null>(null),
+      requestTypeId: this.fb.control<number | null>(null),
+      resultingPriority: this.fb.nonNullable.control<PriorityEnum>('HIGH', Validators.required),
+      active: this.fb.nonNullable.control(true),
+    },
+    { validators: conditionalBusinessRuleValidator },
+  );
 
   /** Reactive signal tracking the current conditionType value in the form. */
   private readonly selectedConditionType = toSignal(this.form.controls.conditionType.valueChanges, {
@@ -361,6 +402,22 @@ export class BusinessRuleFormPage {
     return ct === 'REQUEST_TYPE' || ct === 'REQUEST_TYPE_AND_DEADLINE';
   });
 
+  /**
+   * Dynamic aria-required for requestTypeId:
+   * true when conditionType requires the request type selector.
+   */
+  protected readonly ariaRequiredRequestTypeId = computed(() =>
+    this.showRequestTypeSelector(),
+  );
+
+  /**
+   * Dynamic aria-required for deadlineDays:
+   * true when conditionType requires the deadline days input.
+   */
+  protected readonly ariaRequiredDeadlineDays = computed(() =>
+    this.showDeadlineDays(),
+  );
+
   constructor() {
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam !== null) {
@@ -371,6 +428,14 @@ export class BusinessRuleFormPage {
       }
     }
     this.loadCatalog();
+
+    // Re-evaluate the cross-field validator whenever conditionType changes
+    // so that hidden fields are immediately cleared from error state.
+    this.form.controls.conditionType.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.form.updateValueAndValidity({ emitEvent: false });
+      });
   }
 
   protected conditionTypeLabel(ct: ConditionTypeEnum): string {
@@ -456,33 +521,20 @@ export class BusinessRuleFormPage {
 
     switch (conditionType) {
       case 'REQUEST_TYPE':
-        if (v.requestTypeId === null) {
-          this.submitError.set('Elegí un tipo de solicitud para completar esta condición.');
-          return;
-        }
+        // At this point form is valid — requestTypeId is guaranteed non-null by validator
         conditionValue = String(v.requestTypeId);
         requestTypeId = v.requestTypeId;
         break;
 
       case 'DEADLINE':
-        if (v.deadlineDays === null || v.deadlineDays < 0) {
-          this.submitError.set('Ingresá una cantidad de días válida (0 o mayor).');
-          return;
-        }
-        conditionValue = String(Math.trunc(v.deadlineDays));
+        // At this point form is valid — deadlineDays is guaranteed valid by validator
+        conditionValue = String(Math.trunc(v.deadlineDays!));
         requestTypeId = null;
         break;
 
       case 'REQUEST_TYPE_AND_DEADLINE':
-        if (v.requestTypeId === null) {
-          this.submitError.set('Elegí un tipo de solicitud para completar esta condición.');
-          return;
-        }
-        if (v.deadlineDays === null || v.deadlineDays < 0) {
-          this.submitError.set('Ingresá una cantidad de días válida (0 o mayor).');
-          return;
-        }
-        conditionValue = String(Math.trunc(v.deadlineDays));
+        // Both fields guaranteed valid by validator
+        conditionValue = String(Math.trunc(v.deadlineDays!));
         requestTypeId = v.requestTypeId;
         break;
     }
