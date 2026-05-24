@@ -21,10 +21,7 @@ import { ErrorAlert } from '@shared/ui/error-alert';
 import { FormField } from '@shared/ui/form-field/form-field';
 import { StateBadge } from '@shared/ui/state-badge';
 import { PriorityBadge } from '@shared/ui/priority-badge';
-import {
-  applyProblemToForm,
-  clearServerErrors,
-} from '@shared/utils/problem-field-mapper';
+import { applyProblemToForm, clearServerErrors } from '@shared/utils/problem-field-mapper';
 import { messageFor } from '@shared/i18n/validation-messages';
 
 import { adaptHistoryEntry, adaptRequestDetail } from '../adapters/request-detail.adapter';
@@ -220,7 +217,11 @@ const REJECT_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
                       id="note-observations"
                       formControlName="observations"
                       rows="3"
-                      [attr.aria-invalid]="(noteForm.controls.observations.touched && !!noteForm.controls.observations.errors) || null"
+                      [attr.aria-invalid]="
+                        (noteForm.controls.observations.touched &&
+                          !!noteForm.controls.observations.errors) ||
+                        null
+                      "
                     ></textarea>
                   </div>
                   <div class="note-form__actions">
@@ -374,15 +375,24 @@ const REJECT_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
                   controlId="detail-classify-type"
                   [required]="true"
                   [errorMessage]="firstClassifyRequestTypeIdError()"
-                  [invalid]="classifyForm.controls.requestTypeId.touched && !!classifyForm.controls.requestTypeId.errors"
+                  [invalid]="
+                    classifyForm.controls.requestTypeId.touched &&
+                    !!classifyForm.controls.requestTypeId.errors
+                  "
                 >
                   <select
                     class="input"
                     id="detail-classify-type"
                     formControlName="requestTypeId"
                     [attr.aria-required]="'true'"
-                    [attr.aria-invalid]="(classifyForm.controls.requestTypeId.touched && !!classifyForm.controls.requestTypeId.errors) || null"
-                    [attr.aria-describedby]="firstClassifyRequestTypeIdError() ? 'detail-classify-type-error' : null"
+                    [attr.aria-invalid]="
+                      (classifyForm.controls.requestTypeId.touched &&
+                        !!classifyForm.controls.requestTypeId.errors) ||
+                      null
+                    "
+                    [attr.aria-describedby]="
+                      firstClassifyRequestTypeIdError() ? 'detail-classify-type-error' : null
+                    "
                   >
                     @for (t of requestTypesWithId(); track t.id) {
                       <option [ngValue]="t.id">{{ t.name }}</option>
@@ -393,15 +403,24 @@ const REJECT_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
                   label="Observaciones (opcional)"
                   controlId="detail-classify-obs"
                   [errorMessage]="firstClassifyObservationsError()"
-                  [invalid]="classifyForm.controls.observations.touched && !!classifyForm.controls.observations.errors"
+                  [invalid]="
+                    classifyForm.controls.observations.touched &&
+                    !!classifyForm.controls.observations.errors
+                  "
                 >
                   <textarea
                     class="input"
                     id="detail-classify-obs"
                     formControlName="observations"
                     rows="2"
-                    [attr.aria-invalid]="(classifyForm.controls.observations.touched && !!classifyForm.controls.observations.errors) || null"
-                    [attr.aria-describedby]="firstClassifyObservationsError() ? 'detail-classify-obs-error' : null"
+                    [attr.aria-invalid]="
+                      (classifyForm.controls.observations.touched &&
+                        !!classifyForm.controls.observations.errors) ||
+                      null
+                    "
+                    [attr.aria-describedby]="
+                      firstClassifyObservationsError() ? 'detail-classify-obs-error' : null
+                    "
                   ></textarea>
                 </at-form-field>
                 <at-error-alert variant="error" [message]="classifyError()" />
@@ -426,14 +445,21 @@ const REJECT_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
                   controlId="detail-priority"
                   [required]="true"
                   [errorMessage]="null"
-                  [invalid]="prioritizeForm.controls.priority.touched && !!prioritizeForm.controls.priority.errors"
+                  [invalid]="
+                    prioritizeForm.controls.priority.touched &&
+                    !!prioritizeForm.controls.priority.errors
+                  "
                 >
                   <select
                     class="input"
                     id="detail-priority"
                     formControlName="priority"
                     [attr.aria-required]="'true'"
-                    [attr.aria-invalid]="(prioritizeForm.controls.priority.touched && !!prioritizeForm.controls.priority.errors) || null"
+                    [attr.aria-invalid]="
+                      (prioritizeForm.controls.priority.touched &&
+                        !!prioritizeForm.controls.priority.errors) ||
+                      null
+                    "
                   >
                     @for (p of priorityOptions; track p) {
                       <option [ngValue]="p">{{ p | displayLabel: 'priority' }}</option>
@@ -445,7 +471,10 @@ const REJECT_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
                   controlId="detail-priority-just"
                   [required]="true"
                   [errorMessage]="firstPrioritizeJustificationError()"
-                  [invalid]="prioritizeForm.controls.justification.touched && !!prioritizeForm.controls.justification.errors"
+                  [invalid]="
+                    prioritizeForm.controls.justification.touched &&
+                    !!prioritizeForm.controls.justification.errors
+                  "
                 >
                   <textarea
                     class="input"
@@ -453,8 +482,14 @@ const REJECT_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
                     formControlName="justification"
                     rows="2"
                     [attr.aria-required]="'true'"
-                    [attr.aria-invalid]="(prioritizeForm.controls.justification.touched && !!prioritizeForm.controls.justification.errors) || null"
-                    [attr.aria-describedby]="firstPrioritizeJustificationError() ? 'detail-priority-just-error' : null"
+                    [attr.aria-invalid]="
+                      (prioritizeForm.controls.justification.touched &&
+                        !!prioritizeForm.controls.justification.errors) ||
+                      null
+                    "
+                    [attr.aria-describedby]="
+                      firstPrioritizeJustificationError() ? 'detail-priority-just-error' : null
+                    "
                   ></textarea>
                 </at-form-field>
                 <at-error-alert variant="error" [message]="prioritizeError()" />
@@ -476,7 +511,10 @@ const REJECT_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
                   [required]="true"
                   [hint]="assignStaffHint"
                   [errorMessage]="firstAssignUserIdError()"
-                  [invalid]="assignForm.controls.assignedToUserId.touched && !!assignForm.controls.assignedToUserId.errors"
+                  [invalid]="
+                    assignForm.controls.assignedToUserId.touched &&
+                    !!assignForm.controls.assignedToUserId.errors
+                  "
                 >
                   <input
                     class="input"
@@ -484,8 +522,16 @@ const REJECT_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
                     type="number"
                     formControlName="assignedToUserId"
                     [attr.aria-required]="'true'"
-                    [attr.aria-invalid]="(assignForm.controls.assignedToUserId.touched && !!assignForm.controls.assignedToUserId.errors) || null"
-                    [attr.aria-describedby]="firstAssignUserIdError() ? 'detail-assign-user-hint detail-assign-user-error' : 'detail-assign-user-hint'"
+                    [attr.aria-invalid]="
+                      (assignForm.controls.assignedToUserId.touched &&
+                        !!assignForm.controls.assignedToUserId.errors) ||
+                      null
+                    "
+                    [attr.aria-describedby]="
+                      firstAssignUserIdError()
+                        ? 'detail-assign-user-hint detail-assign-user-error'
+                        : 'detail-assign-user-hint'
+                    "
                   />
                 </at-form-field>
                 <at-form-field
@@ -499,7 +545,11 @@ const REJECT_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
                     id="detail-assign-obs"
                     formControlName="observations"
                     rows="2"
-                    [attr.aria-invalid]="(assignForm.controls.observations.touched && !!assignForm.controls.observations.errors) || null"
+                    [attr.aria-invalid]="
+                      (assignForm.controls.observations.touched &&
+                        !!assignForm.controls.observations.errors) ||
+                      null
+                    "
                   ></textarea>
                 </at-form-field>
                 <at-error-alert variant="error" [message]="assignError()" />
@@ -520,7 +570,10 @@ const REJECT_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
                   controlId="detail-attend-obs"
                   [required]="true"
                   [errorMessage]="firstAttendObservationsError()"
-                  [invalid]="attendForm.controls.observations.touched && !!attendForm.controls.observations.errors"
+                  [invalid]="
+                    attendForm.controls.observations.touched &&
+                    !!attendForm.controls.observations.errors
+                  "
                 >
                   <textarea
                     class="input"
@@ -528,8 +581,14 @@ const REJECT_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
                     formControlName="observations"
                     rows="3"
                     [attr.aria-required]="'true'"
-                    [attr.aria-invalid]="(attendForm.controls.observations.touched && !!attendForm.controls.observations.errors) || null"
-                    [attr.aria-describedby]="firstAttendObservationsError() ? 'detail-attend-obs-error' : null"
+                    [attr.aria-invalid]="
+                      (attendForm.controls.observations.touched &&
+                        !!attendForm.controls.observations.errors) ||
+                      null
+                    "
+                    [attr.aria-describedby]="
+                      firstAttendObservationsError() ? 'detail-attend-obs-error' : null
+                    "
                   ></textarea>
                 </at-form-field>
                 <at-error-alert variant="error" [message]="attendError()" />
@@ -550,7 +609,10 @@ const REJECT_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
                   controlId="detail-close-obs"
                   [required]="true"
                   [errorMessage]="firstCloseObservationError()"
-                  [invalid]="closeForm.controls.closingObservation.touched && !!closeForm.controls.closingObservation.errors"
+                  [invalid]="
+                    closeForm.controls.closingObservation.touched &&
+                    !!closeForm.controls.closingObservation.errors
+                  "
                 >
                   <textarea
                     class="input"
@@ -558,8 +620,14 @@ const REJECT_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
                     formControlName="closingObservation"
                     rows="3"
                     [attr.aria-required]="'true'"
-                    [attr.aria-invalid]="(closeForm.controls.closingObservation.touched && !!closeForm.controls.closingObservation.errors) || null"
-                    [attr.aria-describedby]="firstCloseObservationError() ? 'detail-close-obs-error' : null"
+                    [attr.aria-invalid]="
+                      (closeForm.controls.closingObservation.touched &&
+                        !!closeForm.controls.closingObservation.errors) ||
+                      null
+                    "
+                    [attr.aria-describedby]="
+                      firstCloseObservationError() ? 'detail-close-obs-error' : null
+                    "
                   ></textarea>
                 </at-form-field>
                 <at-error-alert variant="error" [message]="closeError()" />
@@ -580,7 +648,10 @@ const REJECT_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
                   controlId="detail-cancel-reason"
                   [required]="true"
                   [errorMessage]="firstCancelReasonError()"
-                  [invalid]="cancelForm.controls.cancellationReason.touched && !!cancelForm.controls.cancellationReason.errors"
+                  [invalid]="
+                    cancelForm.controls.cancellationReason.touched &&
+                    !!cancelForm.controls.cancellationReason.errors
+                  "
                 >
                   <textarea
                     class="input"
@@ -588,8 +659,14 @@ const REJECT_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
                     formControlName="cancellationReason"
                     rows="3"
                     [attr.aria-required]="'true'"
-                    [attr.aria-invalid]="(cancelForm.controls.cancellationReason.touched && !!cancelForm.controls.cancellationReason.errors) || null"
-                    [attr.aria-describedby]="firstCancelReasonError() ? 'detail-cancel-reason-error' : null"
+                    [attr.aria-invalid]="
+                      (cancelForm.controls.cancellationReason.touched &&
+                        !!cancelForm.controls.cancellationReason.errors) ||
+                      null
+                    "
+                    [attr.aria-describedby]="
+                      firstCancelReasonError() ? 'detail-cancel-reason-error' : null
+                    "
                   ></textarea>
                 </at-form-field>
                 <at-error-alert variant="error" [message]="cancelError()" />
@@ -610,7 +687,10 @@ const REJECT_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
                   controlId="detail-reject-reason"
                   [required]="true"
                   [errorMessage]="firstRejectReasonError()"
-                  [invalid]="rejectForm.controls.rejectionReason.touched && !!rejectForm.controls.rejectionReason.errors"
+                  [invalid]="
+                    rejectForm.controls.rejectionReason.touched &&
+                    !!rejectForm.controls.rejectionReason.errors
+                  "
                 >
                   <textarea
                     class="input"
@@ -618,8 +698,14 @@ const REJECT_CONTROL_ID_MAP: Readonly<Record<string, string>> = {
                     formControlName="rejectionReason"
                     rows="3"
                     [attr.aria-required]="'true'"
-                    [attr.aria-invalid]="(rejectForm.controls.rejectionReason.touched && !!rejectForm.controls.rejectionReason.errors) || null"
-                    [attr.aria-describedby]="firstRejectReasonError() ? 'detail-reject-reason-error' : null"
+                    [attr.aria-invalid]="
+                      (rejectForm.controls.rejectionReason.touched &&
+                        !!rejectForm.controls.rejectionReason.errors) ||
+                      null
+                    "
+                    [attr.aria-describedby]="
+                      firstRejectReasonError() ? 'detail-reject-reason-error' : null
+                    "
                   ></textarea>
                 </at-form-field>
                 <at-error-alert variant="error" [message]="rejectError()" />
@@ -1413,9 +1499,16 @@ export class RequestDetailPage {
       .pipe(
         catchError((err: HttpErrorResponse) => {
           const p = this.problemMapper.fromHttpError(err);
-          const { remainingGlobal } = applyProblemToForm(p, this.classifyForm, CLASSIFY_CONTROL_ID_MAP);
+          const { remainingGlobal } = applyProblemToForm(
+            p,
+            this.classifyForm,
+            CLASSIFY_CONTROL_ID_MAP,
+          );
           this.classifyError.set(
-            remainingGlobal[0]?.message ?? p?.detail ?? p?.title ?? 'No pudimos completar la acción. Inténtalo de nuevo.',
+            remainingGlobal[0]?.message ??
+              p?.detail ??
+              p?.title ??
+              'No pudimos completar la acción. Inténtalo de nuevo.',
           );
           return EMPTY;
         }),
@@ -1445,9 +1538,16 @@ export class RequestDetailPage {
       .pipe(
         catchError((err: HttpErrorResponse) => {
           const p = this.problemMapper.fromHttpError(err);
-          const { remainingGlobal } = applyProblemToForm(p, this.prioritizeForm, PRIORITIZE_CONTROL_ID_MAP);
+          const { remainingGlobal } = applyProblemToForm(
+            p,
+            this.prioritizeForm,
+            PRIORITIZE_CONTROL_ID_MAP,
+          );
           this.prioritizeError.set(
-            remainingGlobal[0]?.message ?? p?.detail ?? p?.title ?? 'No pudimos completar la acción. Inténtalo de nuevo.',
+            remainingGlobal[0]?.message ??
+              p?.detail ??
+              p?.title ??
+              'No pudimos completar la acción. Inténtalo de nuevo.',
           );
           return EMPTY;
         }),
@@ -1482,12 +1582,11 @@ export class RequestDetailPage {
           const backendMsg = remainingGlobal[0]?.message ?? p?.detail ?? p?.title;
           const isNotFound =
             err.status === 404 ||
-            (typeof backendMsg === 'string' &&
-              /no encontrado|not found/i.test(backendMsg));
+            (typeof backendMsg === 'string' && /no encontrado|not found/i.test(backendMsg));
           this.assignError.set(
             isNotFound
               ? ASSIGN_NOT_FOUND_MSG
-              : backendMsg ?? 'No pudimos completar la acción. Inténtalo de nuevo.',
+              : (backendMsg ?? 'No pudimos completar la acción. Inténtalo de nuevo.'),
           );
           return EMPTY;
         }),
@@ -1512,7 +1611,10 @@ export class RequestDetailPage {
           const p = this.problemMapper.fromHttpError(err);
           const { remainingGlobal } = applyProblemToForm(p, this.attendForm, ATTEND_CONTROL_ID_MAP);
           this.attendError.set(
-            remainingGlobal[0]?.message ?? p?.detail ?? p?.title ?? 'No pudimos completar la acción. Inténtalo de nuevo.',
+            remainingGlobal[0]?.message ??
+              p?.detail ??
+              p?.title ??
+              'No pudimos completar la acción. Inténtalo de nuevo.',
           );
           return EMPTY;
         }),
@@ -1537,7 +1639,10 @@ export class RequestDetailPage {
           const p = this.problemMapper.fromHttpError(err);
           const { remainingGlobal } = applyProblemToForm(p, this.closeForm, CLOSE_CONTROL_ID_MAP);
           this.closeError.set(
-            remainingGlobal[0]?.message ?? p?.detail ?? p?.title ?? 'No pudimos completar la acción. Inténtalo de nuevo.',
+            remainingGlobal[0]?.message ??
+              p?.detail ??
+              p?.title ??
+              'No pudimos completar la acción. Inténtalo de nuevo.',
           );
           return EMPTY;
         }),
@@ -1562,7 +1667,10 @@ export class RequestDetailPage {
           const p = this.problemMapper.fromHttpError(err);
           const { remainingGlobal } = applyProblemToForm(p, this.cancelForm, CANCEL_CONTROL_ID_MAP);
           this.cancelError.set(
-            remainingGlobal[0]?.message ?? p?.detail ?? p?.title ?? 'No pudimos completar la acción. Inténtalo de nuevo.',
+            remainingGlobal[0]?.message ??
+              p?.detail ??
+              p?.title ??
+              'No pudimos completar la acción. Inténtalo de nuevo.',
           );
           return EMPTY;
         }),
@@ -1587,7 +1695,10 @@ export class RequestDetailPage {
           const p = this.problemMapper.fromHttpError(err);
           const { remainingGlobal } = applyProblemToForm(p, this.rejectForm, REJECT_CONTROL_ID_MAP);
           this.rejectError.set(
-            remainingGlobal[0]?.message ?? p?.detail ?? p?.title ?? 'No pudimos completar la acción. Inténtalo de nuevo.',
+            remainingGlobal[0]?.message ??
+              p?.detail ??
+              p?.title ??
+              'No pudimos completar la acción. Inténtalo de nuevo.',
           );
           return EMPTY;
         }),

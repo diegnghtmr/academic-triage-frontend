@@ -77,10 +77,7 @@ export interface ChecklistRule {
     }
   `,
   template: `
-    <section
-      aria-label="Diagnóstico de validación"
-      aria-live="polite"
-    >
+    <section aria-label="Diagnóstico de validación" aria-live="polite">
       @if (pending().length > 0) {
         <p class="validation-checklist__heading">
           [ revisar ] {{ pending().length }} {{ title() }}
@@ -96,10 +93,7 @@ export interface ChecklistRule {
               {{ rule.label }}
             </li>
           } @else {
-            <li
-              [class]="pendingRuleClass(rule)"
-              [attr.aria-label]="'pendiente: ' + rule.label"
-            >
+            <li [class]="pendingRuleClass(rule)" [attr.aria-label]="'pendiente: ' + rule.label">
               ▸ {{ rule.label }}
             </li>
           }

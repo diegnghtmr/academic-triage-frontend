@@ -255,10 +255,7 @@ describe('RequestListPage — query-param parsing, URL writing and API integrati
 // ── Suite D — S3/W-1: empty-state source assertions (UV-11.S2) ───────────────
 
 describe('RequestListPage — S3/W-1: empty-state template source assertion (UV-11.S2)', () => {
-  const source = readFileSync(
-    new URL('./request-list-page.ts', import.meta.url).pathname,
-    'utf-8',
-  );
+  const source = readFileSync(new URL('./request-list-page.ts', import.meta.url).pathname, 'utf-8');
 
   it('template contains at-empty-state element (UV-11.S2)', () => {
     expect(source).toContain('at-empty-state');

@@ -52,7 +52,8 @@ describe('CharacterCounter — computed state (UV-5 AC5)', () => {
 
   it('uses only computed() for derived state — no internal mutable signals', () => {
     // Internal state must be derived, not mutable signal(x)
-    const internalMutablePattern = /(protected\s+readonly|readonly)\s+(?!value|min|max)\w+\s*=\s*signal\(/;
+    const internalMutablePattern =
+      /(protected\s+readonly|readonly)\s+(?!value|min|max)\w+\s*=\s*signal\(/;
     expect(internalMutablePattern.test(source)).toBe(false);
   });
 

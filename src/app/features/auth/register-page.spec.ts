@@ -9,10 +9,7 @@ import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { ProblemErrorMapper } from '../../core/http/problem-error.mapper';
-import {
-  applyProblemToForm,
-  clearServerErrors,
-} from '../../shared/utils/problem-field-mapper';
+import { applyProblemToForm, clearServerErrors } from '../../shared/utils/problem-field-mapper';
 import { messageFor } from '../../shared/i18n/validation-messages';
 
 /**
@@ -44,7 +41,9 @@ describe('RegisterPage — aria-required binding (UV-7 AC3)', () => {
   });
 
   it('UV-7 AC3: identification input binds [attr.aria-required]="true"', () => {
-    expect(source).toMatch(/formControlName="identification"[\s\S]*?\[attr\.aria-required\]="true"/);
+    expect(source).toMatch(
+      /formControlName="identification"[\s\S]*?\[attr\.aria-required\]="true"/,
+    );
   });
 
   it('UV-7 AC3: at-password-field receives [ariaRequired]="true"', () => {
@@ -105,7 +104,9 @@ describe('RegisterPage — form validators (UV-2 AC1)', () => {
     const form = buildRegisterForm();
     form.controls.username.setValue('ab');
     expect(form.controls.username.hasError('minlength')).toBe(true);
-    expect(messageFor('minlength', { requiredLength: 3, actualLength: 2 })).toBe('Mínimo 3 caracteres');
+    expect(messageFor('minlength', { requiredLength: 3, actualLength: 2 })).toBe(
+      'Mínimo 3 caracteres',
+    );
   });
 
   it('UV-2 AC2: username minlength=3 is enforced', () => {
@@ -131,7 +132,9 @@ describe('RegisterPage — form validators (UV-2 AC1)', () => {
     const form = buildRegisterForm();
     form.controls.password.setValue('short');
     expect(form.controls.password.hasError('minlength')).toBe(true);
-    expect(messageFor('minlength', { requiredLength: 8, actualLength: 5 })).toBe('Mínimo 8 caracteres');
+    expect(messageFor('minlength', { requiredLength: 8, actualLength: 5 })).toBe(
+      'Mínimo 8 caracteres',
+    );
   });
 
   it('UV-2 AC1: all fields required (email, firstName, lastName, identification)', () => {

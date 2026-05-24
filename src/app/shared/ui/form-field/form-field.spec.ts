@@ -17,23 +17,23 @@ describe('FormField — API public inputs (UV-7)', () => {
   });
 
   it('exposes controlId as required input', () => {
-    expect(source).toContain("readonly controlId = input.required<string>()");
+    expect(source).toContain('readonly controlId = input.required<string>()');
   });
 
   it('exposes required input defaulting to false', () => {
-    expect(source).toContain("readonly required = input(false)");
+    expect(source).toContain('readonly required = input(false)');
   });
 
   it('exposes hint input defaulting to null', () => {
-    expect(source).toContain("readonly hint = input<string | null>(null)");
+    expect(source).toContain('readonly hint = input<string | null>(null)');
   });
 
   it('exposes errorMessage input defaulting to null', () => {
-    expect(source).toContain("readonly errorMessage = input<string | null>(null)");
+    expect(source).toContain('readonly errorMessage = input<string | null>(null)');
   });
 
   it('exposes invalid input defaulting to false', () => {
-    expect(source).toContain("readonly invalid = input(false)");
+    expect(source).toContain('readonly invalid = input(false)');
   });
 });
 

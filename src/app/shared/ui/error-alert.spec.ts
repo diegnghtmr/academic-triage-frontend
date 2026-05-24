@@ -64,6 +64,6 @@ describe('ErrorAlert — conditional render (UV-7 AC5)', () => {
   });
 
   it('message input type is string | null with null default', () => {
-    expect(source).toContain("input<string | null>(null)");
+    expect(source).toContain('input<string | null>(null)');
   });
 });

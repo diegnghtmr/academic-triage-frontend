@@ -6,10 +6,7 @@
  */
 
 /** Type guard: checks that `value` is a plain object with a numeric property `key`. */
-function isRecordWithNumber<K extends string>(
-  value: unknown,
-  key: K,
-): value is Record<K, number> {
+function isRecordWithNumber<K extends string>(value: unknown, key: K): value is Record<K, number> {
   return (
     typeof value === 'object' &&
     value !== null &&
@@ -48,15 +45,11 @@ export function messageFor(errorKey: string, errorValue: unknown): string {
 
   switch (errorKey) {
     case 'minlength': {
-      const min = isRecordWithNumber(errorValue, 'requiredLength')
-        ? errorValue.requiredLength
-        : 0;
+      const min = isRecordWithNumber(errorValue, 'requiredLength') ? errorValue.requiredLength : 0;
       return `Mínimo ${min} caracteres`;
     }
     case 'maxlength': {
-      const max = isRecordWithNumber(errorValue, 'requiredLength')
-        ? errorValue.requiredLength
-        : 0;
+      const max = isRecordWithNumber(errorValue, 'requiredLength') ? errorValue.requiredLength : 0;
       return `Máximo ${max} caracteres`;
     }
     case 'min': {

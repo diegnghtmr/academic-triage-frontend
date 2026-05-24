@@ -51,10 +51,7 @@ function addErrors(control: AbstractControl, additions: ValidationErrors): void 
  * Validates `requestTypeId`: must not be null (required for the rule type).
  * Returns true when valid, false when invalid (sets error on the control).
  */
-function validateRequestTypeId(
-  control: AbstractControl,
-  required: boolean,
-): boolean {
+function validateRequestTypeId(control: AbstractControl, required: boolean): boolean {
   const CONDITIONAL_KEYS = ['requiredRequestTypeId'];
 
   if (!required) {
@@ -83,10 +80,7 @@ function validateRequestTypeId(
  * set by the control-level `integerOnlyValidator` is left untouched so that
  * decimal values are properly rejected (UV-9 AC5).
  */
-function validateDeadlineDays(
-  control: AbstractControl,
-  required: boolean,
-): boolean {
+function validateDeadlineDays(control: AbstractControl, required: boolean): boolean {
   // Keys owned exclusively by this conditional validator
   const CONDITIONAL_OWN_KEYS = ['requiredDeadlineDays', 'min'];
   // When hidden, also clear the control-level integer error (UV-9 AC4)
@@ -123,9 +117,7 @@ function validateDeadlineDays(
  * Usage:
  *   fb.nonNullable.group({ ... }, { validators: conditionalBusinessRuleValidator })
  */
-export function conditionalBusinessRuleValidator(
-  group: AbstractControl,
-): ValidationErrors | null {
+export function conditionalBusinessRuleValidator(group: AbstractControl): ValidationErrors | null {
   const conditionType = group.get('conditionType')?.value as ConditionType | undefined;
   const requestTypeIdCtrl = group.get('requestTypeId');
   const deadlineDaysCtrl = group.get('deadlineDays');

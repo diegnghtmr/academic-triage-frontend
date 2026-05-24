@@ -3,11 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { FormBuilder, Validators } from '@angular/forms';
 
 import type { ProblemDetail } from '../../core/http/problem-detail';
-import {
-  applyProblemToForm,
-  clearServerErrors,
-  matchControl,
-} from './problem-field-mapper';
+import { applyProblemToForm, clearServerErrors, matchControl } from './problem-field-mapper';
 
 // Helper to build a simple form group for tests
 function buildForm() {
@@ -170,7 +166,9 @@ describe('ProblemFieldMapper — applyProblemToForm', () => {
     const { remainingGlobal } = applyProblemToForm(problem, form, { email: 'reg-email' });
 
     // detail MUST appear in remainingGlobal alongside inline fieldError
-    const detailItem = remainingGlobal.find((i) => i.message === 'One or more validation errors occurred');
+    const detailItem = remainingGlobal.find(
+      (i) => i.message === 'One or more validation errors occurred',
+    );
     expect(detailItem).toBeDefined();
   });
 });

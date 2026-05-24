@@ -1,11 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -44,13 +38,9 @@ const LOGIN_CONTROL_IDS = {
           </p>
         }
 
-        <at-error-summary
-          [items]="globalErrors()"
-          (focusFirst)="focusSummaryTarget($event)"
-        />
+        <at-error-summary [items]="globalErrors()" (focusFirst)="focusSummaryTarget($event)" />
 
         <form class="login-form" [formGroup]="form" (ngSubmit)="submit()">
-
           <at-form-field
             label="Usuario o correo"
             [controlId]="ids.identifier"

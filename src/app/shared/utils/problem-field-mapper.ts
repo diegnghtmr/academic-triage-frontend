@@ -55,8 +55,7 @@ export function applyProblemToForm(
 
   const remainingGlobal: ErrorSummaryItem[] = [];
 
-  const hasFieldErrors =
-    Array.isArray(problem.fieldErrors) && problem.fieldErrors.length > 0;
+  const hasFieldErrors = Array.isArray(problem.fieldErrors) && problem.fieldErrors.length > 0;
 
   if (hasFieldErrors && problem.fieldErrors) {
     for (const entry of problem.fieldErrors) {

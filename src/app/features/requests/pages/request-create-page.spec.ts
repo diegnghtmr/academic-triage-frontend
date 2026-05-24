@@ -331,7 +331,9 @@ describe('RequestCreatePage — submit()', () => {
 
     page['submit']();
 
-    expect(page['globalSummaryItems']().some((i) => i.message === 'Description is too short.')).toBe(true);
+    expect(
+      page['globalSummaryItems']().some((i) => i.message === 'Description is too short.'),
+    ).toBe(true);
     expect(page['submitting']()).toBe(false);
   });
 });
@@ -471,7 +473,6 @@ describe('RequestCreatePage — AI suggestion', () => {
 // ---------------------------------------------------------------------------
 // Suite 5 — Catalog loading
 // ---------------------------------------------------------------------------
-
 
 describe('RequestCreatePage — catalog loading', () => {
   beforeAll(bootstrapTestEnv);

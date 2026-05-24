@@ -84,9 +84,7 @@ import { messageFor } from '@shared/i18n/validation-messages';
                 aria-required="true"
                 [attr.aria-invalid]="form.controls.name.invalid && form.controls.name.touched"
                 [attr.aria-describedby]="
-                  form.controls.name.invalid && form.controls.name.touched
-                    ? 'br-name-error'
-                    : null
+                  form.controls.name.invalid && form.controls.name.touched ? 'br-name-error' : null
                 "
               />
               @if (form.controls.name.invalid && form.controls.name.touched) {
@@ -112,7 +110,9 @@ import { messageFor } from '@shared/i18n/validation-messages';
                 "
               ></textarea>
               @if (form.controls.description.invalid && form.controls.description.touched) {
-                <span id="br-desc-error" class="field__error" role="alert">Máximo 500 caracteres.</span>
+                <span id="br-desc-error" class="field__error" role="alert"
+                  >Máximo 500 caracteres.</span
+                >
               }
             </div>
 
@@ -193,7 +193,9 @@ import { messageFor } from '@shared/i18n/validation-messages';
                   <p class="field__error" role="alert">{{ catalogError() }}</p>
                 }
                 @if (form.controls.requestTypeId.invalid && form.controls.requestTypeId.touched) {
-                  <span id="br-rtype-error" class="field__error" role="alert">Seleccione un tipo de solicitud.</span>
+                  <span id="br-rtype-error" class="field__error" role="alert"
+                    >Seleccione un tipo de solicitud.</span
+                  >
                 }
               </div>
             }
@@ -408,17 +410,13 @@ export class BusinessRuleFormPage {
    * Dynamic aria-required for requestTypeId:
    * true when conditionType requires the request type selector.
    */
-  protected readonly ariaRequiredRequestTypeId = computed(() =>
-    this.showRequestTypeSelector(),
-  );
+  protected readonly ariaRequiredRequestTypeId = computed(() => this.showRequestTypeSelector());
 
   /**
    * Dynamic aria-required for deadlineDays:
    * true when conditionType requires the deadline days input.
    */
-  protected readonly ariaRequiredDeadlineDays = computed(() =>
-    this.showDeadlineDays(),
-  );
+  protected readonly ariaRequiredDeadlineDays = computed(() => this.showDeadlineDays());
 
   /**
    * First validation error message for deadlineDays (for inline display).

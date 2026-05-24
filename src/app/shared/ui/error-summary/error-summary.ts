@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  input,
-  output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 
 /**
  * Item shape for the ErrorSummary component.
@@ -31,21 +25,12 @@ export interface ErrorSummaryItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (hasErrors()) {
-      <section
-        role="alert"
-        aria-live="assertive"
-        tabindex="-1"
-        class="error-summary"
-      >
+      <section role="alert" aria-live="assertive" tabindex="-1" class="error-summary">
         <p class="error-summary__heading">[ revisar ] {{ headline() }}</p>
         <ul class="error-summary__list">
           @for (item of items(); track item.message) {
             <li class="error-summary__item">
-              <button
-                type="button"
-                class="error-summary__btn"
-                (click)="onItemClick(item)"
-              >
+              <button type="button" class="error-summary__btn" (click)="onItemClick(item)">
                 ▸ {{ item.message }}
               </button>
             </li>

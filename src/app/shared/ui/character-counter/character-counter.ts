@@ -33,11 +33,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
     }
   `,
   template: `
-    <span
-      role="status"
-      aria-live="polite"
-      [class]="counterClass()"
-    >
+    <span role="status" aria-live="polite" [class]="counterClass()">
       {{ length() }} / {{ max() }}
       @if (min() !== null && state() === 'short') {
         <span> (mínimo {{ min() }})</span>

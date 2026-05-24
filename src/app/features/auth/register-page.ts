@@ -23,10 +23,7 @@ import {
   ValidationChecklist,
   type ChecklistRule,
 } from '@shared/ui/validation-checklist/validation-checklist';
-import {
-  applyProblemToForm,
-  clearServerErrors,
-} from '@shared/utils/problem-field-mapper';
+import { applyProblemToForm, clearServerErrors } from '@shared/utils/problem-field-mapper';
 import type { ErrorSummaryItem } from '@shared/utils/problem-field-mapper';
 
 import { messageFor } from '../../shared/i18n/validation-messages';
@@ -54,7 +51,14 @@ export const REGISTER_CONTROL_IDS = {
  */
 @Component({
   selector: 'at-register-page',
-  imports: [ReactiveFormsModule, RouterLink, FormField, PasswordField, ErrorSummary, ValidationChecklist],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    FormField,
+    PasswordField,
+    ErrorSummary,
+    ValidationChecklist,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="reg-wrap">
@@ -62,8 +66,8 @@ export const REGISTER_CONTROL_IDS = {
         <h1 class="reg-wrap__title">Registro de Estudiante</h1>
         <p class="reg-wrap__subtitle">
           Creá tu cuenta STUDENT. Al registrarte, serás redirigido a
-          <a routerLink="/auth/login">iniciar sesión</a> — no se realiza inicio de
-          sesión automático.
+          <a routerLink="/auth/login">iniciar sesión</a> — no se realiza inicio de sesión
+          automático.
         </p>
 
         <at-error-summary
@@ -73,7 +77,6 @@ export const REGISTER_CONTROL_IDS = {
         />
 
         <form class="reg-form" [formGroup]="form" (ngSubmit)="submit()">
-
           <at-form-field
             label="Usuario"
             [controlId]="ids.username"
@@ -187,11 +190,7 @@ export const REGISTER_CONTROL_IDS = {
             />
           </at-form-field>
 
-          <button
-            class="btn btn--primary"
-            type="submit"
-            [disabled]="loading()"
-          >
+          <button class="btn btn--primary" type="submit" [disabled]="loading()">
             @if (loading()) {
               Enviando…
             } @else {

@@ -69,11 +69,13 @@ describe('PasswordField — template ARIA contracts (UV-4 AC1–AC6)', () => {
   });
 
   it('controlId is a required input', () => {
-    expect(source).toContain("readonly controlId = input.required<string>()");
+    expect(source).toContain('readonly controlId = input.required<string>()');
   });
 
   it('autocomplete is a required input with literal type', () => {
-    expect(source).toContain("autocomplete = input.required<'current-password' | 'new-password'>()");
+    expect(source).toContain(
+      "autocomplete = input.required<'current-password' | 'new-password'>()",
+    );
   });
 
   it('revealed is a signal(false)', () => {
@@ -202,7 +204,9 @@ describe('PasswordField — ControlValueAccessor smoke tests (UV-12 AC3)', () =>
 
   it('UV-4 AC7: toggle does not change the internal value', () => {
     const comp = TestBed.runInInjectionContext(() => new PasswordField());
-    const writeValue = (comp as unknown as { writeValue: (v: string) => void }).writeValue.bind(comp);
+    const writeValue = (comp as unknown as { writeValue: (v: string) => void }).writeValue.bind(
+      comp,
+    );
     const toggle = (comp as unknown as { toggle: () => void }).toggle;
     const getValue = (comp as unknown as { value: () => string }).value;
 

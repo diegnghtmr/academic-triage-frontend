@@ -57,7 +57,7 @@ export class FormField {
    * W-1 fix (UV-7 AC3): Returns "true" when required, null otherwise.
    * Consumers bind: [attr.aria-required]="formField.ariaRequired()"
    */
-  readonly ariaRequired = computed(() => this.required() ? 'true' : null);
+  readonly ariaRequired = computed(() => (this.required() ? 'true' : null));
 
   /** Space-separated list of IDs for `aria-describedby`. Public for consumer input binding. */
   readonly describedBy = computed(() => {

@@ -79,8 +79,7 @@ const EMPTY_REQUEST_RESPONSE = {
 function buildSetup(opts: DetailSetupOptions = {}): RequestDetailPage {
   const getRequestByIdMock =
     opts.getRequestById ?? vi.fn().mockReturnValue(of(EMPTY_REQUEST_RESPONSE));
-  const getRequestHistoryMock =
-    opts.getRequestHistory ?? vi.fn().mockReturnValue(of([]));
+  const getRequestHistoryMock = opts.getRequestHistory ?? vi.fn().mockReturnValue(of([]));
   const classifyRequestMock = opts.classifyRequest ?? vi.fn().mockReturnValue(EMPTY);
   const prioritizeRequestMock = opts.prioritizeRequest ?? vi.fn().mockReturnValue(EMPTY);
   const assignRequestMock = opts.assignRequest ?? vi.fn().mockReturnValue(EMPTY);

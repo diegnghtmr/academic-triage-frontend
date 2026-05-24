@@ -64,7 +64,11 @@ function setup(opts: SetupOptions = {}): RequestTypeFormPage {
       { provide: Router, useValue: { navigate: vi.fn().mockResolvedValue(true) } },
       {
         provide: CatalogAdminApiService,
-        useValue: { getRequestTypeById: getById, createRequestType: create, updateRequestType: update },
+        useValue: {
+          getRequestTypeById: getById,
+          createRequestType: create,
+          updateRequestType: update,
+        },
       },
       ProblemErrorMapper,
       RequestTypeFormPage,

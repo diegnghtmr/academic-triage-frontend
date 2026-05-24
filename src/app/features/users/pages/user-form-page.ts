@@ -18,10 +18,7 @@ import { DisplayLabelPipe } from '@shared/pipes/display-label.pipe';
 import { CharacterCounter } from '@shared/ui/character-counter/character-counter';
 import { ErrorSummary } from '@shared/ui/error-summary/error-summary';
 import { FormField } from '@shared/ui/form-field/form-field';
-import {
-  applyProblemToForm,
-  clearServerErrors,
-} from '@shared/utils/problem-field-mapper';
+import { applyProblemToForm, clearServerErrors } from '@shared/utils/problem-field-mapper';
 import type { ErrorSummaryItem } from '@shared/utils/problem-field-mapper';
 import { messageFor } from '@shared/i18n/validation-messages';
 
@@ -39,7 +36,14 @@ const USER_CONTROL_IDS: Readonly<Record<string, string>> = {
 
 @Component({
   selector: 'at-user-form-page',
-  imports: [ReactiveFormsModule, RouterLink, DisplayLabelPipe, FormField, ErrorSummary, CharacterCounter],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    DisplayLabelPipe,
+    FormField,
+    ErrorSummary,
+    CharacterCounter,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="section">
@@ -79,13 +83,16 @@ const USER_CONTROL_IDS: Readonly<Record<string, string>> = {
                 maxlength="75"
                 autocomplete="given-name"
                 aria-required="true"
-                [attr.aria-invalid]="form.controls.firstName.invalid && form.controls.firstName.touched"
-                [attr.aria-describedby]="form.controls.firstName.invalid && form.controls.firstName.touched ? 'uf-firstname-error' : null"
+                [attr.aria-invalid]="
+                  form.controls.firstName.invalid && form.controls.firstName.touched
+                "
+                [attr.aria-describedby]="
+                  form.controls.firstName.invalid && form.controls.firstName.touched
+                    ? 'uf-firstname-error'
+                    : null
+                "
               />
-              <at-character-counter
-                [value]="form.controls.firstName.value"
-                [max]="75"
-              />
+              <at-character-counter [value]="form.controls.firstName.value" [max]="75" />
             </at-form-field>
 
             <at-form-field
@@ -103,13 +110,16 @@ const USER_CONTROL_IDS: Readonly<Record<string, string>> = {
                 maxlength="75"
                 autocomplete="family-name"
                 aria-required="true"
-                [attr.aria-invalid]="form.controls.lastName.invalid && form.controls.lastName.touched"
-                [attr.aria-describedby]="form.controls.lastName.invalid && form.controls.lastName.touched ? 'uf-lastname-error' : null"
+                [attr.aria-invalid]="
+                  form.controls.lastName.invalid && form.controls.lastName.touched
+                "
+                [attr.aria-describedby]="
+                  form.controls.lastName.invalid && form.controls.lastName.touched
+                    ? 'uf-lastname-error'
+                    : null
+                "
               />
-              <at-character-counter
-                [value]="form.controls.lastName.value"
-                [max]="75"
-              />
+              <at-character-counter [value]="form.controls.lastName.value" [max]="75" />
             </at-form-field>
 
             <at-form-field
@@ -117,7 +127,9 @@ const USER_CONTROL_IDS: Readonly<Record<string, string>> = {
               controlId="uf-id"
               [required]="true"
               [errorMessage]="identificationError()"
-              [invalid]="form.controls.identification.invalid && form.controls.identification.touched"
+              [invalid]="
+                form.controls.identification.invalid && form.controls.identification.touched
+              "
             >
               <input
                 class="input"
@@ -127,13 +139,16 @@ const USER_CONTROL_IDS: Readonly<Record<string, string>> = {
                 maxlength="20"
                 autocomplete="off"
                 aria-required="true"
-                [attr.aria-invalid]="form.controls.identification.invalid && form.controls.identification.touched"
-                [attr.aria-describedby]="form.controls.identification.invalid && form.controls.identification.touched ? 'uf-id-error' : null"
+                [attr.aria-invalid]="
+                  form.controls.identification.invalid && form.controls.identification.touched
+                "
+                [attr.aria-describedby]="
+                  form.controls.identification.invalid && form.controls.identification.touched
+                    ? 'uf-id-error'
+                    : null
+                "
               />
-              <at-character-counter
-                [value]="form.controls.identification.value"
-                [max]="20"
-              />
+              <at-character-counter [value]="form.controls.identification.value" [max]="20" />
             </at-form-field>
 
             <at-form-field
@@ -151,7 +166,11 @@ const USER_CONTROL_IDS: Readonly<Record<string, string>> = {
                 autocomplete="email"
                 aria-required="true"
                 [attr.aria-invalid]="form.controls.email.invalid && form.controls.email.touched"
-                [attr.aria-describedby]="form.controls.email.invalid && form.controls.email.touched ? 'uf-email-error' : null"
+                [attr.aria-describedby]="
+                  form.controls.email.invalid && form.controls.email.touched
+                    ? 'uf-email-error'
+                    : null
+                "
               />
             </at-form-field>
 
@@ -168,7 +187,9 @@ const USER_CONTROL_IDS: Readonly<Record<string, string>> = {
                 formControlName="role"
                 aria-required="true"
                 [attr.aria-invalid]="form.controls.role.invalid && form.controls.role.touched"
-                [attr.aria-describedby]="form.controls.role.invalid && form.controls.role.touched ? 'uf-role-error' : null"
+                [attr.aria-describedby]="
+                  form.controls.role.invalid && form.controls.role.touched ? 'uf-role-error' : null
+                "
               >
                 @for (r of roleOptions; track r) {
                   <option [value]="r">{{ r | displayLabel: 'role' }}</option>
@@ -183,11 +204,7 @@ const USER_CONTROL_IDS: Readonly<Record<string, string>> = {
               </label>
             </div>
 
-            <button
-              class="btn btn--primary"
-              type="submit"
-              [disabled]="submitting()"
-            >
+            <button class="btn btn--primary" type="submit" [disabled]="submitting()">
               @if (submitting()) {
                 Guardando…
               } @else {

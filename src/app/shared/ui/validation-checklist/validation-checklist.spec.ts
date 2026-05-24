@@ -63,7 +63,8 @@ describe('ValidationChecklist — computed state (UV-5 AC1–AC2)', () => {
   });
 
   it('uses only computed() for derived state — no internal mutable signals', () => {
-    const internalMutablePattern = /(protected\s+readonly|readonly)\s+(?!rules|title)\w+\s*=\s*signal\(/;
+    const internalMutablePattern =
+      /(protected\s+readonly|readonly)\s+(?!rules|title)\w+\s*=\s*signal\(/;
     expect(internalMutablePattern.test(source)).toBe(false);
   });
 });

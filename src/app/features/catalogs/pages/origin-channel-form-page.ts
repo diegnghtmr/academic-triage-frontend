@@ -16,10 +16,7 @@ import { ProblemErrorMapper } from '@core/http/problem-error.mapper';
 import { messageFor } from '@shared/i18n/validation-messages';
 import { ErrorSummary } from '@shared/ui/error-summary/error-summary';
 import { FormField } from '@shared/ui/form-field/form-field';
-import {
-  applyProblemToForm,
-  clearServerErrors,
-} from '@shared/utils/problem-field-mapper';
+import { applyProblemToForm, clearServerErrors } from '@shared/utils/problem-field-mapper';
 import type { ErrorSummaryItem } from '@shared/utils/problem-field-mapper';
 
 import { CatalogAdminApiService } from '../data-access/catalog-admin-api.service';
@@ -73,7 +70,9 @@ const OC_CONTROL_IDS = {
                 autocomplete="off"
                 aria-required="true"
                 [attr.aria-invalid]="form.controls.name.invalid && form.controls.name.touched"
-                [attr.aria-describedby]="form.controls.name.invalid && form.controls.name.touched ? 'oc-name-error' : null"
+                [attr.aria-describedby]="
+                  form.controls.name.invalid && form.controls.name.touched ? 'oc-name-error' : null
+                "
               />
             </at-form-field>
 

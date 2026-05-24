@@ -17,10 +17,7 @@ import { messageFor } from '@shared/i18n/validation-messages';
 import { CharacterCounter } from '@shared/ui/character-counter/character-counter';
 import { ErrorSummary } from '@shared/ui/error-summary/error-summary';
 import { FormField } from '@shared/ui/form-field/form-field';
-import {
-  applyProblemToForm,
-  clearServerErrors,
-} from '@shared/utils/problem-field-mapper';
+import { applyProblemToForm, clearServerErrors } from '@shared/utils/problem-field-mapper';
 import type { ErrorSummaryItem } from '@shared/utils/problem-field-mapper';
 
 import { CatalogAdminApiService } from '../data-access/catalog-admin-api.service';
@@ -75,7 +72,9 @@ const RT_CONTROL_IDS = {
                 autocomplete="off"
                 aria-required="true"
                 [attr.aria-invalid]="form.controls.name.invalid && form.controls.name.touched"
-                [attr.aria-describedby]="form.controls.name.invalid && form.controls.name.touched ? 'rt-name-error' : null"
+                [attr.aria-describedby]="
+                  form.controls.name.invalid && form.controls.name.touched ? 'rt-name-error' : null
+                "
               />
             </at-form-field>
 
@@ -91,13 +90,16 @@ const RT_CONTROL_IDS = {
                 rows="4"
                 formControlName="description"
                 maxlength="500"
-                [attr.aria-invalid]="form.controls.description.invalid && form.controls.description.touched"
-                [attr.aria-describedby]="form.controls.description.invalid && form.controls.description.touched ? 'rt-desc-error' : null"
+                [attr.aria-invalid]="
+                  form.controls.description.invalid && form.controls.description.touched
+                "
+                [attr.aria-describedby]="
+                  form.controls.description.invalid && form.controls.description.touched
+                    ? 'rt-desc-error'
+                    : null
+                "
               ></textarea>
-              <at-character-counter
-                [value]="form.controls.description.value"
-                [max]="500"
-              />
+              <at-character-counter [value]="form.controls.description.value" [max]="500" />
             </at-form-field>
 
             <div class="form-actions">

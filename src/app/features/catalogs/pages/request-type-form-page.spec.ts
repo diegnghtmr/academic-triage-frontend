@@ -247,7 +247,9 @@ describe('RequestTypeFormPage', () => {
     (page as unknown as PageInternals).submit();
 
     const items = page['summaryItems']();
-    expect(items.some((i: { message: string }) => i.message.includes('Database is down'))).toBe(true);
+    expect(items.some((i: { message: string }) => i.message.includes('Database is down'))).toBe(
+      true,
+    );
   });
 
   it('C6: submit() is a no-op when form is invalid — no API call', () => {

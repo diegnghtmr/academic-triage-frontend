@@ -80,11 +80,7 @@ const CONTROL_ID_MAP: Readonly<Record<string, string>> = {
 
       <div class="card">
         <form class="create-form" [formGroup]="form" (ngSubmit)="submit()">
-
-          <at-error-summary
-            [items]="globalSummaryItems()"
-            (focusFirst)="focusField($event)"
-          />
+          <at-error-summary [items]="globalSummaryItems()" (focusFirst)="focusField($event)" />
 
           <at-form-field
             label="Tipo de solicitud"
@@ -229,11 +225,7 @@ const CONTROL_ID_MAP: Readonly<Record<string, string>> = {
             </section>
           }
 
-          <at-form-field
-            label="Fecha límite"
-            controlId="crt-deadline"
-            [required]="false"
-          >
+          <at-form-field label="Fecha límite" controlId="crt-deadline" [required]="false">
             <input class="input" id="crt-deadline" type="date" formControlName="deadline" />
           </at-form-field>
 
