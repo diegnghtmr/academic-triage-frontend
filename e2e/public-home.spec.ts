@@ -23,18 +23,19 @@ test.describe('public home critical path', () => {
     await submitButton.click();
 
     // After click on empty form, required inputs should be marked invalid.
-    // Use getByRole('textbox') to disambiguate from ValidationChecklist
-    // list items that share the field name via aria-label.
-    const usuarioInput = page.getByRole('textbox', { name: 'Usuario', exact: true });
-    await expect(usuarioInput).toHaveAttribute('aria-invalid', 'true');
+    // Locate by stable ID (REGISTER_CONTROL_IDS) instead of label/role —
+    // FormField+PasswordField composition and the ValidationChecklist
+    // aria-labels make getByLabel/getByRole ambiguous.
+    const usernameInput = page.locator('#reg-username');
+    await expect(usernameInput).toHaveAttribute('aria-invalid', 'true');
 
     const suffix = Date.now();
-    await usuarioInput.fill(`qa-user-${suffix}`);
-    await page.getByRole('textbox', { name: /Correo/i }).fill(`qa-user-${suffix}@example.com`);
-    await page.getByLabel('Contraseña', { exact: true }).fill('TestPassw0rd!');
-    await page.getByRole('textbox', { name: 'Nombre', exact: true }).fill('QA');
-    await page.getByRole('textbox', { name: 'Apellido', exact: true }).fill('Automation');
-    await page.getByRole('textbox', { name: 'Identificación', exact: true }).fill(`ID-${suffix}`);
+    await usernameInput.fill(`qa-user-${suffix}`);
+    await page.locator('#reg-email').fill(`qa-user-${suffix}@example.com`);
+    await page.locator('#reg-password').fill('TestPassw0rd!');
+    await page.locator('#reg-first').fill('QA');
+    await page.locator('#reg-last').fill('Automation');
+    await page.locator('#reg-id').fill(`ID-${suffix}`);
 
     await expect(submitButton).toBeEnabled();
   });
