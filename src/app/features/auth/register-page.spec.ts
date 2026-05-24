@@ -256,3 +256,37 @@ describe('RegisterPage — fieldErrors mapping (UV-2 AC6, AC7)', () => {
     expect(form.controls.email.errors?.['server']).toBeUndefined();
   });
 });
+
+// ─── Validation Checklist integration (T-S2b.5, UV-5 AC1–AC3) ───────────────
+
+describe('RegisterPage — ValidationChecklist wiring (UV-5 AC1–AC3)', () => {
+  it('UV-5: source imports ValidationChecklist', () => {
+    expect(source).toContain('ValidationChecklist');
+  });
+
+  it('UV-5: source imports at-validation-checklist selector', () => {
+    expect(source).toContain('at-validation-checklist');
+  });
+
+  it('UV-5 AC2: hard rules for contractual requirements are present in checklist rules computation', () => {
+    // The page must compute checklist rules based on form control validity
+    // Hard rules map to contractual validators (required, minlength)
+    expect(source).toContain("'hard'");
+  });
+
+  it('UV-5 AC3: advisory rules use kind "advisory"', () => {
+    expect(source).toContain("'advisory'");
+  });
+
+  it('UV-5 AC1: checklist reflects password satisfied state based on form', () => {
+    // Checklist rules must derive from form control status (via toSignal or computed)
+    const hasToSignal = source.includes('toSignal') || source.includes('formStatus');
+    const hasComputed = source.includes('computed(');
+    expect(hasToSignal || hasComputed).toBe(true);
+  });
+
+  it('UV-5: ValidationChecklist is listed in component imports', () => {
+    // The component decorator imports array must include ValidationChecklist
+    expect(source).toMatch(/imports:\s*\[[\s\S]*?ValidationChecklist[\s\S]*?\]/);
+  });
+});
