@@ -1,4 +1,4 @@
--# Academic Triage System Frontend
+# Academic Triage System Frontend
 
 Angular 20 SPA that acts as the web client for the academic triage system at Universidad del Quindío. It consumes **exclusively** the official [`academic-triage-system`](../academic-triage-system) backend through `/api/v1`.
 
