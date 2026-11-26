@@ -104,6 +104,10 @@ npm run test:e2e
 
 [CI](.github/workflows/ci-cd.yml) runs the quality gate and production build, and runs Chromium E2E on pushes. Playwright starts the Angular server if needed and covers the public home and role access. `npm run test:unit:watch` and `npm run test:e2e:ui` are interactive alternatives; `npm run lint:fix`, `npm run format`, and `npm run ng -- <command>` are available for development.
 
+## Documentation
+
+- [Frontend reference](docs/frontend-reference.md) — repository map, design rules, role and route matrix, API concurrency, deployment, and browser validation.
+
 ## Related repositories
 
 - [academic-triage-system](https://github.com/diegnghtmr/academic-triage-system) — Java API, domain rules, audit history, and migrations.
