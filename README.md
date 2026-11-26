@@ -457,3 +457,7 @@ If you are reviewing or extending this project, start with:
 3. The companion backend repository for the live API.
 
 That path gives you the runtime model, the developer workflow, and the integration rules in the right order.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
